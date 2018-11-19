@@ -1,5 +1,6 @@
 import { VertexData } from "../../interfaces.js";
 import { VertexDragHandler } from "./vertexDragHandler.js";
+import { DragRegistry } from "./dragRegistry.js";
 
 export class VertexWrapper {
   public static fillColor = 0xFFFF00;
@@ -9,9 +10,9 @@ export class VertexWrapper {
   private graphics: PIXI.Graphics;
   private width: number;
   private height: number;
-  private dragListeners: Array<(x: number, y: number) => void> = [];
+  private dragListeners: Array<(x: number, y: number, ctrlKey: boolean) => void> = [];
 
-  constructor(data: VertexData) {
+  constructor(data: VertexData, dragRegistry: DragRegistry) {
     this.graphics = new PIXI.Graphics();
     this.width = data.geo.w;
     this.height = data.geo.h;
@@ -19,10 +20,11 @@ export class VertexWrapper {
 
     this.graphics.interactive = true;
     this.graphics.buttonMode = true;
-    const dragHandler = new VertexDragHandler(this);
-    dragHandler.afterDrag((x: number, y: number) => {
+    // this.graphics.hitArea = new PIXI.Rectangle(data.geo.w, data.geo.h);
+    const dragHandler = new VertexDragHandler(this, dragRegistry);
+    dragHandler.afterDrag((x: number, y: number, ctrlKey: boolean) => {
       for (const listener of this.dragListeners) {
-        listener(x, y);
+        listener(x, y, ctrlKey);
       }
     })
 
@@ -43,11 +45,11 @@ export class VertexWrapper {
     this.height = data.geo.h;
   }
 
-  public addDragListener(listener: (x: number, y: number) => void): void {
+  public addDragListener(listener: (x: number, y: number, ctrlKey: boolean) => void): void {
     this.dragListeners.push(listener);
   }
 
-  public addAsChildTo(obj: PIXI.Container): void {
+  public addTo(obj: PIXI.Container): void {
     obj.addChild(this.graphics);
   }
 

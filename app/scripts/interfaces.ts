@@ -1,8 +1,8 @@
 
-export interface PortData {
-  side: "top" | "bottom" | "left" | "right";
-  position: number; // 0 to 1
-}
+// export interface PortData {
+//   side: "top" | "bottom" | "left" | "right";
+//   position: number; // 0 to 1
+// }
 
 export interface VertexData {
   geo: {
@@ -11,17 +11,17 @@ export interface VertexData {
     w: number;
     h: number;
   };
-  ports: {
-    [key: string]: PortData;
-  };
+  // ports: {
+  //   [key: string]: PortData;
+  // };
 }
 
-export interface EdgeData {
-  source_vtx: string;
-  target_vtx: string;
-  source_port: string;
-  target_port: string;
-}
+// export interface EdgeData {
+//   source_vtx: string;
+//   target_vtx: string;
+//   source_port: string;
+//   target_port: string;
+// }
 
 export interface ModelData {
   vertices: {
@@ -52,4 +52,9 @@ export type ModelChangeRequest = {
   vertexId: string;
   w: number;
   h: number;
+} | {
+  type: "cloneVertex";
+  vertexId: string;
+  x: number;
+  y: number;
 };

@@ -13,7 +13,7 @@ export class Graph {
             w: 100,
             h: 100,
           },
-          ports: {},
+          // ports: {},
         }
       },
     };

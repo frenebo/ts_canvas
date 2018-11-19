@@ -1,20 +1,24 @@
 import { VertexWrapper } from "./vertexWrapper.js";
+import { DragRegistry } from "./dragRegistry.js";
 
 export class VertexDragHandler {
   private static ghostAlpha = 0.5;
   private vtxWrapper: VertexWrapper;
+  private dragRegistry: DragRegistry;
 
   private dragData: null | {
     mouseLocalPos: {
       x: number;
       y: number;
     };
+    isCtrlDrag: boolean;
     dragOutline: PIXI.Graphics;
   } = null;
-  private moveListeners: Array<(x: number, y: number) => void> = [];
+  private dragListeners: Array<(x: number, y: number, ctrlKey: boolean) => void> = [];
 
-  constructor(vertex: VertexWrapper) {
+  constructor(vertex: VertexWrapper, dragRegistry: DragRegistry) {
     this.vtxWrapper = vertex;
+    this.dragRegistry = dragRegistry;
     const that = this;
 
     this.vtxWrapper
@@ -28,11 +32,17 @@ export class VertexDragHandler {
       .on('touchmove',       (event: PIXI.interaction.InteractionEvent) => that.onDragMove(event));
   }
 
-  public afterDrag(listener: (x: number, y: number) => void): void {
-    this.moveListeners.push(listener);
+  public afterDrag(listener: (x: number, y: number, ctrlKey: boolean) => void): void {
+    this.dragListeners.push(listener);
   }
 
   private onDragStart(event: PIXI.interaction.InteractionEvent): void {
+    if (this.dragData !== null) throw new Error("Previous drag has not ended");
+    if (this.dragRegistry.isLocked()) return;
+    this.dragRegistry.lock();
+
+    console.log("vertex drag start")
+
     const dragOutline = new PIXI.Graphics();
     this.vtxWrapper.addChild(dragOutline);
 
@@ -51,6 +61,7 @@ export class VertexDragHandler {
         y: event.data.global.y - this.vtxWrapper.getY(),
       },
       dragOutline: dragOutline,
+      isCtrlDrag: event.data.originalEvent.ctrlKey,
     };
   }
 
@@ -62,12 +73,12 @@ export class VertexDragHandler {
     const newVertexX = event.data.global.x - this.dragData.mouseLocalPos.x;
     const newVertexY = event.data.global.y - this.dragData.mouseLocalPos.y;
 
-
-    for (const listener of this.moveListeners) {
-      listener(newVertexX, newVertexY);
+    for (const listener of this.dragListeners) {
+      listener(newVertexX, newVertexY, this.dragData.isCtrlDrag);
     }
 
     this.dragData = null;
+    this.dragRegistry.unlock();
   }
 
   private onDragMove(event: PIXI.interaction.InteractionEvent): void {
