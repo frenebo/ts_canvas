@@ -7,11 +7,10 @@ export class Graph {
     this.modelData = {
       vertices: {
         "someVertex": {
+          label: "Default Layer",
           geo: {
             x: 100,
             y: 100,
-            w: 100,
-            h: 100,
           },
           // ports: {},
         }
@@ -29,13 +28,5 @@ export class Graph {
 
     vtx.geo.x = x;
     vtx.geo.y = y;
-  }
-
-  public resizeVertex(vtxId: string, w: number, h: number): void {
-    const vtx = this.modelData.vertices[vtxId];
-    if (vtx === undefined) throw new Error(`Could not find vertex with id ${vtxId}`);
-
-    vtx.geo.w = w;
-    vtx.geo.h = h;
   }
 }

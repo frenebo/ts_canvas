@@ -5,11 +5,12 @@
 // }
 
 export interface VertexData {
+  label: string;
   geo: {
     x: number;
     y: number;
-    w: number;
-    h: number;
+    // w: number;
+    // h: number;
   };
   // ports: {
   //   [key: string]: PortData;
@@ -25,7 +26,7 @@ export interface VertexData {
 
 export interface ModelData {
   vertices: {
-    [key: string]:VertexData;
+    [key: string]: VertexData;
   };
   // edges: {
   //   [key: string]: EdgeData;
@@ -47,11 +48,6 @@ export type ModelChangeRequest = {
   vertexId: string;
   x: number;
   y: number;
-} | {
-  type: "resizeVertex";
-  vertexId: string;
-  w: number;
-  h: number;
 } | {
   type: "cloneVertex";
   vertexId: string;

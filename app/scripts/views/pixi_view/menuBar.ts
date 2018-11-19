@@ -83,8 +83,8 @@ class MenuItem {
       dropShadowBlur: 4,
       dropShadowAngle: Math.PI / 6,
       dropShadowDistance: 6,
-      wordWrap: true,
-      wordWrapWidth: 440,
+      // wordWrap: true,
+      // wordWrapWidth: 440,
     });
 
     this.text = new PIXI.Text(label, textStyle);

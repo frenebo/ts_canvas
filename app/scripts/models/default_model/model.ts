@@ -19,8 +19,6 @@ export class DefaultModel implements ModelInterface {
   public requestModelChange(req: ModelChangeRequest): void {
     if (req.type === "moveVertex") {
       this.graph.moveVertex(req.vertexId, req.x, req.y);
-    } else if (req.type === "resizeVertex") {
-      this.graph.resizeVertex(req.vertexId, req.w, req.h);
     } else {
       console.log(`Unimplemented request ${req}`);
     }
