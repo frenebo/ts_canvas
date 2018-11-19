@@ -22,7 +22,7 @@ export class DefaultModel implements ModelInterface {
     } else if (req.type === "resizeVertex") {
       this.graph.resizeVertex(req.vertexId, req.w, req.h);
     } else {
-      throw new Error(`Unimplemented request ${req}`);
+      console.log(`Unimplemented request ${req}`);
     }
 
     for (const listener of this.modelChangedListeners) {
