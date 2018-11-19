@@ -1,4 +1,4 @@
-import { ModelInterface, ViewInterface } from "./interfaces";
+import { ModelInterface, ViewInterface, ModelChangeRequest } from "./interfaces";
 
 
 export class Messenger {
@@ -19,21 +19,12 @@ export class Messenger {
   public addView(view: ViewInterface): void {
     this.views.push(view);
     view.setModelData(this.model.getModelData());
+  }
 
-    // setTimeout(() => {
-    //   view.setModelData({
-    //     vertices: {
-    //       "someVertex": {
-    //         geo: {
-    //           x: 100,
-    //           y: 100,
-    //           w: 100,
-    //           h: 100,
-    //         },
-    //         ports: {}
-    //       }
-    //     }
-    //   });
-    // }, 200);
+  public newRequestHandler(): (req: ModelChangeRequest) => void {
+    const that = this;
+    return (req: ModelChangeRequest) => {
+      that.model.requestModelChange(req);
+    }
   }
 }

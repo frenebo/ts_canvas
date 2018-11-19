@@ -9,5 +9,5 @@ export function main(div: HTMLDivElement): void {
 
   const model = new DefaultModel;
   const messenger = new Messenger(model);
-  messenger.addView(new PixiView(div));
+  messenger.addView(new PixiView(div, messenger.newRequestHandler()));
 }

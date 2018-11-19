@@ -39,6 +39,7 @@ export interface ViewInterface {
 export interface ModelInterface {
   getModelData(): ModelData;
   addModelChangedListener(listener: () => void): void;
+  requestModelChange(req: ModelChangeRequest): void;
 }
 
 export type ModelChangeRequest = {
