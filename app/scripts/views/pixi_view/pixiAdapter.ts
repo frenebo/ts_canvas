@@ -55,7 +55,8 @@ export class PixiAdapter {
 class VertexDragHandler {
   private vertex: PIXI.Graphics;
   private dragData: null | {
-
+    startX: number;
+    startY: number;
   } = null;
 
   constructor(vertex: PIXI.Graphics) {
@@ -66,23 +67,27 @@ class VertexDragHandler {
     this.vertex.buttonMode = true;
 
     this.vertex
-      .on('mousedown',       (...args: unknown[]) => that.onDragStart(args))
-      .on('touchstart',      (...args: unknown[]) => that.onDragStart(args))
-      .on('mouseup',         (...args: unknown[]) => that.onDragEnd(args))
-      .on('mouseupoutside',  (...args: unknown[]) => that.onDragEnd(args))
-      .on('touchend',        (...args: unknown[]) => that.onDragEnd(args))
-      .on('touchendoutside', (...args: unknown[]) => that.onDragEnd(args))
-      .on('mousemove',       (...args: unknown[]) => that.onDragMove(args))
-      .on('touchmove',       (...args: unknown[]) => that.onDragMove(args));
+      .on('mousedown',       (data: unknown) => that.onDragStart(data))
+      .on('touchstart',      (data: unknown) => that.onDragStart(data))
+      .on('mouseup',         (data: unknown) => that.onDragEnd(data))
+      .on('mouseupoutside',  (data: unknown) => that.onDragEnd(data))
+      .on('touchend',        (data: unknown) => that.onDragEnd(data))
+      .on('touchendoutside', (data: unknown) => that.onDragEnd(data))
+      .on('mousemove',       (data: unknown) => that.onDragMove(data))
+      .on('touchmove',       (data: unknown) => that.onDragMove(data));
   }
 
-  private onDragStart(...args: unknown[]): void {
-    console.log(args);
+  private onDragStart(data: unknown): void {
+    console.log(data);
+    // this.dragData = {
+    //   startX:
+    // }
+    // console.log(args);
   }
-  private onDragEnd(...args: unknown[]): void {
-    console.log(args);
+  private onDragEnd(data: unknown): void {
+    console.log(data);
   }
-  private onDragMove(...args: unknown[]): void {
+  private onDragMove(data: unknown): void {
     // console.log(args);
   }
 }
