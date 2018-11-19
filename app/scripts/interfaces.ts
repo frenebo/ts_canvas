@@ -38,4 +38,17 @@ export interface ViewInterface {
 
 export interface ModelInterface {
   getModelData(): ModelData;
+  addModelChangedListener(listener: () => void): void;
 }
+
+export type ModelChangeRequest = {
+  type: "moveVertex";
+  vertexId: string;
+  x: number;
+  y: number;
+} | {
+  type: "resizeVertex";
+  vertexId: string;
+  w: number;
+  h: number;
+};
