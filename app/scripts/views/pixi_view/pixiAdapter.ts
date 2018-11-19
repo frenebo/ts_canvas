@@ -2,10 +2,12 @@ import { VertexData, ModelChangeRequest } from "../../interfaces.js";
 import { VertexWrapper } from "./vertexWrapper.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
 import { DragRegistry } from "./dragRegistry.js";
+import { MenuBar } from "./menuBar.js";
 
 export class PixiAdapter {
   private app: PIXI.Application;
   private backgroundWrapper: BackgroundWrapper;
+  private menuBar: MenuBar;
   private sendModelChangeRequest: (req: ModelChangeRequest) => void;
   private dragRegistry: DragRegistry;
 
@@ -15,11 +17,14 @@ export class PixiAdapter {
 
   constructor(div: HTMLDivElement, sendModelChangeRequest: (req: ModelChangeRequest) => void) {
     this.sendModelChangeRequest = sendModelChangeRequest;
+    this.dragRegistry = new DragRegistry();
     this.app = new PIXI.Application(800, 600, { resolution: window.devicePixelRatio || 1 });
     div.appendChild(this.app.view);
-    this.dragRegistry = new DragRegistry();
     this.backgroundWrapper = new BackgroundWrapper(this.app.renderer.width, this.app.renderer.height, this.dragRegistry);
     this.backgroundWrapper.addTo(this.app.stage);
+
+    this.menuBar = new MenuBar(this.dragRegistry);
+    this.menuBar.addTo(this.app.stage);
 
     this.app.ticker.start(); // To continually refresh view
   }

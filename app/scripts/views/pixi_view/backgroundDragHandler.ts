@@ -37,8 +37,6 @@ export class BackgroundDragHandler {
     if (this.dragRegistry.isLocked()) return;
     this.dragRegistry.lock();
 
-    console.log("Background drag start");
-
     this.dragData = {
       mouseStart: {
         x: event.data.global.x,

@@ -3,8 +3,8 @@ import { VertexDragHandler } from "./vertexDragHandler.js";
 import { DragRegistry } from "./dragRegistry.js";
 
 export class VertexWrapper {
-  public static fillColor = 0xFFFF00;
-  public static borderColor = 0xFF0000;
+  public static fillColor = 0xE6E6E6;
+  public static borderColor = 0x333333;
   public static borderWidth = 5;
 
   private graphics: PIXI.Graphics;
@@ -26,9 +26,8 @@ export class VertexWrapper {
       for (const listener of this.dragListeners) {
         listener(x, y, ctrlKey);
       }
-    })
+    });
 
-    // console.log(graphicsVertex.position);
     this.graphics.beginFill(VertexWrapper.fillColor);
 
     // set the line style to have a width of 5 and set the color to red

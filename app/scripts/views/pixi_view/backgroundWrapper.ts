@@ -25,6 +25,7 @@ export class BackgroundWrapper {
     this.childContainer.addChild(obj);
   }
 
+  // @TODO make more general interface for adding/removing children
   public addVertex(vtxWrapper: VertexWrapper): void {
     vtxWrapper.addTo(this.childContainer);
   }
