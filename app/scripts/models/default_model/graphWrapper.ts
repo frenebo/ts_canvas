@@ -6,16 +6,35 @@ export class Graph {
   constructor() {
     this.modelData = {
       vertices: {
-        "someVertex": {
-          label: "Default Layer",
-          geo: {
-            x: 100,
-            y: 100,
-          },
-          // ports: {},
-        }
+        // "someVertex": {
+        //   label: "Default Layer",
+        //   geo: {
+        //     x: 100,
+        //     y: 100,
+        //   },
+        //   ports: {},
+        // }
       },
     };
+    for (let i = 0; i < 100; i++) {
+      this.modelData.vertices[i.toString()] = {
+        label: i.toString(),
+        geo: {
+          x: i*5,
+          y: i*5,
+        },
+        ports: {
+          "input0": {
+            side: "top",
+            position: 0.5,
+          },
+          "outpot0": {
+            side: "bottom",
+            position: 0.5,
+          }
+        }
+      }
+    }
   }
 
   public getModelData(): ModelData {

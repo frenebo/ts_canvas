@@ -1,8 +1,8 @@
 
-// export interface PortData {
-//   side: "top" | "bottom" | "left" | "right";
-//   position: number; // 0 to 1
-// }
+export interface PortData {
+  side: "top" | "bottom" | "left" | "right";
+  position: number; // 0 to 1
+}
 
 export interface VertexData {
   label: string;
@@ -12,9 +12,9 @@ export interface VertexData {
     // w: number;
     // h: number;
   };
-  // ports: {
-  //   [key: string]: PortData;
-  // };
+  ports: {
+    [key: string]: PortData;
+  };
 }
 
 // export interface EdgeData {
