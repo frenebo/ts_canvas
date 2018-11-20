@@ -1,6 +1,7 @@
 import { VertexData } from "../../interfaces.js";
 import { VertexDragHandler } from "./vertexDragHandler.js";
 import { DragRegistry } from "./dragRegistry.js";
+import { EditIcon } from "./icons/editIcon.js";
 
 export class VertexWrapper {
   public static fillColor = 0xE6E6E6;
@@ -14,6 +15,7 @@ export class VertexWrapper {
   private height: number;
   private dragListeners: Array<(x: number, y: number, ctrlKey: boolean) => void> = [];
   private label: PIXI.Text;
+  private editIcon: EditIcon;
 
   constructor(data: VertexData, dragRegistry: DragRegistry) {
     this.graphics = new PIXI.Graphics();
@@ -56,14 +58,23 @@ export class VertexWrapper {
     });
 
     this.label = new PIXI.Text(data.label, textStyle);
-
-    this.centerLabel();
-
     this.graphics.addChild(this.label);
+
+    this.editIcon = new EditIcon(dragRegistry);
+    this.editIcon.addTo(this.graphics);
+    this.editIcon.addClickListener(() => {
+      console.log("Edit icon clicked");
+    });
+
+    this.positionChildren();
   }
 
-  private centerLabel(): void {
-    this.label.x = (this.graphics.width - this.label.width)/2;
+  private positionChildren(): void {
+    const padding = (this.graphics.height - this.editIcon.getHeight())/2;
+    this.editIcon.setPosition(this.graphics.width - (this.editIcon.getWidth() + padding), padding);
+    const widthForLabel = this.graphics.width - (this.editIcon.getWidth() + padding);
+
+    this.label.x = (widthForLabel - this.label.width)/2;
     this.label.y = (this.graphics.height - this.label.height)/2;
   }
 
@@ -73,7 +84,7 @@ export class VertexWrapper {
     }
     if (this.label.text !== data.label) {
       this.label.text = data.label;
-      this.centerLabel();
+      this.positionChildren();
     }
   }
 
@@ -116,5 +127,9 @@ export class VertexWrapper {
   public on(ev: string, fn: Function, context?: any): this {
     this.graphics.on(ev, fn, context);
     return this;
+  }
+
+  public getDataRelativeLoc(data: PIXI.interaction.InteractionData): PIXI.Point {
+    return data.getLocalPosition(this.graphics);
   }
 }
