@@ -29,18 +29,23 @@ export class EdgeDrawHandler {
     };
   }
 
-  public updateLineEnd(cursorLocalX: number, cursorLocalY: number): void {
+  public redrawLine(endX: number, endY: number, validity?: "valid" | "invalid"): void {
     if (this.dragData === null) throw new Error("Not currently drawing edge");
 
     const startX = this.dragData.sourcePort.localX() + this.dragData.sourcePort.getWidth()/2 + this.dragData.sourceVtx.localX();
     const startY = this.dragData.sourcePort.localY() + this.dragData.sourcePort.getHeight()/2 + this.dragData.sourceVtx.localY();
 
     this.dragData.graphics.clear();
-    this.dragData.graphics.lineColor = 0x000000;
+
+    if (validity === undefined) this.dragData.graphics.lineColor = 0x444444;
+    else if (validity === "valid") this.dragData.graphics.lineColor = 0x009933;
+    else if (validity === "invalid") this.dragData.graphics.lineColor = 0xCC0000;
+    else throw new Error(`Unknown validity value ${validity}`);
+
     this.dragData.graphics.lineWidth = 10;
     // this.dragData.graphics.position.set(startX, startY);
     this.dragData.graphics.moveTo(startX, startY);
-    this.dragData.graphics.lineTo(cursorLocalX, cursorLocalY);
+    this.dragData.graphics.lineTo(endX, endY);
   }
 
   public endDrag(): void {

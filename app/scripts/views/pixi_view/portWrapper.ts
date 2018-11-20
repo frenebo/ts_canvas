@@ -31,7 +31,7 @@ export class PortWrapper {
   private dragMoveListeners: Array<(x: number, y: number) => void> = [];
   private dragEndListeners: Array<(x: number, y: number) => void> = [];
 
-  constructor(dragRegistry: DragRegistry, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer) {
+  constructor(dragRegistry: DragRegistry, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer, isOutput: boolean) {
     this.dragRegistry = dragRegistry;
 
     this.sprite = PortWrapper.createSprite(renderer);
@@ -40,15 +40,18 @@ export class PortWrapper {
     this.sprite.buttonMode = true;
 
     const that = this;
-    this.sprite
-      .on('mousedown',       (event: PIXI.interaction.InteractionEvent) => that.onDragStart(event))
-      .on('touchstart',      (event: PIXI.interaction.InteractionEvent) => that.onDragStart(event))
-      .on('mouseup',         (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-      .on('mouseupoutside',  (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-      .on('touchend',        (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-      .on('touchendoutside', (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-      .on('mousemove',       (event: PIXI.interaction.InteractionEvent) => that.onDragMove(event))
-      .on('touchmove',       (event: PIXI.interaction.InteractionEvent) => that.onDragMove(event));
+
+    if (isOutput) {
+      this.sprite
+        .on('mousedown',       (event: PIXI.interaction.InteractionEvent) => that.onDragStart(event))
+        .on('touchstart',      (event: PIXI.interaction.InteractionEvent) => that.onDragStart(event))
+        .on('mouseup',         (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
+        .on('mouseupoutside',  (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
+        .on('touchend',        (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
+        .on('touchendoutside', (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
+        .on('mousemove',       (event: PIXI.interaction.InteractionEvent) => that.onDragMove(event))
+        .on('touchmove',       (event: PIXI.interaction.InteractionEvent) => that.onDragMove(event));
+    }
   }
 
   public addDragStartListener(listener: (x: number, y: number) => void): void {

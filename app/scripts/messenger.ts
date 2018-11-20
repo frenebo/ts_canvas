@@ -1,4 +1,4 @@
-import { ModelInterface, ViewInterface, ModelChangeRequest } from "./interfaces";
+import { ModelInterface, ViewInterface, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "./interfaces.js";
 
 
 export class Messenger {
@@ -25,6 +25,13 @@ export class Messenger {
     const that = this;
     return (req: ModelChangeRequest) => {
       that.model.requestModelChange(req);
+    }
+  }
+
+  public newInfoRequestHandler() {
+    const that = this;
+    return <V extends ModelInfoRequestType>(req: ModelInfoRequestMap[V]): ModelInfoResponseMap[V] => {
+      return that.model.requestModelInfo(req);
     }
   }
 }

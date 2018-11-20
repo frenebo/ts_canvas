@@ -2,6 +2,7 @@
 export interface PortData {
   side: "top" | "bottom" | "left" | "right";
   position: number; // 0 to 1
+  portType: "input" | "output";
 }
 
 export interface VertexData {
@@ -41,7 +42,10 @@ export interface ModelInterface {
   getModelData(): ModelData;
   addModelChangedListener(listener: () => void): void;
   requestModelChange(req: ModelChangeRequest): void;
+  requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T];
 }
+
+document.createElement("div");
 
 export type ModelChangeRequest = {
   type: "moveVertex";
@@ -54,3 +58,19 @@ export type ModelChangeRequest = {
   x: number;
   y: number;
 };
+
+export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoResponseMap;
+
+export interface ModelInfoRequestMap {
+  "validateEdge": {
+    type: "validateEdge";
+    sourceVertexId: string;
+    sourcePortId: string;
+    targetVertexId: string;
+    targetPortId: string;
+  }
+}
+
+export interface ModelInfoResponseMap {
+  "validateEdge": { validity: "valid" | "invalid" }
+}

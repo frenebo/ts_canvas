@@ -27,10 +27,12 @@ export class Graph {
           "input0": {
             side: "top",
             position: 0.5,
+            portType: "input",
           },
           "outpot0": {
             side: "bottom",
             position: 0.5,
+            portType: "output",
           }
         }
       }
@@ -47,5 +49,23 @@ export class Graph {
 
     vtx.geo.x = x;
     vtx.geo.y = y;
+  }
+
+  public validateEdge(sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): boolean {
+    const sourceVertex = this.modelData.vertices[sourceVtxId];
+    const targetVertex = this.modelData.vertices[targetVtxId];
+    if (sourceVertex === undefined || targetVertex === undefined) return false;
+
+    const sourcePort = sourceVertex.ports[sourcePortId];
+    const targetPort = targetVertex.ports[targetPortId];
+
+    if (sourcePort === undefined || targetPort === undefined) return false;
+
+    if (sourcePort.portType !== "output") return false;
+    if (targetPort.portType !== "input") return false;
+
+    // @TODO check for loops in graph
+
+    return true;
   }
 }

@@ -1,4 +1,4 @@
-import { VertexData, ModelChangeRequest } from "../../interfaces.js";
+import { VertexData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces.js";
 import { VertexWrapper } from "./vertexWrapper.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
 import { DragRegistry } from "./dragRegistry.js";
@@ -11,6 +11,7 @@ export class PixiAdapter {
   private backgroundWrapper: BackgroundWrapper;
   private menuBar: MenuBar;
   private sendModelChangeRequest: (req: ModelChangeRequest) => void;
+  private sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T];
   private dragRegistry: DragRegistry;
 
   private vertexWrappers: {
@@ -18,8 +19,13 @@ export class PixiAdapter {
   } = {};
   private edgeDrawHandler: EdgeDrawHandler;
 
-  constructor(div: HTMLDivElement, sendModelChangeRequest: (req: ModelChangeRequest) => void) {
+  constructor(
+    div: HTMLDivElement,
+    sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
+  ) {
     this.sendModelChangeRequest = sendModelChangeRequest;
+    this.sendModelInfoRequest = sendModelInfoRequest;
     this.dragRegistry = new DragRegistry();
     this.app = new PIXI.Application(800, 600);
     div.appendChild(this.app.view);
@@ -55,7 +61,7 @@ export class PixiAdapter {
           vertexId: vertexKey,
           x: x,
           y: y,
-        })
+        });
       } else {
         this.sendModelChangeRequest({
           type: "moveVertex",
@@ -74,19 +80,29 @@ export class PixiAdapter {
       const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
       const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
 
-      const closestPortInfo = this.portsByCloseness(cursorLocalX, cursorLocalY)[0];
+      const closestInfo = this.portsByCloseness(cursorLocalX, cursorLocalY)[0];
+      const closestPortVertex = this.vertexWrappers[closestInfo.vtxKey];
+      const closestPort = closestPortVertex.getPortWrapper(closestInfo.portKey);
 
       // snap to closest port
       if (
-        (closestPortInfo.vtx !== vtxWrapper || closestPortInfo.port !== vtxWrapper.getPortWrapper(portId)) &&
-        closestPortInfo.distanceSquared < 100
+        (closestPortVertex !== vtxWrapper || closestPort !== vtxWrapper.getPortWrapper(portId)) &&
+        closestInfo.distanceSquared < 100
       ) {
-        this.edgeDrawHandler.updateLineEnd(
-          closestPortInfo.port.localX() + closestPortInfo.port.getWidth()/2 + closestPortInfo.vtx.localX(),
-          closestPortInfo.port.localY() + closestPortInfo.port.getWidth()/2 + closestPortInfo.vtx.localY(),
+        const edgeValidityInfo = this.sendModelInfoRequest<"validateEdge">({
+          type: "validateEdge",
+          sourceVertexId: vertexKey,
+          sourcePortId: portId,
+          targetVertexId: closestInfo.vtxKey,
+          targetPortId: closestInfo.portKey,
+        })
+        this.edgeDrawHandler.redrawLine(
+          closestPort.localX() + closestPort.getWidth()/2 + closestPortVertex.localX(),
+          closestPort.localY() + closestPort.getWidth()/2 + closestPortVertex.localY(),
+          edgeValidityInfo.validity,
         );
       } else {
-        this.edgeDrawHandler.updateLineEnd(cursorLocalX, cursorLocalY);
+        this.edgeDrawHandler.redrawLine(cursorLocalX, cursorLocalY);
       }
     });
     vtxWrapper.addPortDragEndListener((portId, cursorX, cursorY) => {
@@ -105,8 +121,8 @@ export class PixiAdapter {
 
   private portsByCloseness(targetX: number, targetY: number) {
     const portDescriptions: Array<{
-      port: PortWrapper,
-      vtx: VertexWrapper,
+      portKey: string,
+      vtxKey: string,
       distanceSquared: number,
     }> = [];
 
@@ -117,8 +133,8 @@ export class PixiAdapter {
         const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + portWrapper.getWidth()/2);
         const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + portWrapper.getHeight()/2);
         portDescriptions.push({
-          port: portWrapper,
-          vtx: vertexWrapper,
+          portKey: portKey,
+          vtxKey: vertexKey,
           distanceSquared: xDistance*xDistance + yDistance*yDistance,
         });
       }

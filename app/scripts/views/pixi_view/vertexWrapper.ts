@@ -157,7 +157,7 @@ export class VertexWrapper {
 
     for (const addedPortKey of addedPortKeys) {
       const portData = data.ports[addedPortKey];
-      const portWrapper = new PortWrapper(this.dragRegistry, this.renderer);
+      const portWrapper = new PortWrapper(this.dragRegistry, this.renderer, portData.portType === "output");
       portWrapper.addTo(this.sprite);
       this.portWrappers[addedPortKey] = portWrapper;
 

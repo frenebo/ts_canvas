@@ -1,12 +1,16 @@
-import { ViewInterface, ModelData, ModelChangeRequest } from "../../interfaces.js";
+import { ViewInterface, ModelData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces.js";
 import { PixiAdapter } from "./pixiAdapter.js";
 
 export class PixiView implements ViewInterface {
   private data: ModelData = {vertices: {}};
   private pixiAdapter: PixiAdapter;
 
-  constructor(div: HTMLDivElement, sendModelChangeRequest: (req: ModelChangeRequest) => void) {
-    this.pixiAdapter = new PixiAdapter(div, sendModelChangeRequest);
+  constructor(
+    div: HTMLDivElement,
+    sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
+  ) {
+    this.pixiAdapter = new PixiAdapter(div, sendModelChangeRequest, sendModelInfoRequest);
   }
 
   public setModelData(newData: ModelData): void {
