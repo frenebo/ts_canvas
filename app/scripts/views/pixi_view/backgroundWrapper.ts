@@ -23,7 +23,7 @@ export class BackgroundWrapper {
     const that = this;
     container.addEventListener("wheel", (ev) => {
       // console.log(ev.deltaY);
-      const scrollFactor = Math.pow(1.001, -ev.deltaY);
+      const scrollFactor = Math.pow(1.003, -ev.deltaY);
       const mouseGlobalPos: PIXI.Point = renderer.plugins.interaction.mouse.global;
       const mouseAbsoluteX = mouseGlobalPos.x - that.childContainer.position.x;
       const mouseAbsoluteY = mouseGlobalPos.y - that.childContainer.position.y;
