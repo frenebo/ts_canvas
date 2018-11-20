@@ -18,20 +18,20 @@ export interface VertexData {
   };
 }
 
-// export interface EdgeData {
-//   source_vtx: string;
-//   target_vtx: string;
-//   source_port: string;
-//   target_port: string;
-// }
+export interface EdgeData {
+  sourceVertexId: string;
+  sourcePortId: string;
+  targetVertexId: string;
+  targetPortId: string;
+}
 
 export interface ModelData {
   vertices: {
     [key: string]: VertexData;
   };
-  // edges: {
-  //   [key: string]: EdgeData;
-  // };
+  edges: {
+    [key: string]: EdgeData;
+  };
 }
 
 export interface ViewInterface {
@@ -59,6 +59,7 @@ export type ModelChangeRequest = {
   y: number;
 } | {
   type: "createEdge",
+  newPortId: string,
   sourceVertexId: string,
   sourcePortId: string,
   targetVertexId: string,

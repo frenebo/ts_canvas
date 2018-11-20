@@ -31,6 +31,8 @@ export class PortWrapper {
   private dragMoveListeners: Array<(x: number, y: number) => void> = [];
   private dragEndListeners: Array<(x: number, y: number) => void> = [];
 
+  private positionChangedListeners: Array<() => void> = [];
+
   constructor(dragRegistry: DragRegistry, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer, isOutput: boolean) {
     this.dragRegistry = dragRegistry;
 
@@ -64,9 +66,16 @@ export class PortWrapper {
     this.dragEndListeners.push(listener);
   }
 
+  public addPositionChangedListener(listener: () => void): void {
+    this.positionChangedListeners.push(listener);;
+  }
   public setPosition(x: number, y: number): void {
-    if (this.sprite.position.x === x && this.sprite.position.y === y) return;
-    this.sprite.position.set(x, y);
+    if (this.sprite.position.x !== x || this.sprite.position.y !== y) {
+      this.sprite.position.set(x, y);
+      for (const listener of this.positionChangedListeners) {
+        listener();
+      }
+    }
   }
 
   public getWidth(): number {

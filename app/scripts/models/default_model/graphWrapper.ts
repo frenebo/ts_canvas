@@ -1,20 +1,12 @@
-import { ModelData } from "../../interfaces";
+import { ModelData, EdgeData } from "../../interfaces";
 
 export class Graph {
   private modelData: ModelData;
 
   constructor() {
     this.modelData = {
-      vertices: {
-        // "someVertex": {
-        //   label: "Default Layer",
-        //   geo: {
-        //     x: 100,
-        //     y: 100,
-        //   },
-        //   ports: {},
-        // }
-      },
+      vertices: {},
+      edges: {},
     };
     for (let i = 0; i < 100; i++) {
       this.modelData.vertices[i.toString()] = {
@@ -51,11 +43,16 @@ export class Graph {
     vtx.geo.y = y;
   }
 
-  public createEdge(sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): void {
+  public createEdge(edgeId: string, sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): void {
     const edgeIsValid = this.validateEdge(sourceVtxId, sourcePortId, targetVtxId, targetPortId);
     if (!edgeIsValid) throw new Error(`Invalid create edge arguments: ${arguments}`);
 
-    console.log("Edges unimplmented");
+    this.modelData.edges[edgeId] = {
+      sourceVertexId: sourceVtxId,
+      sourcePortId: sourcePortId,
+      targetVertexId: targetVtxId,
+      targetPortId: targetPortId,
+    };
   }
 
   public validateEdge(sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): boolean {
@@ -73,6 +70,49 @@ export class Graph {
 
     // @TODO check for loops in graph
 
-    return true;
+    let edgesByTarget: {
+      [targetId: string]: EdgeData[];
+    } = {};
+
+    for (const edgeId in this.modelData.edges) {
+      const edgeData = this.modelData.edges[edgeId];
+      if (edgesByTarget[edgeData.targetVertexId] === undefined) {
+        edgesByTarget[edgeData.targetVertexId] = [];
+      }
+
+      edgesByTarget[edgeData.targetVertexId].push(edgeData);
+    }
+
+    let sourceAncestorIds: string[] = [];
+
+    let vertexIdsToInvestigate: string[] = [sourceVtxId];
+    while (vertexIdsToInvestigate.length > 0) {
+      const idToInvestigate = vertexIdsToInvestigate.pop() as string;
+      sourceAncestorIds.push(idToInvestigate);
+
+      // if the investigated vertex is the target of no edges, skip it
+      if (edgesByTarget[idToInvestigate] === undefined) {
+        continue;
+      } else {
+        for (const edgeData of edgesByTarget[idToInvestigate]) {
+          // check if the edge's source has not been seen before
+          if (
+            vertexIdsToInvestigate.indexOf(edgeData.sourceVertexId) === -1 &&
+            sourceAncestorIds.indexOf(edgeData.sourceVertexId) === -1
+          ) {
+            vertexIdsToInvestigate.push(edgeData.sourceVertexId);
+          }
+        }
+      }
+    }
+
+    console.log(sourceAncestorIds, targetVtxId);
+
+    // return true if the target vertex is not an ancestor of the source vertex
+    if (sourceAncestorIds.indexOf(targetVtxId) === -1) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

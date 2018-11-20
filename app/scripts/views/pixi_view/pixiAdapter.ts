@@ -1,10 +1,11 @@
-import { VertexData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces.js";
+import { VertexData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, EdgeData } from "../../interfaces.js";
 import { VertexWrapper } from "./vertexWrapper.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
 import { DragRegistry } from "./dragRegistry.js";
 import { MenuBar } from "./menuBar.js";
 import { EdgeDrawHandler } from "./edgeDrawHandler.js";
 import { PortWrapper } from "./portWrapper.js";
+import { EdgeWrapper } from "./edgeWrapper.js";
 
 export class PixiAdapter {
   private app: PIXI.Application;
@@ -16,6 +17,9 @@ export class PixiAdapter {
 
   private vertexWrappers: {
     [key: string]: VertexWrapper;
+  } = {};
+  private edgeWrappers: {
+    [key: string]: EdgeWrapper;
   } = {};
   private edgeDrawHandler: EdgeDrawHandler;
 
@@ -41,10 +45,10 @@ export class PixiAdapter {
   }
 
   public removeVertex(vertexKey: string): void {
-    const graphicsVertex = this.vertexWrappers[vertexKey];
-    if (graphicsVertex === undefined) throw new Error(`No such vertex found with key ${vertexKey}`);
+    const vertexWrapper = this.vertexWrappers[vertexKey];
+    if (vertexWrapper === undefined) throw new Error(`No vertex found with key ${vertexKey}`);
 
-    this.backgroundWrapper.removeVertex(graphicsVertex);
+    this.backgroundWrapper.removeVertex(vertexWrapper);
     delete this.vertexWrappers[vertexKey];
   }
 
@@ -136,6 +140,7 @@ export class PixiAdapter {
 
       if (snapPortInfo !== null && snapPortInfo.isValid) {
         this.sendModelChangeRequest({
+          newPortId: this.uniqueEdgeId(),
           type: "createEdge",
           sourceVertexId: vertexKey,
           sourcePortId: sourcePortId,
@@ -146,6 +151,17 @@ export class PixiAdapter {
     });
 
     this.backgroundWrapper.addVertex(vtxWrapper);
+  }
+
+  private uniqueEdgeId() {
+    let i = 0;
+    while (true) {
+      const id = "edge" + i.toString();
+
+      i++;
+
+      if (this.edgeWrappers[id] === undefined) return id;
+    }
   }
 
   public updateVertex(vertexKey: string, data: VertexData): void {
@@ -179,5 +195,34 @@ export class PixiAdapter {
     const sortedDescriptions = portDescriptions.sort((d1, d2) => d1.distanceSquared - d2.distanceSquared);
 
     return sortedDescriptions;
+  }
+
+  public removeEdge(edgeKey: string): void {
+    const edgeWrapper = this.edgeWrappers[edgeKey];
+    if (edgeWrapper === undefined) throw new Error(`No edge found with key ${edgeKey}`);
+
+    this.backgroundWrapper.removeEdge(edgeWrapper);
+    delete this.edgeWrappers[edgeKey];
+  }
+
+  public addEdge(edgeKey: string, edgeData: EdgeData): void {
+    const sourceVertex = this.vertexWrappers[edgeData.sourceVertexId];
+    const targetVertex = this.vertexWrappers[edgeData.targetVertexId];
+    if (sourceVertex === undefined) throw new Error(`No vertex found with key ${edgeData.sourceVertexId}`);
+    if (targetVertex === undefined) throw new Error(`No vertex found with key ${edgeData.targetVertexId}`);
+
+    const sourcePort = sourceVertex.getPortWrapper(edgeData.sourcePortId);
+    const targetPort = targetVertex.getPortWrapper(edgeData.targetPortId);
+
+    const edgeWrapper = new EdgeWrapper(
+      sourceVertex,
+      sourcePort,
+      targetVertex,
+      targetPort,
+      this.app.renderer,
+    );
+
+    this.backgroundWrapper.addEdge(edgeWrapper);
+    this.edgeWrappers[edgeKey] = edgeWrapper;
   }
 }

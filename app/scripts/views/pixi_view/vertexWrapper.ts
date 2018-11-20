@@ -23,6 +23,7 @@ export class VertexWrapper {
   private portDragStartListeners: Array<(portId: string, x: number, y: number) => void> = [];
   private portDragMoveListeners: Array<(portId: string, x: number, y: number) => void> = [];
   private portDragEndListeners: Array<(portId: string, x: number, y: number) => void> = [];
+  private positionChangedListeners: Array<() => void> = [];
 
   constructor(
     data: VertexData,
@@ -113,9 +114,8 @@ export class VertexWrapper {
   }
 
   public updateData(data: VertexData): void {
-    if (this.sprite.position.x !== data.geo.x || this.sprite.position.y !== data.geo.y) {
-      this.sprite.position.set(data.geo.x, data.geo.y);
-    }
+    this.setPosition(data.geo.x, data.geo.y);
+
     if (this.label.text !== data.label) {
       this.label.text = data.label;
       this.positionChildren();
@@ -206,6 +206,19 @@ export class VertexWrapper {
 
   public removeChild(obj: PIXI.DisplayObject): void {
     this.sprite.removeChild(obj);
+  }
+
+  public addPositionChangedListener(listener: () => void): void {
+    this.positionChangedListeners.push(listener);;
+  }
+
+  public setPosition(x: number, y: number): void {
+    if (this.sprite.position.x !== x || this.sprite.position.y !== y) {
+      this.sprite.position.set(x, y);
+      for (const listener of this.positionChangedListeners) {
+        listener();
+      }
+    }
   }
 
   public localX(): number {

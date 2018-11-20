@@ -2,7 +2,7 @@ import { ViewInterface, ModelData, ModelChangeRequest, ModelInfoRequestType, Mod
 import { PixiAdapter } from "./pixiAdapter.js";
 
 export class PixiView implements ViewInterface {
-  private data: ModelData = {vertices: {}};
+  private data: ModelData = {vertices: {}, edges: {}};
   private pixiAdapter: PixiAdapter;
 
   constructor(
@@ -21,6 +21,18 @@ export class PixiView implements ViewInterface {
     const addedVertexKeys = newVertexKeys.filter(key => oldVertexKeys.indexOf(key) === -1);
     const sharedVertexKeys = oldVertexKeys.filter(key => newVertexKeys.indexOf(key) !== -1);
 
+    const newEdgeKeys = Object.keys(newData.edges);
+    const oldEdgeKeys = Object.keys(this.data.edges);
+
+    const removedEdgeKeys = oldEdgeKeys.filter(key => newEdgeKeys.indexOf(key) === -1);
+    const addedEdgeKeys = newEdgeKeys.filter(key => oldEdgeKeys.indexOf(key) === -1);
+    const sharedEdgeKeys = oldEdgeKeys.filter(key => newEdgeKeys.indexOf(key) === 1);
+    const changedEdgeKeys = sharedEdgeKeys.filter(key => JSON.stringify(newData.edges[key]) !== JSON.stringify(this.data.edges[key]));
+
+    for (const removedEdgeKey of removedEdgeKeys.concat(changedEdgeKeys)) {
+      this.pixiAdapter.removeEdge(removedEdgeKey);
+    }
+
     for (const removedVertexKey of removedVertexKeys) {
       this.pixiAdapter.removeVertex(removedVertexKey);
     }
@@ -31,6 +43,10 @@ export class PixiView implements ViewInterface {
 
     for (const sharedVertexKey of sharedVertexKeys) {
       this.pixiAdapter.updateVertex(sharedVertexKey, newData.vertices[sharedVertexKey]);
+    }
+
+    for (const addedEdgeKey of addedEdgeKeys.concat(changedEdgeKeys)) {
+      this.pixiAdapter.addEdge(addedEdgeKey, newData.edges[addedEdgeKey]);
     }
 
     this.data = JSON.parse(JSON.stringify(newData));

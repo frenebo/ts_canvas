@@ -2,6 +2,7 @@ import { BACKGROUND_TILE_PATH } from "../../constants.js";
 import { VertexWrapper } from "./vertexWrapper.js";
 import { BackgroundDragHandler } from "./backgroundDragHandler.js";
 import { DragRegistry } from "./dragRegistry.js";
+import { EdgeWrapper } from "./edgeWrapper.js";
 
 export class BackgroundWrapper {
   public sprite: PIXI.extras.TilingSprite;
@@ -55,6 +56,14 @@ export class BackgroundWrapper {
 
   public removeVertex(vtxWrapper: VertexWrapper): void {
     vtxWrapper.removeFrom(this.childContainer);
+  }
+
+  public addEdge(edgeWrapper: EdgeWrapper): void {
+    edgeWrapper.addTo(this.childContainer);
+  }
+
+  public removeEdge(edgeWrapper: EdgeWrapper): void {
+    edgeWrapper.removeFrom(this.childContainer);
   }
 
   public on(ev: string, fn: Function, context?: any): this {
