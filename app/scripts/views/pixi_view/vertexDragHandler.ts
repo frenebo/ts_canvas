@@ -53,8 +53,8 @@ export class VertexDragHandler {
 
     this.dragData = {
       mouseLocalPos: {
-        x: this.vtxWrapper.getDataRelativeLoc(event.data).x - this.vtxWrapper.getX(),
-        y: this.vtxWrapper.getDataRelativeLoc(event.data).y - this.vtxWrapper.getY(),
+        x: this.vtxWrapper.getDataRelativeLoc(event.data).x - this.vtxWrapper.localX(),
+        y: this.vtxWrapper.getDataRelativeLoc(event.data).y - this.vtxWrapper.localY(),
       },
       dragOutline: dragOutline,
       isCtrlDrag: event.data.originalEvent.ctrlKey,
@@ -80,8 +80,8 @@ export class VertexDragHandler {
   private onDragMove(event: PIXI.interaction.InteractionEvent): void {
     if (this.dragData === null) return;
 
-    const relativeX = (this.vtxWrapper.getDataRelativeLoc(event.data).x - this.dragData.mouseLocalPos.x) - this.vtxWrapper.getX();
-    const relativeY = (this.vtxWrapper.getDataRelativeLoc(event.data).y - this.dragData.mouseLocalPos.y) - this.vtxWrapper.getY();
+    const relativeX = (this.vtxWrapper.getDataRelativeLoc(event.data).x - this.dragData.mouseLocalPos.x) - this.vtxWrapper.localX();
+    const relativeY = (this.vtxWrapper.getDataRelativeLoc(event.data).y - this.dragData.mouseLocalPos.y) - this.vtxWrapper.localY();
 
     this.dragData.dragOutline.position.set(relativeX, relativeY);
   }

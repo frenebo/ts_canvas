@@ -43,8 +43,8 @@ export class BackgroundDragHandler {
         y: event.data.global.y,
       },
       backgroundStart: {
-        x: this.backgroundWrapper.getX(),
-        y: this.backgroundWrapper.getY(),
+        x: this.backgroundWrapper.localX(),
+        y: this.backgroundWrapper.localY(),
       },
     };
   }

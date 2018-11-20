@@ -44,6 +44,10 @@ export class BackgroundWrapper {
     this.childContainer.addChild(obj);
   }
 
+  public removeChild(obj: PIXI.DisplayObject): void {
+    this.childContainer.removeChild(obj);
+  }
+
   // @TODO make more general interface for adding/removing children
   public addVertex(vtxWrapper: VertexWrapper): void {
     vtxWrapper.addTo(this.childContainer);
@@ -58,11 +62,15 @@ export class BackgroundWrapper {
     return this;
   }
 
-  public getX(): number {
+  public localScale(): number {
+    return this.sprite.tileScale.x;
+  }
+
+  public localX(): number {
     return this.sprite.tilePosition.x;
   }
 
-  public getY(): number {
+  public localY(): number {
     return this.sprite.tilePosition.y;
   }
 
