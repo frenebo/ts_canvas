@@ -18,9 +18,9 @@ export class PixiAdapter {
   constructor(div: HTMLDivElement, sendModelChangeRequest: (req: ModelChangeRequest) => void) {
     this.sendModelChangeRequest = sendModelChangeRequest;
     this.dragRegistry = new DragRegistry();
-    this.app = new PIXI.Application(800, 600, { resolution: window.devicePixelRatio || 1 });
+    this.app = new PIXI.Application(800, 600);
     div.appendChild(this.app.view);
-    this.backgroundWrapper = new BackgroundWrapper(this.app.renderer.width, this.app.renderer.height, this.dragRegistry);
+    this.backgroundWrapper = new BackgroundWrapper(this.dragRegistry, div, this.app.renderer);
     this.backgroundWrapper.addTo(this.app.stage);
 
     this.menuBar = new MenuBar(this.dragRegistry);
