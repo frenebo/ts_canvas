@@ -57,6 +57,12 @@ export type ModelChangeRequest = {
   vertexId: string;
   x: number;
   y: number;
+} | {
+  type: "createEdge",
+  sourceVertexId: string,
+  sourcePortId: string,
+  targetVertexId: string,
+  targetPortId: string,
 };
 
 export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoResponseMap;

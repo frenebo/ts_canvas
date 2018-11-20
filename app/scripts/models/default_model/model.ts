@@ -19,6 +19,8 @@ export class DefaultModel implements ModelInterface {
   public requestModelChange(req: ModelChangeRequest): void {
     if (req.type === "moveVertex") {
       this.graph.moveVertex(req.vertexId, req.x, req.y);
+    } else if (req.type === "createEdge") {
+      this.graph.createEdge(req.sourceVertexId, req.sourcePortId, req.targetVertexId, req.targetPortId);
     } else {
       console.log(`Unimplemented request ${req.type}`);
     }

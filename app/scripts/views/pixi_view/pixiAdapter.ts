@@ -72,41 +72,77 @@ export class PixiAdapter {
       }
     });
 
-    vtxWrapper.addPortDragStartListener((portId, cursorX, cursorY) => {
-      const portWrapper = vtxWrapper.getPortWrapper(portId);
+    vtxWrapper.addPortDragStartListener((sourcePortId, cursorX, cursorY) => {
+      const portWrapper = vtxWrapper.getPortWrapper(sourcePortId);
       this.edgeDrawHandler.beginDraw(vtxWrapper, portWrapper);
     });
-    vtxWrapper.addPortDragMoveListener((portId, cursorX, cursorY) => {
-      const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
-      const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+
+    const getSnapPortInfo = (cursorLocalX: number, cursorLocalY: number, sourcePortId: string) => {
 
       const closestInfo = this.portsByCloseness(cursorLocalX, cursorLocalY)[0];
+
       const closestPortVertex = this.vertexWrappers[closestInfo.vtxKey];
       const closestPort = closestPortVertex.getPortWrapper(closestInfo.portKey);
 
-      // snap to closest port
       if (
-        (closestPortVertex !== vtxWrapper || closestPort !== vtxWrapper.getPortWrapper(portId)) &&
+        (closestPortVertex !== vtxWrapper || closestPort !== vtxWrapper.getPortWrapper(sourcePortId)) &&
         closestInfo.distanceSquared < 100
       ) {
-        const edgeValidityInfo = this.sendModelInfoRequest<"validateEdge">({
+        const edgeValidityInfo = this.sendModelInfoRequest({
           type: "validateEdge",
           sourceVertexId: vertexKey,
-          sourcePortId: portId,
+          sourcePortId: sourcePortId,
           targetVertexId: closestInfo.vtxKey,
           targetPortId: closestInfo.portKey,
-        })
+        });
+
+        return {
+          targetVtx: closestPortVertex,
+          targetPort: closestPort,
+          targetVtxId: closestInfo.vtxKey,
+          targetPortId: closestInfo.portKey,
+          xPos: closestPort.localX() + closestPort.getWidth()/2 + closestPortVertex.localX(),
+          yPos: closestPort.localY() + closestPort.getWidth()/2 + closestPortVertex.localY(),
+          isValid: edgeValidityInfo.validity === "valid",
+        }
+      } else {
+        return null;
+      }
+    }
+
+    vtxWrapper.addPortDragMoveListener((sourcePortId, cursorX, cursorY) => {
+      const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
+      const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+      const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY, sourcePortId);
+
+      // snap to closest port
+      if (snapPortInfo !== null) {
         this.edgeDrawHandler.redrawLine(
-          closestPort.localX() + closestPort.getWidth()/2 + closestPortVertex.localX(),
-          closestPort.localY() + closestPort.getWidth()/2 + closestPortVertex.localY(),
-          edgeValidityInfo.validity,
+          snapPortInfo.xPos,
+          snapPortInfo.yPos,
+          snapPortInfo.isValid ? "valid" : "invalid",
         );
       } else {
         this.edgeDrawHandler.redrawLine(cursorLocalX, cursorLocalY);
       }
     });
-    vtxWrapper.addPortDragEndListener((portId, cursorX, cursorY) => {
+    vtxWrapper.addPortDragEndListener((sourcePortId, cursorX, cursorY) => {
       this.edgeDrawHandler.endDrag();
+
+      const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
+      const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+
+      const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY, sourcePortId);
+
+      if (snapPortInfo !== null && snapPortInfo.isValid) {
+        this.sendModelChangeRequest({
+          type: "createEdge",
+          sourceVertexId: vertexKey,
+          sourcePortId: sourcePortId,
+          targetVertexId: snapPortInfo.targetVtxId,
+          targetPortId: snapPortInfo.targetPortId,
+        });
+      }
     });
 
     this.backgroundWrapper.addVertex(vtxWrapper);

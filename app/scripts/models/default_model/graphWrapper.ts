@@ -51,6 +51,13 @@ export class Graph {
     vtx.geo.y = y;
   }
 
+  public createEdge(sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): void {
+    const edgeIsValid = this.validateEdge(sourceVtxId, sourcePortId, targetVtxId, targetPortId);
+    if (!edgeIsValid) throw new Error(`Invalid create edge arguments: ${arguments}`);
+
+    console.log("Edges unimplmented");
+  }
+
   public validateEdge(sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): boolean {
     const sourceVertex = this.modelData.vertices[sourceVtxId];
     const targetVertex = this.modelData.vertices[targetVtxId];
