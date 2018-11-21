@@ -35,6 +35,21 @@ export class Graph {
     return JSON.parse(JSON.stringify(this.modelData));
   }
 
+  public edgesBetweenVertices(vtxIds: string[]) {
+    const edgeIds: {[key: string]: EdgeData} = {};
+    for (const edgeId in this.modelData.edges) {
+      const edge = this.modelData.edges[edgeId];
+      if (
+        vtxIds.indexOf(edge.sourceVertexId) !== -1 &&
+        vtxIds.indexOf(edge.targetVertexId) !== -1
+      ) {
+        edgeIds[edgeId] = JSON.parse(JSON.stringify(edge));
+      }
+    }
+
+    return edgeIds;
+  }
+
   public moveVertex(vtxId: string, x: number, y: number): void {
     const vtx = this.modelData.vertices[vtxId];
     if (vtx === undefined) throw new Error(`Could not find vertex with id ${vtxId}`);

@@ -11,6 +11,7 @@ import { EdgeDrawHandler } from "./edgeDrawHandler.js";
 import { EditIcon } from "../icons/editIcon.js";
 import { SelectionManager } from "./selectionManager.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
+import { EdgeDragHandler } from "./edgeDragHandler.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
 
@@ -116,6 +117,8 @@ export class DragRegistry {
 
   public registerEdge(id: string, edge: EdgeWrapper): void {
     this.registerDisplayObject(edge.getDisplayObject());
+
+    new EdgeDragHandler(id, edge);
   }
 
   public registerEditIcon(editIcon: EditIcon, clickBegin: () => void, clickEnd: () => void): void {
@@ -147,7 +150,7 @@ export class DragRegistry {
         (closestPortVertex !== vtxWrapper || closestPort !== port) &&
         closestInfo.distanceSquared < DragRegistry.portSnapDistance*DragRegistry.portSnapDistance
       ) {
-        const edgeValidityInfo = this.sendModelInfoRequest({
+        const edgeValidityInfo = this.sendModelInfoRequest<"validateEdge">({
           type: "validateEdge",
           sourceVertexId: vertexId,
           sourcePortId: portId,
@@ -195,7 +198,7 @@ export class DragRegistry {
 
       if (snapPortInfo !== null && snapPortInfo.isValid) {
         this.sendModelChangeRequests({
-          newPortId: this.uniqueEdgeId(),
+          newEdgeId: this.uniqueEdgeId(),
           type: "createEdge",
           sourceVertexId: vertexId,
           sourcePortId: portId,

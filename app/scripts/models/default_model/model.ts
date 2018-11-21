@@ -29,7 +29,7 @@ export class DefaultModel implements ModelInterface {
     if (req.type === "moveVertex") {
       this.graph.moveVertex(req.vertexId, req.x, req.y);
     } else if (req.type === "createEdge") {
-      this.graph.createEdge(req.newPortId, req.sourceVertexId, req.sourcePortId, req.targetVertexId, req.targetPortId);
+      this.graph.createEdge(req.newEdgeId, req.sourceVertexId, req.sourcePortId, req.targetVertexId, req.targetPortId);
     } else if (req.type === "cloneVertex") {
       this.graph.cloneVertex(req.newVertexId, req.sourceVertexId, req.x, req.y);
     } else if (req.type === "deleteVertex") {
@@ -41,10 +41,23 @@ export class DefaultModel implements ModelInterface {
 
   public requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T] {
     if (req.type === "validateEdge") {
-      const isValid = this.graph.validateEdge(req.sourceVertexId, req.sourcePortId, req.targetVertexId, req.targetPortId);
+      const isValid = this.graph.validateEdge(
+        (req as ModelInfoRequestMap["validateEdge"]).sourceVertexId,
+        (req as ModelInfoRequestMap["validateEdge"]).sourcePortId,
+        (req as ModelInfoRequestMap["validateEdge"]).targetVertexId,
+        (req as ModelInfoRequestMap["validateEdge"]).targetPortId,
+      );
       const response: ModelInfoResponseMap["validateEdge"] = {
         validity: isValid ? "valid" : "invalid",
       }
+      return response;
+    } else if (req.type === "edgesBetweenVertices") {
+      const edgesBetweenVertices = this.graph.edgesBetweenVertices(
+        (req as ModelInfoRequestMap["edgesBetweenVertices"]).vertexIds,
+      );
+      const response: ModelInfoResponseMap["edgesBetweenVertices"] = {
+        edges: edgesBetweenVertices,
+      };
       return response;
     } else {
       throw new Error(`Unimplemented request ${req.type}`)

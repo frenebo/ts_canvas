@@ -14,7 +14,7 @@ export class SelectionManager {
     dy: number,
     isClone: boolean;
     ghostRoot: PIXI.Container;
-    ghosts: Map<VertexWrapper, PIXI.Sprite>;
+    ghosts: Map<string, PIXI.Sprite>;
   } = null;
   // private selectedEdges: EdgeWrapper[] = [];
 
@@ -40,6 +40,12 @@ export class SelectionManager {
   public removeDeletedVertex(id: string, vertex: VertexWrapper): void {
     if (this.selectedVertices[id] !== undefined) {
       delete this.selectedVertices[id];
+    }
+
+    if (this.selectionDrag !== null && this.selectionDrag.ghosts.has(id)) {
+      const ghost = this.selectionDrag.ghosts.get(id)!;
+      this.selectionDrag.ghosts.delete(id);
+      this.selectionDrag.ghostRoot.removeChild(ghost);
     }
   }
 
@@ -113,7 +119,7 @@ export class SelectionManager {
       ghostRoot.addChild(ghost);
       ghost.position.set(selectedVertex.localX(), selectedVertex.localY());
 
-      this.selectionDrag.ghosts.set(selectedVertex, ghost);
+      this.selectionDrag.ghosts.set(selectedVertexId, ghost);
     }
   }
 
@@ -135,30 +141,58 @@ export class SelectionManager {
   public endSelectionDrag(dx: number, dy: number): void {
     if (this.selectionDrag === null) throw new Error("No drag currently happening");
 
-    const requests: ModelChangeRequest[] = [];
-
     this.background.removeChild(this.selectionDrag.ghostRoot);
 
+    const vertexIds = Array.from(this.selectionDrag.ghosts.keys());
 
-    for (const [vertexWrapper, ghost] of this.selectionDrag.ghosts) {
-      const vertexId = this.idOfVertex(vertexWrapper);
+    if (this.selectionDrag.isClone) {
+      const requests: ModelChangeRequest[] = [];
 
-      // if vertex no longer exists
-      if (vertexId === null) continue;
+      const origToCloneIds: {[key: string]: string} = {};
 
-      const newX = vertexWrapper.localX() + dx;
-      const newY = vertexWrapper.localY() + dy;
-      if (this.selectionDrag.isClone) {
-        const uniqueVertexId = this.uniqueVtxId(); // should be different each time it's called
+      for (const vertexId of vertexIds) {
+        const vertexWrapper = this.getVertexWrappers()[vertexId];
+        const newX = vertexWrapper.localX() + dx;
+        const newY = vertexWrapper.localY() + dy;
+
+        const uniqueId = this.uniqueVtxId();
+        origToCloneIds[vertexId] = uniqueId;
 
         requests.push({
           type: "cloneVertex",
           sourceVertexId: vertexId,
-          newVertexId: uniqueVertexId,
+          newVertexId: uniqueId,
           x: newX,
           y: newY,
         });
-      } else {
+      }
+
+      const edgesToClone = this.sendModelInfoRequest<"edgesBetweenVertices">({
+        type: "edgesBetweenVertices",
+        vertexIds: vertexIds,
+      }).edges;
+
+      for (const edgeId in edgesToClone) {
+        const edgeData = edgesToClone[edgeId];
+        requests.push({
+          type: "createEdge",
+          newEdgeId: this.uniqueEdgeId(),
+          sourceVertexId: origToCloneIds[edgeData.sourceVertexId],
+          sourcePortId: edgeData.sourcePortId,
+          targetVertexId: origToCloneIds[edgeData.targetVertexId],
+          targetPortId: edgeData.targetPortId,
+        });
+      }
+
+      this.sendModelChangeRequests(...requests);
+    } else {
+      const requests: ModelChangeRequest[] = [];
+
+      for (const vertexId of vertexIds) {
+        const vertexWrapper = this.getVertexWrappers()[vertexId];
+        const newX = vertexWrapper.localX() + dx;
+        const newY = vertexWrapper.localY() + dy;
+
         requests.push({
           type: "moveVertex",
           vertexId: vertexId,
@@ -166,9 +200,9 @@ export class SelectionManager {
           y: newY,
         });
       }
-    }
 
-    this.sendModelChangeRequests(...requests);
+      this.sendModelChangeRequests(...requests);
+    }
 
     this.selectionDrag = null;
   }
@@ -192,6 +226,15 @@ export class SelectionManager {
       const id = "vertex" + SelectionManager.vtxIdCounter.toString();
       SelectionManager.vtxIdCounter++;
       if (this.getVertexWrappers()[id] === undefined) return id;
+    }
+  }
+
+  private static edgeIdCounter = 0;
+  private uniqueEdgeId(): string {
+    while (true) {
+      const id = "edge" + SelectionManager.edgeIdCounter.toString();
+      SelectionManager.edgeIdCounter++;
+      if (this.getEdgeWrappers()[id] === undefined) return id;
     }
   }
 

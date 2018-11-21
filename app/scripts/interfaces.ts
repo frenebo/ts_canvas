@@ -60,7 +60,7 @@ export type ModelChangeRequest = {
   y: number;
 } | {
   type: "createEdge",
-  newPortId: string,
+  newEdgeId: string,
   sourceVertexId: string,
   sourcePortId: string,
   targetVertexId: string,
@@ -79,9 +79,20 @@ export interface ModelInfoRequestMap {
     sourcePortId: string;
     targetVertexId: string;
     targetPortId: string;
+  };
+  "edgesBetweenVertices": {
+    type: "edgesBetweenVertices";
+    vertexIds: string[];
   }
 }
 
 export interface ModelInfoResponseMap {
-  "validateEdge": { validity: "valid" | "invalid" }
+  "validateEdge": {
+    validity: "valid" | "invalid";
+  };
+  "edgesBetweenVertices": {
+    edges: {
+      [key: string]: EdgeData;
+    };
+  }
 }
