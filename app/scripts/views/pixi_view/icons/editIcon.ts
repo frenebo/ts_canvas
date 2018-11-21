@@ -1,4 +1,4 @@
-import { DragRegistry } from "../dragRegistry";
+import { DragRegistry } from "../dragAndSelection/dragRegistry";
 
 export class EditIcon {
   private graphics: PIXI.Graphics;
@@ -23,11 +23,13 @@ export class EditIcon {
         clickListener();
       }
     }
-    const getListeners = dragRegistry.register(this.graphics);
-    getListeners.onDragStart(() => clickBegin());
-    getListeners.onDragEnd(() => clickEnd());
+    const listeners = dragRegistry.registerEditIcon(this, clickBegin, clickEnd);
 
     this.draw(false);
+  }
+
+  public getDisplayObject() {
+    return this.graphics;
   }
 
   public addClickListener(listener: () => void): void {

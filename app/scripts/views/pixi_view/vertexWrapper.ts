@@ -1,6 +1,5 @@
 import { VertexData, PortData } from "../../interfaces.js";
-import { VertexDragHandler } from "./vertexDragHandler.js";
-import { DragRegistry } from "./dragRegistry.js";
+import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { EditIcon } from "./icons/editIcon.js";
 import { PortWrapper } from "./portWrapper.js";
 
@@ -29,7 +28,6 @@ export class VertexWrapper {
   }
 
   private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
-  private dragRegistry: DragRegistry;
   private container: PIXI.Container;
   private background: PIXI.Sprite;
   private width: number;
@@ -37,21 +35,15 @@ export class VertexWrapper {
   private label: PIXI.Text;
   private editIcon: EditIcon;
   private portWrappers: { [key: string]: PortWrapper } = {};
-  private dragStartListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
-  private dragMoveListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
-  private dragEndListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
-  private portDragStartListeners: Array<(portId: string, x: number, y: number) => void> = [];
-  private portDragMoveListeners: Array<(portId: string, x: number, y: number) => void> = [];
-  private portDragEndListeners: Array<(portId: string, x: number, y: number) => void> = [];
   private positionChangedListeners: Array<() => void> = [];
   private isSelected = false;
 
   constructor(
     data: VertexData,
-    dragRegistry: DragRegistry,
+    private dragRegistry: DragRegistry,
+    private registerPort: (vtx: VertexWrapper, portId: string, port: PortWrapper) => void,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
-    this.dragRegistry = dragRegistry;
     this.renderer = renderer;
     this.width = VertexWrapper.defaultWidth;
     this.height = VertexWrapper.defaultHeight;
@@ -95,27 +87,10 @@ export class VertexWrapper {
     this.positionChildren();
 
     this.updateData(data);
-
-    const dragListeners = this.dragRegistry.register(this.container);
-    dragListeners.onDragStart(ev => {
-      for (const listener of this.dragStartListeners) listener(ev);
-    });
-    dragListeners.onDragMove(ev => {
-      for (const listener of this.dragMoveListeners) listener(ev);
-    });
-    dragListeners.onDragEnd(ev => {
-      for (const listener of this.dragEndListeners) listener(ev);
-    });
   }
 
-  public onDragStart(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
-    this.dragStartListeners.push(listener);
-  }
-  public onDragMove(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
-    this.dragMoveListeners.push(listener);
-  }
-  public onDragEnd(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
-    this.dragEndListeners.push(listener);
+  public getDisplayObject() {
+    return this.container;
   }
 
   public toggleSelected(selected: boolean): void {
@@ -198,19 +173,11 @@ export class VertexWrapper {
 
     for (const addedPortKey of addedPortKeys) {
       const portData = data.ports[addedPortKey];
-      const portWrapper = new PortWrapper(this.dragRegistry, this.renderer, portData.portType === "output");
+      const portWrapper = new PortWrapper(this.renderer, portData.portType === "output");
       portWrapper.addTo(this.container);
-      this.portWrappers[addedPortKey] = portWrapper;
 
-      portWrapper.addDragStartListener((x, y) => {
-        this.portDragStart(addedPortKey, x, y);
-      });
-      portWrapper.addDragMoveListener((x, y) => {
-        this.portDragMove(addedPortKey, x, y);
-      });
-      portWrapper.addDragEndListener((x, y) => {
-        this.portDragEnd(addedPortKey, x, y);
-      });
+      this.registerPort(this, addedPortKey, portWrapper);
+      this.portWrappers[addedPortKey] = portWrapper;
 
       portWrapper.setPosition(
         portX(portWrapper, portData),
@@ -281,32 +248,5 @@ export class VertexWrapper {
 
   public getDataRelativeLoc(data: PIXI.interaction.InteractionData): PIXI.Point {
     return data.getLocalPosition(this.container);
-  }
-
-  // @TODO clean up
-  public addPortDragStartListener(listener: (portId: string, x: number, y: number) => void): void {
-    this.portDragStartListeners.push(listener);
-  }
-  public addPortDragMoveListener(listener: (portId: string, x: number, y: number) => void): void {
-    this.portDragMoveListeners.push(listener);
-  }
-  public addPortDragEndListener(listener: (portId: string, x: number, y: number) => void): void {
-    this.portDragEndListeners.push(listener);
-  }
-
-  private portDragStart(portId: string, x: number, y: number): void {
-    for (const listener of this.portDragStartListeners) {
-      listener(portId, x, y);
-    }
-  }
-  private portDragMove(portId: string, x: number, y: number): void {
-    for (const listener of this.portDragMoveListeners) {
-      listener(portId, x, y);
-    }
-  }
-  private portDragEnd(portId: string, x: number, y: number): void {
-    for (const listener of this.portDragEndListeners) {
-      listener(portId, x, y);
-    }
   }
 }

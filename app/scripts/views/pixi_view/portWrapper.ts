@@ -1,4 +1,4 @@
-import { DragRegistry } from "./dragRegistry";
+import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 
 export class PortWrapper {
   private static borderWidth = 2;
@@ -24,41 +24,26 @@ export class PortWrapper {
     ));
   }
 
-  private isDragging: boolean = false;
-  private dragRegistry: DragRegistry;
+  private isOutput: boolean;
   private sprite: PIXI.Sprite;
-  private dragStartListeners: Array<(x: number, y: number) => void> = [];
-  private dragMoveListeners: Array<(x: number, y: number) => void> = [];
-  private dragEndListeners: Array<(x: number, y: number) => void> = [];
 
   private positionChangedListeners: Array<() => void> = [];
 
-  constructor(dragRegistry: DragRegistry, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer, isOutput: boolean) {
-    this.dragRegistry = dragRegistry;
+  constructor(renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer, isOutput: boolean) {
+    this.isOutput = isOutput;
 
     this.sprite = PortWrapper.createSprite(renderer);
 
     this.sprite.interactive = true;
     this.sprite.buttonMode = true;
-
-    const that = this;
-
-    if (isOutput) {
-      const getListeners = dragRegistry.register(this.sprite);
-      getListeners.onDragStart(ev => that.onDragStart(ev));
-      getListeners.onDragMove(ev => that.onDragMove(ev));
-      getListeners.onDragEnd(ev => that.onDragEnd(ev));
-    }
   }
 
-  public addDragStartListener(listener: (x: number, y: number) => void): void {
-    this.dragStartListeners.push(listener);
+  public getDisplayObject() {
+    return this.sprite;
   }
-  public addDragMoveListener(listener: (x: number, y: number) => void): void {
-    this.dragMoveListeners.push(listener);
-  }
-  public addDragEndListener(listener: (x: number, y: number) => void): void {
-    this.dragEndListeners.push(listener);
+
+  public getIsOutput(): boolean {
+    return this.isOutput;
   }
 
   public addPositionChangedListener(listener: () => void): void {
@@ -95,21 +80,5 @@ export class PortWrapper {
 
   public removeFrom(obj: PIXI.Container): void {
     obj.removeChild(this.sprite);
-  }
-
-  private onDragStart(ev: PIXI.interaction.InteractionEvent): void {
-    for (const listener of this.dragStartListeners) {
-      listener(ev.data.global.x, ev.data.global.y); // Center of the port
-    }
-  }
-  private onDragMove(ev: PIXI.interaction.InteractionEvent): void {
-    for (const listener of this.dragMoveListeners) {
-      listener(ev.data.global.x, ev.data.global.y);
-    }
-  }
-  private onDragEnd(ev: PIXI.interaction.InteractionEvent): void {
-    for (const listener of this.dragEndListeners) {
-      listener(ev.data.global.x, ev.data.global.y);
-    }
   }
 }

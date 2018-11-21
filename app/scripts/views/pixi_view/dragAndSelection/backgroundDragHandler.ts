@@ -1,5 +1,5 @@
-import { BackgroundWrapper } from "./backgroundWrapper";
-import { DragRegistry } from "./dragRegistry";
+import { BackgroundWrapper } from "../backgroundWrapper.js";
+import { DragListeners } from "./dragRegistry.js";
 
 export class BackgroundDragHandler {
   private backgroundWrapper: BackgroundWrapper;
@@ -14,14 +14,14 @@ export class BackgroundDragHandler {
     };
   } | null = null;
 
-  constructor(backgroundWrapper: BackgroundWrapper, dragRegistry: DragRegistry) {
+  constructor(backgroundWrapper: BackgroundWrapper, dragListeners: DragListeners) {
     this.backgroundWrapper = backgroundWrapper;
 
     const that = this;
 
-    this.backgroundWrapper.onDragStart(ev => that.onDragStart(ev));
-    this.backgroundWrapper.onDragMove(ev => that.onDragMove(ev));
-    this.backgroundWrapper.onDragEnd(ev => that.onDragEnd(ev));
+    dragListeners.onDragStart(ev => that.onDragStart(ev));
+    dragListeners.onDragMove(ev => that.onDragMove(ev));
+    dragListeners.onDragEnd(ev => that.onDragEnd(ev));
   }
 
   private onDragStart(event: PIXI.interaction.InteractionEvent): void {

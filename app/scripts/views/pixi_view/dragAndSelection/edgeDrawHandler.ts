@@ -1,6 +1,6 @@
-import { PortWrapper } from "./portWrapper";
-import { VertexWrapper } from "./vertexWrapper";
-import { BackgroundWrapper } from "./backgroundWrapper";
+import { PortWrapper } from "../portWrapper.js";
+import { VertexWrapper } from "../vertexWrapper.js";
+import { BackgroundWrapper } from "../backgroundWrapper.js";
 
 export class EdgeDrawHandler {
   private backgroundWrapper: BackgroundWrapper;

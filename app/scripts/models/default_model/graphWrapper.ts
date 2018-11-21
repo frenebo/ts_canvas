@@ -1,4 +1,4 @@
-import { ModelData, EdgeData } from "../../interfaces";
+import { ModelData, EdgeData, VertexData } from "../../interfaces";
 
 export class Graph {
   private modelData: ModelData;
@@ -8,7 +8,7 @@ export class Graph {
       vertices: {},
       edges: {},
     };
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 2; i++) {
       this.modelData.vertices[i.toString()] = {
         label: i.toString(),
         geo: {
@@ -41,6 +41,17 @@ export class Graph {
 
     vtx.geo.x = x;
     vtx.geo.y = y;
+  }
+
+  public cloneVertex(newVtxId: string, oldVtxId: string, x: number, y: number): void {
+    if (this.modelData.vertices[newVtxId] !== undefined) throw new Error(`Vertex with id ${newVtxId} already exists`);
+    const oldVtx = this.modelData.vertices[oldVtxId];
+    if (oldVtx === undefined) throw new Error(`Coudl not find vertex with id ${oldVtxId}`);
+
+    const newVtx: VertexData = JSON.parse(JSON.stringify(oldVtx));
+    newVtx.geo.x = x;
+    newVtx.geo.y = y;
+    this.modelData.vertices[newVtxId] = newVtx;
   }
 
   public createEdge(edgeId: string, sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): void {

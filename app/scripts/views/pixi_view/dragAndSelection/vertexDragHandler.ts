@@ -1,10 +1,9 @@
-import { VertexWrapper } from "./vertexWrapper.js";
-import { DragRegistry } from "./dragRegistry.js";
+import { VertexWrapper } from "../vertexWrapper.js";
+import { DragListeners } from "./dragRegistry.js";
 
 export class VertexDragHandler {
   private static ghostAlpha = 0.5;
   private vtxWrapper: VertexWrapper;
-  private dragRegistry: DragRegistry;
 
   private dragData: null | {
     mouseLocalPos: {
@@ -16,14 +15,13 @@ export class VertexDragHandler {
   } = null;
   private dragListeners: Array<(x: number, y: number, ctrlKey: boolean) => void> = [];
 
-  constructor(vertex: VertexWrapper, dragRegistry: DragRegistry) {
+  constructor(vertex: VertexWrapper, listeners: DragListeners) {
     this.vtxWrapper = vertex;
-    this.dragRegistry = dragRegistry;
     const that = this;
 
-    this.vtxWrapper.onDragStart(ev => that.onDragStart(ev));
-    this.vtxWrapper.onDragEnd(ev => that.onDragEnd(ev));
-    this.vtxWrapper.onDragMove(ev => that.onDragMove(ev));
+    listeners.onDragStart(ev => that.onDragStart(ev));
+    listeners.onDragEnd(ev => that.onDragEnd(ev));
+    listeners.onDragMove(ev => that.onDragMove(ev));
   }
 
   public afterDrag(listener: (x: number, y: number, ctrlKey: boolean) => void): void {

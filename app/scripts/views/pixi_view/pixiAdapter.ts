@@ -1,13 +1,11 @@
 import { VertexData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, EdgeData } from "../../interfaces.js";
 import { VertexWrapper } from "./vertexWrapper.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
-import { DragRegistry } from "./dragRegistry.js";
+import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { MenuBar } from "./menuBar.js";
-import { EdgeDrawHandler } from "./edgeDrawHandler.js";
-import { PortWrapper } from "./portWrapper.js";
 import { EdgeWrapper } from "./edgeWrapper.js";
 import { SelectionManager } from "./selectionManager.js";
-import { VertexDragHandler } from "./vertexDragHandler.js";
+import { PortWrapper } from "./portWrapper.js";
 
 export class PixiAdapter {
   private app: PIXI.Application;
@@ -24,7 +22,6 @@ export class PixiAdapter {
   private edgeWrappers: {
     [key: string]: EdgeWrapper;
   } = {};
-  private edgeDrawHandler: EdgeDrawHandler;
 
   constructor(
     div: HTMLDivElement,
@@ -33,18 +30,24 @@ export class PixiAdapter {
   ) {
     this.sendModelChangeRequest = sendModelChangeRequest;
     this.sendModelInfoRequest = sendModelInfoRequest;
-    this.dragRegistry = new DragRegistry();
     this.app = new PIXI.Application(800, 600);
     div.appendChild(this.app.view);
     this.app.ticker.start(); // To continually refresh view
 
-    this.backgroundWrapper = new BackgroundWrapper(this.dragRegistry, div, this.app.renderer);
+    this.backgroundWrapper = new BackgroundWrapper(div, this.app.renderer);
     this.backgroundWrapper.addTo(this.app.stage);
 
+    this.dragRegistry = new DragRegistry(
+      sendModelChangeRequest,
+      sendModelInfoRequest,
+      () => this.uniqueVtxId(),
+      () => this.uniqueEdgeId(),
+      (x, y) => this.portsByCloseness(x, y),
+      this.backgroundWrapper,
+    );
     this.menuBar = new MenuBar(this.dragRegistry);
     this.menuBar.addTo(this.app.stage);
 
-    this.edgeDrawHandler = new EdgeDrawHandler(this.backgroundWrapper);
     this.selectionManager = new SelectionManager();
   }
 
@@ -59,106 +62,32 @@ export class PixiAdapter {
   public createVertex(vertexKey: string, data: VertexData): void {
     if (this.vertexWrappers.hasOwnProperty(vertexKey)) throw new Error(`Vertex with key ${vertexKey} already present`);
 
-    const vtxWrapper = new VertexWrapper(data, this.dragRegistry, this.app.renderer);
+    const vtxWrapper = new VertexWrapper(
+      data,
+      this.dragRegistry,
+      // @TODO find cleaner solution
+      (vtx, portId, portWrapper) => this.dragRegistry.registerPort(vertexKey, vtx, portId, portWrapper),
+      this.app.renderer,
+    );
     this.vertexWrappers[vertexKey] = vtxWrapper;
 
-    const dragHandler = new VertexDragHandler(vtxWrapper, this.dragRegistry);
-    dragHandler.afterDrag((x: number, y: number, ctrlKey: boolean) => {
-      if (ctrlKey) {
-        this.sendModelChangeRequest({
-          type: "cloneVertex",
-          vertexId: vertexKey,
-          x: x,
-          y: y,
-        });
-      } else {
-        this.sendModelChangeRequest({
-          type: "moveVertex",
-          vertexId: vertexKey,
-          x: x,
-          y: y,
-        });
-      }
-    });
+    this.dragRegistry.registerVertex(vertexKey, vtxWrapper);
 
-    vtxWrapper.addPortDragStartListener((sourcePortId, cursorX, cursorY) => {
-      const portWrapper = vtxWrapper.getPortWrapper(sourcePortId);
-      this.edgeDrawHandler.beginDraw(vtxWrapper, portWrapper);
-    });
 
-    const getSnapPortInfo = (cursorLocalX: number, cursorLocalY: number, sourcePortId: string) => {
-
-      const closestInfo = this.portsByCloseness(cursorLocalX, cursorLocalY)[0];
-
-      const closestPortVertex = this.vertexWrappers[closestInfo.vtxKey];
-      const closestPort = closestPortVertex.getPortWrapper(closestInfo.portKey);
-
-      if (
-        (closestPortVertex !== vtxWrapper || closestPort !== vtxWrapper.getPortWrapper(sourcePortId)) &&
-        closestInfo.distanceSquared < 100
-      ) {
-        const edgeValidityInfo = this.sendModelInfoRequest({
-          type: "validateEdge",
-          sourceVertexId: vertexKey,
-          sourcePortId: sourcePortId,
-          targetVertexId: closestInfo.vtxKey,
-          targetPortId: closestInfo.portKey,
-        });
-
-        return {
-          targetVtx: closestPortVertex,
-          targetPort: closestPort,
-          targetVtxId: closestInfo.vtxKey,
-          targetPortId: closestInfo.portKey,
-          xPos: closestPort.localX() + closestPort.getWidth()/2 + closestPortVertex.localX(),
-          yPos: closestPort.localY() + closestPort.getWidth()/2 + closestPortVertex.localY(),
-          isValid: edgeValidityInfo.validity === "valid",
-        }
-      } else {
-        return null;
-      }
-    }
-
-    vtxWrapper.addPortDragMoveListener((sourcePortId, cursorX, cursorY) => {
-      const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
-      const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
-      const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY, sourcePortId);
-
-      // snap to closest port
-      if (snapPortInfo !== null) {
-        this.edgeDrawHandler.redrawLine(
-          snapPortInfo.xPos,
-          snapPortInfo.yPos,
-          snapPortInfo.isValid ? "valid" : "invalid",
-        );
-      } else {
-        this.edgeDrawHandler.redrawLine(cursorLocalX, cursorLocalY);
-      }
-    });
-    vtxWrapper.addPortDragEndListener((sourcePortId, cursorX, cursorY) => {
-      this.edgeDrawHandler.endDrag();
-
-      const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
-      const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
-
-      const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY, sourcePortId);
-
-      if (snapPortInfo !== null && snapPortInfo.isValid) {
-        this.sendModelChangeRequest({
-          newPortId: this.uniqueEdgeId(),
-          type: "createEdge",
-          sourceVertexId: vertexKey,
-          sourcePortId: sourcePortId,
-          targetVertexId: snapPortInfo.targetVtxId,
-          targetPortId: snapPortInfo.targetPortId,
-        });
-      }
-    });
 
     this.backgroundWrapper.addVertex(vtxWrapper);
   }
 
-  private uniqueEdgeId() {
+  private uniqueVtxId(): string {
+    let i = 0;
+    while (true) {
+      const id = "vertex" + i.toString();
+      i++;
+      if (this.vertexWrappers[id] === undefined) return id;
+    }
+  }
+
+  private uniqueEdgeId(): string {
     let i = 0;
     while (true) {
       const id = "edge" + i.toString();
@@ -176,10 +105,18 @@ export class PixiAdapter {
     graphicsVtx.updateData(data);
   }
 
-  private portsByCloseness(targetX: number, targetY: number) {
+  private portsByCloseness(targetX: number, targetY: number): Array<{
+    portKey: string,
+    port: PortWrapper,
+    vtxKey: string,
+    vtx: VertexWrapper,
+    distanceSquared: number,
+  }> {
     const portDescriptions: Array<{
       portKey: string,
+      port: PortWrapper,
       vtxKey: string,
+      vtx: VertexWrapper,
       distanceSquared: number,
     }> = [];
 
@@ -191,7 +128,9 @@ export class PixiAdapter {
         const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + portWrapper.getHeight()/2);
         portDescriptions.push({
           portKey: portKey,
+          port: portWrapper,
           vtxKey: vertexKey,
+          vtx: vertexWrapper,
           distanceSquared: xDistance*xDistance + yDistance*yDistance,
         });
       }
@@ -227,6 +166,7 @@ export class PixiAdapter {
       this.app.renderer,
       this.dragRegistry,
     );
+    this.dragRegistry.registerEdge(edgeKey, edgeWrapper);
 
     this.backgroundWrapper.addEdge(edgeWrapper);
     this.edgeWrappers[edgeKey] = edgeWrapper;

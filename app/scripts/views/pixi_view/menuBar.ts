@@ -1,4 +1,4 @@
-import { DragRegistry } from "./dragRegistry";
+import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 
 export class MenuBar {
   private static readonly height = 50;
@@ -23,8 +23,10 @@ export class MenuBar {
 
     // Block dragging of background
     this.graphics.interactive = true;
+  }
 
-    dragRegistry.register(this.graphics);
+  public getDisplayObject() {
+    return this.graphics;
   }
 
   public addTo(obj: PIXI.Container): void {

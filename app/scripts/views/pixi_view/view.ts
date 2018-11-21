@@ -20,6 +20,7 @@ export class PixiView implements ViewInterface {
     const removedVertexKeys = oldVertexKeys.filter(key => newVertexKeys.indexOf(key) === -1);
     const addedVertexKeys = newVertexKeys.filter(key => oldVertexKeys.indexOf(key) === -1);
     const sharedVertexKeys = oldVertexKeys.filter(key => newVertexKeys.indexOf(key) !== -1);
+    console.log(addedVertexKeys);
 
     const newEdgeKeys = Object.keys(newData.edges);
     const oldEdgeKeys = Object.keys(this.data.edges);

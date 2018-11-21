@@ -21,8 +21,10 @@ export class DefaultModel implements ModelInterface {
       this.graph.moveVertex(req.vertexId, req.x, req.y);
     } else if (req.type === "createEdge") {
       this.graph.createEdge(req.newPortId, req.sourceVertexId, req.sourcePortId, req.targetVertexId, req.targetPortId);
+    } else if (req.type === "cloneVertex") {
+      this.graph.cloneVertex(req.newVertexId, req.sourceVertexId, req.x, req.y);
     } else {
-      console.log(`Unimplemented request ${req.type}`);
+      // console.log(`Unimplemented request ${req.type}`);
     }
 
     for (const listener of this.modelChangedListeners) {

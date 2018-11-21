@@ -1,0 +1,208 @@
+import { BackgroundWrapper } from "../backgroundWrapper.js";
+import { BackgroundDragHandler } from "./backgroundDragHandler.js";
+import { EdgeWrapper } from "../edgeWrapper.js";
+import { VertexWrapper } from "../vertexWrapper.js";
+import { VertexDragHandler } from "./vertexDragHandler.js";
+import { MenuBar } from "../menuBar.js";
+import { PortWrapper } from "../portWrapper.js";
+import { ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestType, ModelInfoRequestMap } from "../../../interfaces.js";
+import { PortDragHandler } from "./portDragHandler.js";
+import { EdgeDrawHandler } from "./edgeDrawHandler.js";
+import { EditIcon } from "../icons/editIcon.js";
+
+export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
+
+export type DragListeners = {
+  onDragStart: (listener: DragListener) => void;
+  onDragMove: (listener: DragListener) => void;
+  onDragEnd: (listener: DragListener) => void;
+}
+
+export class DragRegistry {
+  private locked: boolean;
+  private edgeDrawHandler: EdgeDrawHandler;
+  constructor(
+    private sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    private sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
+    private uniqueVtxId: () => string,
+    private uniqueEdgeId: () => string,
+    private portsByCloseness: (targetX: number, targetY: number) => Array<{
+      portKey: string,
+      port: PortWrapper,
+      vtxKey: string,
+      vtx: VertexWrapper,
+      distanceSquared: number,
+    }>,
+    private backgroundWrapper: BackgroundWrapper,
+  ) {
+    this.locked = false;
+    this.registerBackground(this.backgroundWrapper);
+    this.edgeDrawHandler = new EdgeDrawHandler(this.backgroundWrapper);
+  }
+
+  public registerMenuBar(menuBar: MenuBar): void {
+    this.register(menuBar.getDisplayObject());
+  }
+
+  private registerBackground(background: BackgroundWrapper): void {
+    const listeners = this.register(background.getDisplayObject());
+    new BackgroundDragHandler(background, listeners);
+  }
+
+  public registerEdge(id: string, edge: EdgeWrapper): void {
+    this.register(edge.getDisplayObject());
+  }
+
+  public registerEditIcon(editIcon: EditIcon, clickBegin: () => void, clickEnd: () => void): void {
+    const listeners = this.register(editIcon.getDisplayObject());
+    listeners.onDragStart(clickBegin);
+    listeners.onDragEnd(clickEnd);
+  }
+
+  public registerVertex(id: string, vertex: VertexWrapper): void {
+    const listeners = this.register(vertex.getDisplayObject());
+    const dragHandler = new VertexDragHandler(vertex, listeners);
+    dragHandler.afterDrag((x: number, y: number, ctrlKey: boolean) => {
+      if (ctrlKey) {
+        this.sendModelChangeRequest({
+          type: "cloneVertex",
+          newVertexId: this.uniqueVtxId(),
+          sourceVertexId: id,
+          x: x,
+          y: y,
+        });
+      } else {
+        this.sendModelChangeRequest({
+          type: "moveVertex",
+          vertexId: id,
+          x: x,
+          y: y,
+        });
+      }
+    });
+  }
+
+  public registerPort(vertexId: string, vtxWrapper: VertexWrapper, portId: string, port: PortWrapper): void {
+    const listeners = this.register(port.getDisplayObject());
+    const portDragHandler = new PortDragHandler(port, listeners);
+
+    portDragHandler.onPortDragStart(() => {
+      this.edgeDrawHandler.beginDraw(vtxWrapper, port);
+    });
+
+    const getSnapPortInfo = (cursorLocalX: number, cursorLocalY: number) => {
+      const closestInfo = this.portsByCloseness(cursorLocalX, cursorLocalY)[0];
+
+      const closestPortVertex = closestInfo.vtx;
+      const closestPort = closestInfo.port;
+
+      if (
+        (closestPortVertex !== vtxWrapper || closestPort !== port) &&
+        closestInfo.distanceSquared < 100
+      ) {
+        const edgeValidityInfo = this.sendModelInfoRequest({
+          type: "validateEdge",
+          sourceVertexId: vertexId,
+          sourcePortId: portId,
+          targetVertexId: closestInfo.vtxKey,
+          targetPortId: closestInfo.portKey,
+        });
+
+        return {
+          targetVtx: closestPortVertex,
+          targetPort: closestPort,
+          targetVtxId: closestInfo.vtxKey,
+          targetPortId: closestInfo.portKey,
+          xPos: closestPort.localX() + closestPort.getWidth()/2 + closestPortVertex.localX(),
+          yPos: closestPort.localY() + closestPort.getWidth()/2 + closestPortVertex.localY(),
+          isValid: edgeValidityInfo.validity === "valid",
+        }
+      } else {
+        return null;
+      }
+    }
+
+    portDragHandler.onPortDragMove((cursorX, cursorY) => {
+      const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
+      const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+      const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
+
+      // snap to closest port
+      if (snapPortInfo !== null) {
+        this.edgeDrawHandler.redrawLine(
+          snapPortInfo.xPos,
+          snapPortInfo.yPos,
+          snapPortInfo.isValid ? "valid" : "invalid",
+        );
+      } else {
+        this.edgeDrawHandler.redrawLine(cursorLocalX, cursorLocalY);
+      }
+    });
+    portDragHandler.onPortDragEnd((cursorX, cursorY) => {
+      this.edgeDrawHandler.endDrag();
+
+      const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
+      const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+
+      const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
+
+      if (snapPortInfo !== null && snapPortInfo.isValid) {
+        this.sendModelChangeRequest({
+          newPortId: this.uniqueEdgeId(),
+          type: "createEdge",
+          sourceVertexId: vertexId,
+          sourcePortId: portId,
+          targetVertexId: snapPortInfo.targetVtxId,
+          targetPortId: snapPortInfo.targetPortId,
+        });
+      }
+    });
+  }
+
+  private register(obj: PIXI.DisplayObject) {
+
+    const dragStartListeners: DragListener[] = [];
+    const dragMoveListeners: DragListener[] = [];
+    const dragEndListeners: DragListener[] = [];
+
+    let dragging = false;
+
+    const onDragStart = (ev: PIXI.interaction.InteractionEvent) => {
+      if (this.locked) return;
+
+      this.locked = true;
+      dragging = true;
+
+      for (const listener of dragStartListeners) listener(ev);
+    }
+
+    const onDragMove = (ev: PIXI.interaction.InteractionEvent) => {
+      if (!dragging) return;
+
+      for (const listener of dragMoveListeners) listener(ev);
+    }
+
+    const onDragEnd = (ev: PIXI.interaction.InteractionEvent) => {
+      if (!dragging) return;
+
+      dragging = false;
+      this.locked = false;
+
+      for (const listener of dragEndListeners) listener(ev);
+    }
+    obj
+      .on('mousedown',       onDragStart)
+      .on('touchstart',      onDragStart)
+      .on('mouseup',         onDragEnd)
+      .on('mouseupoutside',  onDragEnd)
+      .on('touchend',        onDragEnd)
+      .on('touchendoutside', onDragEnd)
+      .on('mousemove',       onDragMove)
+      .on('touchmove',       onDragMove);
+    return {
+      onDragStart: (listener: DragListener) => { dragStartListeners.push(listener); },
+      onDragMove: (listener: DragListener) => { dragMoveListeners.push(listener); },
+      onDragEnd: (listener: DragListener) => { dragEndListeners.push(listener); },
+    }
+  }
+}

@@ -1,6 +1,6 @@
-import { PortWrapper } from "./portWrapper";
-import { VertexWrapper } from "./vertexWrapper";
-import { DragRegistry } from "./dragRegistry";
+import { PortWrapper } from "./portWrapper.js";
+import { VertexWrapper } from "./vertexWrapper.js";
+import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 
 export class EdgeWrapper {
   private static spriteLeftRightPadding = 25;
@@ -75,7 +75,10 @@ export class EdgeWrapper {
     targetPort.addPositionChangedListener(() => this.redraw());
     targetVertex.addPositionChangedListener(() => this.redraw());
 
-    const getListeners = dragRegistry.register(this.container);
+  }
+
+  public getDisplayObject() {
+    return this.container;
   }
 
   public toggleSelected(selected: boolean): void {

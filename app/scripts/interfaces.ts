@@ -54,7 +54,8 @@ export type ModelChangeRequest = {
   y: number;
 } | {
   type: "cloneVertex";
-  vertexId: string;
+  newVertexId: string;
+  sourceVertexId: string;
   x: number;
   y: number;
 } | {

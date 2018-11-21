@@ -1,18 +1,13 @@
 import { BACKGROUND_TILE_PATH } from "../../constants.js";
 import { VertexWrapper } from "./vertexWrapper.js";
-import { BackgroundDragHandler } from "./backgroundDragHandler.js";
-import { DragRegistry } from "./dragRegistry.js";
+import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { EdgeWrapper } from "./edgeWrapper.js";
 
 export class BackgroundWrapper {
-  public sprite: PIXI.extras.TilingSprite;
+  private sprite: PIXI.extras.TilingSprite;
   private childContainer: PIXI.Container;
-  private dragStartListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
-  private dragMoveListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
-  private dragEndListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
 
   constructor(
-    dragRegistry: DragRegistry,
     container: HTMLDivElement,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
@@ -22,7 +17,6 @@ export class BackgroundWrapper {
     this.sprite.addChild(this.childContainer);
 
     this.sprite.interactive = true;
-    new BackgroundDragHandler(this, dragRegistry);
 
     const that = this;
     container.addEventListener("wheel", (ev) => {
@@ -38,27 +32,10 @@ export class BackgroundWrapper {
         mouseGlobalPos.y - mouseAbsoluteY*scrollFactor,
       );
     });
-
-    const dragListeners = dragRegistry.register(this.sprite);
-    dragListeners.onDragStart(ev => {
-      for (const listener of this.dragStartListeners) listener(ev);
-    });
-    dragListeners.onDragMove(ev => {
-      for (const listener of this.dragMoveListeners) listener(ev);
-    });
-    dragListeners.onDragEnd(ev => {
-      for (const listener of this.dragEndListeners) listener(ev);
-    });
   }
 
-  public onDragStart(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
-    this.dragStartListeners.push(listener);
-  }
-  public onDragMove(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
-    this.dragMoveListeners.push(listener);
-  }
-  public onDragEnd(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
-    this.dragEndListeners.push(listener);
+  public getDisplayObject() {
+    return this.sprite;
   }
 
   public addTo(obj: PIXI.Container): void {
