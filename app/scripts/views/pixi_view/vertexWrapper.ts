@@ -5,15 +5,17 @@ import { EditIcon } from "./icons/editIcon.js";
 import { PortWrapper } from "./portWrapper.js";
 
 export class VertexWrapper {
-  private static fillColor = 0xE6E6E6;
+  private static unselectedFillColor = 0xE6E6E6;
+  private static selectedFillColor = 0xFFFF00;
   private static borderColor = 0x333333;
   private static borderWidth = 5;
   private static defaultWidth = 250;
   private static defaultHeight = 80;
 
-  public static generateBoxGraphics(alpha = 1) {
+  public static generateBoxGraphics(alpha: number = 1, selected = false) {
     const graphics = new PIXI.Graphics();
-    graphics.beginFill(VertexWrapper.fillColor, alpha);
+    const fillColor = selected ? VertexWrapper.selectedFillColor : VertexWrapper.unselectedFillColor;
+    graphics.beginFill(fillColor, alpha);
     graphics.lineStyle(VertexWrapper.borderWidth, VertexWrapper.borderColor);
     graphics.drawRoundedRect(
       0 + VertexWrapper.borderWidth/2,
@@ -27,11 +29,11 @@ export class VertexWrapper {
   }
 
   private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
-  private dragRegistry: DragRegistry;
-  private sprite: PIXI.Sprite;
+  private container: PIXI.Container;
+  private background: PIXI.Sprite;
   private width: number;
   private height: number;
-  private dragListeners: Array<(x: number, y: number, ctrlKey: boolean) => void> = [];
+  private dragRegistry: DragRegistry;
   private label: PIXI.Text;
   private editIcon: EditIcon;
   private portWrappers: { [key: string]: PortWrapper } = {};
@@ -39,32 +41,27 @@ export class VertexWrapper {
   private portDragMoveListeners: Array<(portId: string, x: number, y: number) => void> = [];
   private portDragEndListeners: Array<(portId: string, x: number, y: number) => void> = [];
   private positionChangedListeners: Array<() => void> = [];
+  private isSelected = false;
 
   constructor(
     data: VertexData,
     dragRegistry: DragRegistry,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
-    this.renderer = renderer;
     this.dragRegistry = dragRegistry;
+    this.renderer = renderer;
     this.width = VertexWrapper.defaultWidth;
     this.height = VertexWrapper.defaultHeight;
 
-    this.sprite = new PIXI.Sprite(this.renderer.generateTexture(
-      VertexWrapper.generateBoxGraphics(),
-      undefined, // scale mode
-      this.renderer.resolution*4, // resolution
-      undefined, // region
-    ));
-    this.sprite.interactive = true;
+    this.container = new PIXI.Container();
+    this.container.interactive = true;
+
+    this.background = new PIXI.Sprite(); // placeholder
+    this.container.addChild(this.background);
+    this.redrawBackground();
+
     // this.sprite.buttonMode = true;
     // this.graphics.hitArea = new PIXI.Rectangle(data.geo.w, data.geo.h);
-    const dragHandler = new VertexDragHandler(this, this.dragRegistry);
-    dragHandler.afterDrag((x: number, y: number, ctrlKey: boolean) => {
-      for (const listener of this.dragListeners) {
-        listener(x, y, ctrlKey);
-      }
-    });
 
     const textStyle = new PIXI.TextStyle({
       fontFamily: 'Arial',
@@ -84,10 +81,10 @@ export class VertexWrapper {
     });
 
     this.label = new PIXI.Text("", textStyle);
-    this.sprite.addChild(this.label);
+    this.container.addChild(this.label);
 
-    this.editIcon = new EditIcon(this.dragRegistry);
-    this.editIcon.addTo(this.sprite);
+    this.editIcon = new EditIcon(dragRegistry);
+    this.editIcon.addTo(this.container);
     this.editIcon.addClickListener(() => {
       console.log("Edit icon clicked");
     });
@@ -97,13 +94,29 @@ export class VertexWrapper {
     this.updateData(data);
   }
 
+  public toggleSelected(selected: boolean): void {
+    this.isSelected = selected;
+    this.redrawBackground();
+  }
+
+  private redrawBackground(): void {
+    this.container.removeChild(this.background);
+    this.background = new PIXI.Sprite(this.renderer.generateTexture(
+      VertexWrapper.generateBoxGraphics(1, this.isSelected),
+      undefined, // scale mode
+      this.renderer.resolution*4, // resolution
+      undefined, // region
+    ));
+    this.container.addChild(this.background);
+  }
+
   private positionChildren(): void {
-    const padding = (this.sprite.height - this.editIcon.getHeight())/2;
-    this.editIcon.setPosition(this.sprite.width - (this.editIcon.getWidth() + padding), padding);
-    const widthForLabel = this.sprite.width - (this.editIcon.getWidth() + padding);
+    const padding = (this.container.height - this.editIcon.getHeight())/2;
+    this.editIcon.setPosition(this.container.width - (this.editIcon.getWidth() + padding), padding);
+    const widthForLabel = this.container.width - (this.editIcon.getWidth() + padding);
 
     this.label.x = (widthForLabel - this.label.width)/2;
-    this.label.y = (this.sprite.height - this.label.height)/2;
+    this.label.y = (this.container.height - this.label.height)/2;
   }
 
   public getPortWrapper(key: string): PortWrapper {
@@ -133,7 +146,7 @@ export class VertexWrapper {
     const sharedPortKeys = dataPortKeys.filter(key => currentPortKeys.indexOf(key) !== -1);
 
     for (const removedPortKey of removedPortKeys) {
-      this.portWrappers[removedPortKey].removeFrom(this.sprite);
+      this.portWrappers[removedPortKey].removeFrom(this.container);
     }
 
     const portX = (portWrapper: PortWrapper, data: PortData) => {
@@ -162,7 +175,7 @@ export class VertexWrapper {
     for (const addedPortKey of addedPortKeys) {
       const portData = data.ports[addedPortKey];
       const portWrapper = new PortWrapper(this.dragRegistry, this.renderer, portData.portType === "output");
-      portWrapper.addTo(this.sprite);
+      portWrapper.addTo(this.container);
       this.portWrappers[addedPortKey] = portWrapper;
 
       portWrapper.addDragStartListener((x, y) => {
@@ -192,24 +205,20 @@ export class VertexWrapper {
     }
   }
 
-  public addDragListener(listener: (x: number, y: number, ctrlKey: boolean) => void): void {
-    this.dragListeners.push(listener);
-  }
-
   public addTo(obj: PIXI.Container): void {
-    obj.addChild(this.sprite);
+    obj.addChild(this.container);
   }
 
   public removeFrom(obj: PIXI.Container): void {
-    obj.removeChild(this.sprite);
+    obj.removeChild(this.container);
   }
 
   public addChild(obj: PIXI.DisplayObject): void {
-    this.sprite.addChild(obj);
+    this.container.addChild(obj);
   }
 
   public removeChild(obj: PIXI.DisplayObject): void {
-    this.sprite.removeChild(obj);
+    this.container.removeChild(obj);
   }
 
   public addPositionChangedListener(listener: () => void): void {
@@ -217,8 +226,8 @@ export class VertexWrapper {
   }
 
   public setPosition(x: number, y: number): void {
-    if (this.sprite.position.x !== x || this.sprite.position.y !== y) {
-      this.sprite.position.set(x, y);
+    if (this.container.position.x !== x || this.container.position.y !== y) {
+      this.container.position.set(x, y);
       for (const listener of this.positionChangedListeners) {
         listener();
       }
@@ -226,11 +235,11 @@ export class VertexWrapper {
   }
 
   public localX(): number {
-    return this.sprite.position.x;
+    return this.container.position.x;
   }
 
   public localY(): number {
-    return this.sprite.position.y;
+    return this.container.position.y;
   }
 
   public getWidth(): number {
@@ -242,12 +251,12 @@ export class VertexWrapper {
   }
 
   public on(ev: string, fn: Function, context?: any): this {
-    this.sprite.on(ev, fn, context);
+    this.container.on(ev, fn, context);
     return this;
   }
 
   public getDataRelativeLoc(data: PIXI.interaction.InteractionData): PIXI.Point {
-    return data.getLocalPosition(this.sprite);
+    return data.getLocalPosition(this.container);
   }
 
   // @TODO clean up

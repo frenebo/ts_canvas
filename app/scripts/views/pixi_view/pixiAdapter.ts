@@ -6,6 +6,7 @@ import { MenuBar } from "./menuBar.js";
 import { EdgeDrawHandler } from "./edgeDrawHandler.js";
 import { PortWrapper } from "./portWrapper.js";
 import { EdgeWrapper } from "./edgeWrapper.js";
+import { SelectionManager } from "./selectionManager.js";
 
 export class PixiAdapter {
   private app: PIXI.Application;
@@ -14,6 +15,7 @@ export class PixiAdapter {
   private sendModelChangeRequest: (req: ModelChangeRequest) => void;
   private sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T];
   private dragRegistry: DragRegistry;
+  private selectionManager: SelectionManager;
 
   private vertexWrappers: {
     [key: string]: VertexWrapper;
@@ -42,6 +44,7 @@ export class PixiAdapter {
     this.menuBar.addTo(this.app.stage);
 
     this.edgeDrawHandler = new EdgeDrawHandler(this.backgroundWrapper);
+    this.selectionManager = new SelectionManager();
   }
 
   public removeVertex(vertexKey: string): void {
@@ -57,8 +60,7 @@ export class PixiAdapter {
 
     const vtxWrapper = new VertexWrapper(data, this.dragRegistry, this.app.renderer);
     this.vertexWrappers[vertexKey] = vtxWrapper;
-
-    vtxWrapper.addDragListener((x: number, y: number, ctrlKey: boolean) => {
+    this.dragRegistry.addVertex(vtxWrapper, (x: number, y: number, ctrlKey: boolean) => {
       if (ctrlKey) {
         this.sendModelChangeRequest({
           type: "cloneVertex",

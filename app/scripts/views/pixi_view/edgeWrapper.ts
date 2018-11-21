@@ -6,16 +6,20 @@ export class EdgeWrapper {
   private static spriteLeftRightPadding = 25;
   private static spriteTopBottomPadding = 25;
   private static lineWidth = 10;
+  private static unselectedLineColor = 0x000000;
+  private static selectedLineColor = 0xFFFF00;
+
 
   private static drawSprite(
     sourceX: number,
     sourceY: number,
     targetX: number,
     targetY: number,
+    selected: boolean,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ): PIXI.Sprite {
     const graphics = new PIXI.Graphics();
-    graphics.lineColor = 0x000000;
+    graphics.lineColor = selected ? EdgeWrapper.selectedLineColor : EdgeWrapper.unselectedLineColor;
     graphics.lineWidth = EdgeWrapper.lineWidth;
 
     const topLeftX = Math.min(sourceX, targetX);
@@ -47,6 +51,7 @@ export class EdgeWrapper {
 
   private container: PIXI.Container;
   private sprite: PIXI.Sprite;
+  private isSelected = false;
 
   constructor(
     private sourceVertex: VertexWrapper,
@@ -93,6 +98,11 @@ export class EdgeWrapper {
       .on('touchendoutside', clickEnd)
   }
 
+  public toggleSelected(selected: boolean): void {
+    this.isSelected = selected;
+    this.redraw();
+  }
+
   public addTo(obj: PIXI.Container): void {
     obj.addChild(this.container);
   }
@@ -113,6 +123,7 @@ export class EdgeWrapper {
       sourceY,
       targetX,
       targetY,
+      this.isSelected,
       this.renderer,
     );
     this.container.addChild(this.sprite);
