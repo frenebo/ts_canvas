@@ -44,15 +44,10 @@ export class PortWrapper {
     const that = this;
 
     if (isOutput) {
-      this.sprite
-        .on('mousedown',       (event: PIXI.interaction.InteractionEvent) => that.onDragStart(event))
-        .on('touchstart',      (event: PIXI.interaction.InteractionEvent) => that.onDragStart(event))
-        .on('mouseup',         (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-        .on('mouseupoutside',  (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-        .on('touchend',        (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-        .on('touchendoutside', (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-        .on('mousemove',       (event: PIXI.interaction.InteractionEvent) => that.onDragMove(event))
-        .on('touchmove',       (event: PIXI.interaction.InteractionEvent) => that.onDragMove(event));
+      const getListeners = dragRegistry.register(this.sprite);
+      getListeners.onDragStart(ev => that.onDragStart(ev));
+      getListeners.onDragMove(ev => that.onDragMove(ev));
+      getListeners.onDragEnd(ev => that.onDragEnd(ev));
     }
   }
 
@@ -103,28 +98,18 @@ export class PortWrapper {
   }
 
   private onDragStart(ev: PIXI.interaction.InteractionEvent): void {
-    if (this.dragRegistry.isLocked()) return;
-
-    this.dragRegistry.lock();
-    this.isDragging = true;
     for (const listener of this.dragStartListeners) {
       listener(ev.data.global.x, ev.data.global.y); // Center of the port
     }
   }
   private onDragMove(ev: PIXI.interaction.InteractionEvent): void {
-    if (this.isDragging) {
-      for (const listener of this.dragMoveListeners) {
-        listener(ev.data.global.x, ev.data.global.y);
-      }
+    for (const listener of this.dragMoveListeners) {
+      listener(ev.data.global.x, ev.data.global.y);
     }
   }
   private onDragEnd(ev: PIXI.interaction.InteractionEvent): void {
-    if (this.isDragging) {
-      this.dragRegistry.unlock();
-      this.isDragging = false;
-      for (const listener of this.dragEndListeners) {
-        listener(ev.data.global.x, ev.data.global.y);
-      }
+    for (const listener of this.dragEndListeners) {
+      listener(ev.data.global.x, ev.data.global.y);
     }
   }
 }

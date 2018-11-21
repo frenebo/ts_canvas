@@ -3,7 +3,6 @@ import { DragRegistry } from "./dragRegistry";
 
 export class BackgroundDragHandler {
   private backgroundWrapper: BackgroundWrapper;
-  private dragRegistry: DragRegistry;
   private dragData: {
     mouseStart: {
       x: number;
@@ -17,25 +16,16 @@ export class BackgroundDragHandler {
 
   constructor(backgroundWrapper: BackgroundWrapper, dragRegistry: DragRegistry) {
     this.backgroundWrapper = backgroundWrapper;
-    this.dragRegistry = dragRegistry;
 
     const that = this;
 
-    this.backgroundWrapper
-      .on('mousedown',       (event: PIXI.interaction.InteractionEvent) => that.onDragStart(event))
-      .on('touchstart',      (event: PIXI.interaction.InteractionEvent) => that.onDragStart(event))
-      .on('mouseup',         (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-      .on('mouseupoutside',  (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-      .on('touchend',        (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-      .on('touchendoutside', (event: PIXI.interaction.InteractionEvent) => that.onDragEnd(event))
-      .on('mousemove',       (event: PIXI.interaction.InteractionEvent) => that.onDragMove(event))
-      .on('touchmove',       (event: PIXI.interaction.InteractionEvent) => that.onDragMove(event));
+    this.backgroundWrapper.onDragStart(ev => that.onDragStart(ev));
+    this.backgroundWrapper.onDragMove(ev => that.onDragMove(ev));
+    this.backgroundWrapper.onDragEnd(ev => that.onDragEnd(ev));
   }
 
   private onDragStart(event: PIXI.interaction.InteractionEvent): void {
     if (this.dragData !== null) throw new Error("Previous drag has not ended");
-    if (this.dragRegistry.isLocked()) return;
-    this.dragRegistry.lock();
 
     this.dragData = {
       mouseStart: {
@@ -62,6 +52,5 @@ export class BackgroundDragHandler {
     if (this.dragData === null) return;
 
     this.dragData = null;
-    this.dragRegistry.unlock();
   }
 }

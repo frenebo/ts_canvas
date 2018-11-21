@@ -11,34 +11,21 @@ export class EditIcon {
     this.graphics.buttonMode = true;
 
     const that = this;
-    let buttonClicking = false;
     function clickBegin() {
-      if (!dragRegistry.isLocked()) {
-        buttonClicking = true;
-        dragRegistry.lock();
-        that.draw(true);
-      }
+      that.graphics.clear();
+      that.draw(true);
     }
     function clickEnd() {
-      if (buttonClicking) {
-        buttonClicking = false;
-        dragRegistry.unlock();
+      that.graphics.clear();
+      that.draw(false);
 
-        that.graphics.clear();
-        that.draw(false);
-
-        for (const clickListener of that.clickListeners) {
-          clickListener();
-        }
+      for (const clickListener of that.clickListeners) {
+        clickListener();
       }
     }
-    this.graphics
-      .on('mousedown',       clickBegin)
-      .on('touchstart',      clickBegin)
-      .on('mouseup',         clickEnd)
-      .on('mouseupoutside',  clickEnd)
-      .on('touchend',        clickEnd)
-      .on('touchendoutside', clickEnd);
+    const getListeners = dragRegistry.register(this.graphics);
+    getListeners.onDragStart(() => clickBegin());
+    getListeners.onDragEnd(() => clickEnd());
 
     this.draw(false);
   }

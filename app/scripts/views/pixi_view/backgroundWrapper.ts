@@ -7,6 +7,9 @@ import { EdgeWrapper } from "./edgeWrapper.js";
 export class BackgroundWrapper {
   public sprite: PIXI.extras.TilingSprite;
   private childContainer: PIXI.Container;
+  private dragStartListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
+  private dragMoveListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
+  private dragEndListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
 
   constructor(
     dragRegistry: DragRegistry,
@@ -35,6 +38,27 @@ export class BackgroundWrapper {
         mouseGlobalPos.y - mouseAbsoluteY*scrollFactor,
       );
     });
+
+    const dragListeners = dragRegistry.register(this.sprite);
+    dragListeners.onDragStart(ev => {
+      for (const listener of this.dragStartListeners) listener(ev);
+    });
+    dragListeners.onDragMove(ev => {
+      for (const listener of this.dragMoveListeners) listener(ev);
+    });
+    dragListeners.onDragEnd(ev => {
+      for (const listener of this.dragEndListeners) listener(ev);
+    });
+  }
+
+  public onDragStart(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
+    this.dragStartListeners.push(listener);
+  }
+  public onDragMove(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
+    this.dragMoveListeners.push(listener);
+  }
+  public onDragEnd(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
+    this.dragEndListeners.push(listener);
   }
 
   public addTo(obj: PIXI.Container): void {
@@ -64,11 +88,6 @@ export class BackgroundWrapper {
 
   public removeEdge(edgeWrapper: EdgeWrapper): void {
     edgeWrapper.removeFrom(this.childContainer);
-  }
-
-  public on(ev: string, fn: Function, context?: any): this {
-    this.sprite.on(ev, fn, context);
-    return this;
   }
 
   public localScale(): number {

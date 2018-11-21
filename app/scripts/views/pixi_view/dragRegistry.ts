@@ -1,5 +1,5 @@
-import { VertexWrapper } from "./vertexWrapper.js";
-import { VertexDragHandler } from "./vertexDragHandler.js";
+
+type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
 
 export class DragRegistry {
   private locked: boolean;
@@ -7,24 +7,50 @@ export class DragRegistry {
     this.locked = false;
   }
 
-  public addVertex(vertex: VertexWrapper, listener: (x: number, y: number, ctrlKey: boolean) => void): void {
-    const dragHandler = new VertexDragHandler(vertex, this);
-    dragHandler.afterDrag((x: number, y: number, ctrlKey: boolean) => {
-      console.log("vertex drag");
+  public register(obj: PIXI.DisplayObject) {
 
-      if (listener !== undefined) listener(x, y, ctrlKey);
-    });
-  }
+    const dragStartListeners: DragListener[] = [];
+    const dragMoveListeners: DragListener[] = [];
+    const dragEndListeners: DragListener[] = [];
 
-  public isLocked(): boolean {
-    return this.locked;
-  }
+    let dragging = false;
 
-  public lock(): void {
-    this.locked = true;
-  }
+    const onDragStart = (ev: PIXI.interaction.InteractionEvent) => {
+      if (this.locked) return;
 
-  public unlock(): void {
-    this.locked = false;
+      this.locked = true;
+      dragging = true;
+
+      for (const listener of dragStartListeners) listener(ev);
+    }
+
+    const onDragMove = (ev: PIXI.interaction.InteractionEvent) => {
+      if (!dragging) return;
+
+      for (const listener of dragMoveListeners) listener(ev);
+    }
+
+    const onDragEnd = (ev: PIXI.interaction.InteractionEvent) => {
+      if (!dragging) return;
+
+      dragging = false;
+      this.locked = false;
+
+      for (const listener of dragEndListeners) listener(ev);
+    }
+    obj
+      .on('mousedown',       onDragStart)
+      .on('touchstart',      onDragStart)
+      .on('mouseup',         onDragEnd)
+      .on('mouseupoutside',  onDragEnd)
+      .on('touchend',        onDragEnd)
+      .on('touchendoutside', onDragEnd)
+      .on('mousemove',       onDragMove)
+      .on('touchmove',       onDragMove);
+    return {
+      onDragStart: (listener: DragListener) => { dragStartListeners.push(listener); },
+      onDragMove: (listener: DragListener) => { dragMoveListeners.push(listener); },
+      onDragEnd: (listener: DragListener) => { dragEndListeners.push(listener); },
+    }
   }
 }

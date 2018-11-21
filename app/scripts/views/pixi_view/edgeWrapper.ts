@@ -75,27 +75,7 @@ export class EdgeWrapper {
     targetPort.addPositionChangedListener(() => this.redraw());
     targetVertex.addPositionChangedListener(() => this.redraw());
 
-    let isClicking = false;
-    function clickStart() {
-      if (!dragRegistry.isLocked()) {
-        dragRegistry.lock();
-        isClicking = true;
-      }
-    }
-    function clickEnd() {
-      if (isClicking) {
-        dragRegistry.unlock();
-        isClicking = false;
-      }
-    }
-
-    this.container
-      .on('mousedown',       clickStart)
-      .on('touchstart',      clickStart)
-      .on('mouseup',         clickEnd)
-      .on('mouseupoutside',  clickEnd)
-      .on('touchend',        clickEnd)
-      .on('touchendoutside', clickEnd)
+    const getListeners = dragRegistry.register(this.container);
   }
 
   public toggleSelected(selected: boolean): void {

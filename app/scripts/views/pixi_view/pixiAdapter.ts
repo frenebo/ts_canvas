@@ -7,6 +7,7 @@ import { EdgeDrawHandler } from "./edgeDrawHandler.js";
 import { PortWrapper } from "./portWrapper.js";
 import { EdgeWrapper } from "./edgeWrapper.js";
 import { SelectionManager } from "./selectionManager.js";
+import { VertexDragHandler } from "./vertexDragHandler.js";
 
 export class PixiAdapter {
   private app: PIXI.Application;
@@ -60,7 +61,9 @@ export class PixiAdapter {
 
     const vtxWrapper = new VertexWrapper(data, this.dragRegistry, this.app.renderer);
     this.vertexWrappers[vertexKey] = vtxWrapper;
-    this.dragRegistry.addVertex(vtxWrapper, (x: number, y: number, ctrlKey: boolean) => {
+
+    const dragHandler = new VertexDragHandler(vtxWrapper, this.dragRegistry);
+    dragHandler.afterDrag((x: number, y: number, ctrlKey: boolean) => {
       if (ctrlKey) {
         this.sendModelChangeRequest({
           type: "cloneVertex",

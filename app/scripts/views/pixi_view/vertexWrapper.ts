@@ -29,14 +29,17 @@ export class VertexWrapper {
   }
 
   private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
+  private dragRegistry: DragRegistry;
   private container: PIXI.Container;
   private background: PIXI.Sprite;
   private width: number;
   private height: number;
-  private dragRegistry: DragRegistry;
   private label: PIXI.Text;
   private editIcon: EditIcon;
   private portWrappers: { [key: string]: PortWrapper } = {};
+  private dragStartListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
+  private dragMoveListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
+  private dragEndListeners: Array<(ev: PIXI.interaction.InteractionEvent) => void> = [];
   private portDragStartListeners: Array<(portId: string, x: number, y: number) => void> = [];
   private portDragMoveListeners: Array<(portId: string, x: number, y: number) => void> = [];
   private portDragEndListeners: Array<(portId: string, x: number, y: number) => void> = [];
@@ -92,6 +95,30 @@ export class VertexWrapper {
     this.positionChildren();
 
     this.updateData(data);
+
+    const dragListeners = this.dragRegistry.register(this.container);
+    dragListeners.onDragStart(ev => {
+      console.log("drag start")
+      for (const listener of this.dragStartListeners) listener(ev);
+    });
+    dragListeners.onDragMove(ev => {
+      console.log("drag move")
+      for (const listener of this.dragMoveListeners) listener(ev);
+    });
+    dragListeners.onDragEnd(ev => {
+      console.log("drag end")
+      for (const listener of this.dragEndListeners) listener(ev);
+    });
+  }
+
+  public onDragStart(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
+    this.dragStartListeners.push(listener);
+  }
+  public onDragMove(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
+    this.dragMoveListeners.push(listener);
+  }
+  public onDragEnd(listener: (ev: PIXI.interaction.InteractionEvent) => void) {
+    this.dragEndListeners.push(listener);
   }
 
   public toggleSelected(selected: boolean): void {

@@ -23,13 +23,8 @@ export class MenuBar {
 
     // Block dragging of background
     this.graphics.interactive = true;
-    this.graphics
-      .on('mousedown',       () => dragRegistry.lock())
-      .on('touchstart',      () => dragRegistry.lock())
-      .on('mouseup',         () => dragRegistry.unlock())
-      .on('mouseupoutside',  () => dragRegistry.unlock())
-      .on('touchend',        () => dragRegistry.unlock())
-      .on('touchendoutside', () => dragRegistry.unlock());
+
+    dragRegistry.register(this.graphics);
   }
 
   public addTo(obj: PIXI.Container): void {
