@@ -10,6 +10,7 @@ import { PortDragHandler } from "./portDragHandler.js";
 import { EdgeDrawHandler } from "./edgeDrawHandler.js";
 import { EditIcon } from "../icons/editIcon.js";
 import { SelectionManager } from "./selectionManager.js";
+import { KeyboardHandler } from "./keyboardHandler.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
 
@@ -42,6 +43,8 @@ export class DragRegistry {
       sendModelInfoRequest,
     );
     this.registerBackground(this.backgroundWrapper);
+
+    new KeyboardHandler(this.selectionManager);
   }
 
   private portsByCloseness(targetX: number, targetY: number): Array<{

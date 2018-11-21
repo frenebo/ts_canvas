@@ -66,6 +66,10 @@ export class BackgroundWrapper {
     edgeWrapper.removeFrom(this.childContainer);
   }
 
+  public getDataRelativeLoc(data: PIXI.interaction.InteractionData) {
+    return data.getLocalPosition(this.childContainer);
+  }
+
   public localScale(): number {
     return this.sprite.tileScale.x;
   }

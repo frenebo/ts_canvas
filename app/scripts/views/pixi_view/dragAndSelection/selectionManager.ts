@@ -49,6 +49,23 @@ export class SelectionManager {
     }
   }
 
+  public addSelectionBox(leftX: number, topY: number, w: number, h: number): void {
+    const vertexWrappers = this.getVertexWrappers();
+
+    for (const vertexId in vertexWrappers) {
+      const vertexWrapper = vertexWrappers[vertexId];
+
+      if (
+        vertexWrapper.localX() >= leftX &&
+        vertexWrapper.localY() >= topY &&
+        vertexWrapper.localX() + vertexWrapper.getWidth() <= leftX + w &&
+        vertexWrapper.localY() + vertexWrapper.getHeight() <= topY + h
+      ) {
+        this.selectVertex(vertexWrapper);
+      }
+    }
+  }
+
   public startSelectionDrag(dx: number, dy: number, isClone: boolean): void {
     if (this.selectionDrag !== null) throw new Error("In middle of drag");
 
