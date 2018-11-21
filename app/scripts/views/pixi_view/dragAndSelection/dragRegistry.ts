@@ -28,19 +28,21 @@ export class DragRegistry {
   private selectionManager: SelectionManager;
 
   constructor(
-    private sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    private sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
     private sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     private getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
     private backgroundWrapper: BackgroundWrapper,
+    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     this.locked = false;
     this.edgeDrawHandler = new EdgeDrawHandler(this.backgroundWrapper);
     this.selectionManager = new SelectionManager(
       getVertexWrappers,
       getEdgeWrappers,
-      sendModelChangeRequest,
+      sendModelChangeRequests,
       sendModelInfoRequest,
+      renderer,
     );
     this.registerBackground(this.backgroundWrapper);
 
@@ -115,7 +117,7 @@ export class DragRegistry {
 
   public registerVertex(id: string, vertex: VertexWrapper): void {
     const listeners = this.registerDisplayObject(vertex.getDisplayObject());
-    const dragHandler = new VertexDragHandler(vertex, listeners, this.selectionManager);
+    new VertexDragHandler(id, vertex, listeners, this.selectionManager);
   }
 
   public registerPort(vertexId: string, vtxWrapper: VertexWrapper, portId: string, port: PortWrapper): void {
@@ -183,7 +185,7 @@ export class DragRegistry {
       const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
 
       if (snapPortInfo !== null && snapPortInfo.isValid) {
-        this.sendModelChangeRequest({
+        this.sendModelChangeRequests({
           newPortId: this.uniqueEdgeId(),
           type: "createEdge",
           sourceVertexId: vertexId,

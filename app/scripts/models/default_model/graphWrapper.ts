@@ -8,12 +8,12 @@ export class Graph {
       vertices: {},
       edges: {},
     };
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 10; i++) {
       this.modelData.vertices[i.toString()] = {
         label: i.toString(),
         geo: {
-          x: i*5,
-          y: i*5,
+          x: i*20,
+          y: i*20,
         },
         ports: {
           "input0": {

@@ -5,47 +5,54 @@ import { ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestMap, ModelInf
 export class SelectionManager {
   private static ghostAlpha = 0.5;
 
-  private selectedVertices: VertexWrapper[] = [];
+  private selectedVerticesObject: {[key: string]: VertexWrapper} = {};
+  // private selectedVertices: VertexWrapper[] = [];
   private selectionDrag: null | {
     dx: number,
     dy: number,
     isClone: boolean
-    ghosts: Map<VertexWrapper, PIXI.Graphics>;
+    ghosts: Map<VertexWrapper, PIXI.Sprite>;
   } = null;
   // private selectedEdges: EdgeWrapper[] = [];
 
   constructor(
     private getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
-    private sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    private sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
     private sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
+    private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     // empty
   }
 
   public clearSelection(): void {
     // copy array so no vertices are skipped
-    for (const selectedVertex of this.selectedVertices.slice()) {
-      this.deselectVertex(selectedVertex);
+    for (const selectedVertexId of Object.keys(this.selectedVerticesObject)) {
+      this.deselectVertex(selectedVertexId);
     }
   }
 
-  public vertexIsSelected(vertex: VertexWrapper): boolean {
-    return this.selectedVertices.indexOf(vertex) !== -1;
+  public vertexIsSelected(vertexId: string): boolean {
+    return this.selectedVerticesObject[vertexId] !== undefined;
   }
 
-  public selectVertex(vertex: VertexWrapper): void {
+  public selectVertex(vertexId: string): void {
     // only select if it isn't already selected
-    if (this.selectedVertices.indexOf(vertex) === -1) {
-      this.selectedVertices.push(vertex);
+    if (this.selectedVerticesObject[vertexId] === undefined) {
+      const vertex = this.getVertexWrappers()[vertexId];
+      if (vertex === undefined) throw new Error(`No such vertex with id ${vertexId}`);
+
+      this.selectedVerticesObject[vertexId] = vertex;
       vertex.toggleSelected(true);
     }
   }
 
-  public deselectVertex(vertex: VertexWrapper): void {
-    if (this.selectedVertices.indexOf(vertex) !== -1) {
-      this.selectedVertices.splice(this.selectedVertices.indexOf(vertex), 1);
+  public deselectVertex(vertexId: string): void {
+    // do nothing if the vertex isn't selected to begin with
+    const vertex = this.selectedVerticesObject[vertexId];
+    if (vertex !== undefined) {
       vertex.toggleSelected(false);
+      delete this.selectedVerticesObject[vertexId];
     }
   }
 
@@ -61,7 +68,7 @@ export class SelectionManager {
         vertexWrapper.localX() + vertexWrapper.getWidth() <= leftX + w &&
         vertexWrapper.localY() + vertexWrapper.getHeight() <= topY + h
       ) {
-        this.selectVertex(vertexWrapper);
+        this.selectVertex(vertexId);
       }
     }
   }
@@ -76,8 +83,9 @@ export class SelectionManager {
       ghosts: new Map(),
     };
 
-    for (const selectedVertex of this.selectedVertices) {
-      const ghost = VertexWrapper.generateBoxGraphics(SelectionManager.ghostAlpha);
+    for (const selectedVertexId in this.selectedVerticesObject) {
+      const selectedVertex = this.selectedVerticesObject[selectedVertexId];
+      const ghost = new PIXI.Sprite(VertexWrapper.generateBoxTexture(SelectionManager.ghostAlpha, false, this.renderer));
       selectedVertex.addChild(ghost);
       ghost.position.set(dx, dy);
 
@@ -107,8 +115,6 @@ export class SelectionManager {
 
     const requests: ModelChangeRequest[] = [];
 
-    // so each clone uses a different id
-    const takenNewVertexIds: string[] = [];
 
     for (const [vertexWrapper, ghost] of this.selectionDrag.ghosts) {
       vertexWrapper.removeChild(ghost);
@@ -120,8 +126,7 @@ export class SelectionManager {
       const newX = vertexWrapper.localX() + dx;
       const newY = vertexWrapper.localY() + dy;
       if (this.selectionDrag.isClone) {
-        const uniqueVertexId = this.uniqueVtxId(takenNewVertexIds);
-        takenNewVertexIds.push(uniqueVertexId);
+        const uniqueVertexId = this.uniqueVtxId(); // should be different each time it's called
 
         requests.push({
           type: "cloneVertex",
@@ -140,19 +145,17 @@ export class SelectionManager {
       }
     }
 
-    for (const request of requests) {
-      this.sendModelChangeRequest(request);
-    }
+    this.sendModelChangeRequests(...requests);
 
     this.selectionDrag = null;
   }
 
-  private uniqueVtxId(taken: string[]): string {
-    let i = 0;
+  private static vtxIdCounter = 0;
+  private uniqueVtxId(): string {
     while (true) {
-      const id = "vertex" + i.toString();
-      i++;
-      if (this.getVertexWrappers()[id] === undefined && taken.indexOf(id) === -1) return id;
+      const id = "vertex" + SelectionManager.vtxIdCounter.toString();
+      SelectionManager.vtxIdCounter++;
+      if (this.getVertexWrappers()[id] === undefined) return id;
     }
   }
 

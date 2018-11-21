@@ -16,7 +16,16 @@ export class DefaultModel implements ModelInterface {
     this.modelChangedListeners.push(listener);
   }
 
-  public requestModelChange(req: ModelChangeRequest): void {
+  public requestModelChanges(...reqs: ModelChangeRequest[]): void {
+    for (const req of reqs) {
+      this.requestSingleModelChange(req);
+    }
+    for (const listener of this.modelChangedListeners) {
+      listener();
+    }
+  }
+
+  private requestSingleModelChange(req: ModelChangeRequest): void {
     if (req.type === "moveVertex") {
       this.graph.moveVertex(req.vertexId, req.x, req.y);
     } else if (req.type === "createEdge") {
@@ -25,10 +34,6 @@ export class DefaultModel implements ModelInterface {
       this.graph.cloneVertex(req.newVertexId, req.sourceVertexId, req.x, req.y);
     } else {
       // console.log(`Unimplemented request ${req.type}`);
-    }
-
-    for (const listener of this.modelChangedListeners) {
-      listener();
     }
   }
 

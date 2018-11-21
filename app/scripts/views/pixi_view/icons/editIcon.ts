@@ -1,35 +1,122 @@
 import { DragRegistry } from "../dragAndSelection/dragRegistry";
 
 export class EditIcon {
-  private graphics: PIXI.Graphics;
+  private static texturePadding = 5;
+  private static outlinePoints = [
+    [0, 50],
+    [0, 35],
+    [35, 0],
+    [50, 15],
+    [15, 50],
+    [0, 50],
+    [0, 35],
+  ];
+  private static eraserPoints = [
+    [25, 10],
+    [40, 25],
+  ];
+
+
+  private static cachedClicking: PIXI.RenderTexture | null = null;
+  private static cachedNotClicking: PIXI.RenderTexture | null = null;
+
+  private static draw(clicking: boolean, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
+    if (clicking && EditIcon.cachedClicking !== null) return new PIXI.Sprite(EditIcon.cachedClicking);
+    if (!clicking && EditIcon.cachedNotClicking !== null) return new PIXI.Sprite(EditIcon.cachedNotClicking);
+
+    const graphics = new PIXI.Graphics();
+    graphics.beginFill(clicking ? 0x888888 : 0x555555);
+    graphics.lineColor = 0x000000;
+    graphics.lineWidth = 5;
+
+    function graphPoints(pts: number[][]) {
+      graphics.moveTo(
+        pts[0][0] + EditIcon.texturePadding,
+        pts[0][1] + EditIcon.texturePadding,
+      );
+
+      for (const pt of pts.slice(1)) {
+        graphics.lineTo(
+          pt[0] + EditIcon.texturePadding,
+          pt[1] + EditIcon.texturePadding,
+        );
+      }
+    }
+
+    graphPoints(EditIcon.outlinePoints);
+    graphPoints(EditIcon.eraserPoints);
+
+    // graphics.position.set(EditIcon.texturePadding, EditIcon.texturePadding);
+
+    const texture = renderer.generateTexture(
+      graphics,
+      undefined,
+      renderer.resolution*2,
+      new PIXI.Rectangle(
+        0,
+        0,
+        graphics.width + EditIcon.texturePadding*2,
+        graphics.height + EditIcon.texturePadding*2,
+      )
+    );
+
+    if (clicking) EditIcon.cachedClicking = texture;
+    else EditIcon.cachedNotClicking = texture;
+
+    return new PIXI.Sprite(texture);
+  }
+
+  private static getHitArea(): PIXI.Polygon {
+    const points = [
+      new PIXI.Point(0, 50),
+      new PIXI.Point(0, 35),
+      new PIXI.Point(35, 0),
+      new PIXI.Point(50, 15),
+      new PIXI.Point(15, 50),
+      new PIXI.Point(0, 50),
+    ].map(pt => new PIXI.Point(pt.x + EditIcon.texturePadding, pt.y + EditIcon.texturePadding));
+
+    return new PIXI.Polygon(...points);
+  }
+
+  private container: PIXI.Container;
+  private sprite: PIXI.Sprite;
   private clickListeners: Array<() => void> = [];
 
-  constructor(dragRegistry: DragRegistry) {
-    this.graphics = new PIXI.Graphics();
+  constructor(
+    dragRegistry: DragRegistry,
+    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+  ) {
+    this.container = new PIXI.Container();
 
-    this.graphics.interactive = true;
-    this.graphics.buttonMode = true;
+    this.container.interactive = true;
+    this.container.buttonMode = true;
 
-    const that = this;
-    function clickBegin() {
-      that.graphics.clear();
-      that.draw(true);
+    const clickBegin = () => {
+      this.container.removeChild(this.sprite);
+      this.sprite = EditIcon.draw(true, renderer);
+      this.container.addChild(this.sprite);
     }
-    function clickEnd() {
-      that.graphics.clear();
-      that.draw(false);
+    const clickEnd = () => {
+      this.container.removeChild(this.sprite);
+      this.sprite = EditIcon.draw(false, renderer);
+      this.container.addChild(this.sprite);
 
-      for (const clickListener of that.clickListeners) {
+      for (const clickListener of this.clickListeners) {
         clickListener();
       }
     }
-    const listeners = dragRegistry.registerEditIcon(this, clickBegin, clickEnd);
 
-    this.draw(false);
+    dragRegistry.registerEditIcon(this, clickBegin, clickEnd);
+
+    this.sprite = EditIcon.draw(false, renderer);
+    this.container.addChild(this.sprite);
+
+    this.container.hitArea = EditIcon.getHitArea();
   }
 
   public getDisplayObject() {
-    return this.graphics;
+    return this.container;
   }
 
   public addClickListener(listener: () => void): void {
@@ -37,37 +124,18 @@ export class EditIcon {
   }
 
   public addTo(obj: PIXI.Container): void {
-    obj.addChild(this.graphics);
+    obj.addChild(this.container);
   }
 
   public setPosition(x: number, y: number): void {
-    this.graphics.position.set(x, y);
+    this.container.position.set(x, y);
   }
 
   public getWidth(): number {
-    return this.graphics.width;
+    return this.container.width;
   }
 
   public getHeight(): number {
-    return this.graphics.height;
-  }
-
-  private draw(clicking: boolean): void {
-    this.graphics.beginFill(clicking ? 0x888888 : 0x555555);
-    this.graphics.lineColor = 0x000000;
-    this.graphics.lineWidth = 5;
-
-    // pencil outline
-    this.graphics.moveTo(0, 50);
-    this.graphics.lineTo(0, 35);
-    this.graphics.lineTo(35, 0);
-    this.graphics.lineTo(50, 15);
-    this.graphics.lineTo(15, 50);
-    this.graphics.lineTo(0, 50);
-    this.graphics.lineTo(0, 35);
-
-    // eraser line
-    this.graphics.moveTo(25, 10);
-    this.graphics.lineTo(40, 25);
+    return this.container.height;
   }
 }

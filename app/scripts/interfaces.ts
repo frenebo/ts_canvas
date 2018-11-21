@@ -41,7 +41,7 @@ export interface ViewInterface {
 export interface ModelInterface {
   getModelData(): ModelData;
   addModelChangedListener(listener: () => void): void;
-  requestModelChange(req: ModelChangeRequest): void;
+  requestModelChanges(...reqs: ModelChangeRequest[]): void;
   requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T];
 }
 

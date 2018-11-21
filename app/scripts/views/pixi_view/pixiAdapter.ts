@@ -21,7 +21,7 @@ export class PixiAdapter {
 
   constructor(
     div: HTMLDivElement,
-    sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
   ) {
     this.app = new PIXI.Application(800, 600);
@@ -32,11 +32,12 @@ export class PixiAdapter {
     this.backgroundWrapper.addTo(this.app.stage);
 
     this.dragRegistry = new DragRegistry(
-      sendModelChangeRequest,
+      sendModelChangeRequests,
       sendModelInfoRequest,
       () => this.vertexWrappers,
       () => this.edgeWrappers,
       this.backgroundWrapper,
+      this.app.renderer,
     );
     this.menuBar = new MenuBar(this.dragRegistry);
     this.menuBar.addTo(this.app.stage);
@@ -54,7 +55,6 @@ export class PixiAdapter {
     if (this.vertexWrappers.hasOwnProperty(vertexKey)) throw new Error(`Vertex with key ${vertexKey} already present`);
 
     const vtxWrapper = new VertexWrapper(
-      data,
       this.dragRegistry,
       // @TODO find cleaner solution
       (vtx, portId, portWrapper) => this.dragRegistry.registerPort(vertexKey, vtx, portId, portWrapper),
@@ -62,9 +62,9 @@ export class PixiAdapter {
     );
     this.vertexWrappers[vertexKey] = vtxWrapper;
 
+    vtxWrapper.updateData(data);
+
     this.dragRegistry.registerVertex(vertexKey, vtxWrapper);
-
-
 
     this.backgroundWrapper.addVertex(vtxWrapper);
   }

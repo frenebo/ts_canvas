@@ -11,20 +11,39 @@ export class VertexWrapper {
   private static defaultWidth = 250;
   private static defaultHeight = 80;
 
-  public static generateBoxGraphics(alpha: number = 1, selected = false) {
-    const graphics = new PIXI.Graphics();
-    const fillColor = selected ? VertexWrapper.selectedFillColor : VertexWrapper.unselectedFillColor;
-    graphics.beginFill(fillColor, alpha);
-    graphics.lineStyle(VertexWrapper.borderWidth, VertexWrapper.borderColor);
-    graphics.drawRoundedRect(
-      0 + VertexWrapper.borderWidth/2,
-      0 + VertexWrapper.borderWidth/2,
-      VertexWrapper.defaultWidth + VertexWrapper.borderWidth/2,
-      VertexWrapper.defaultHeight + VertexWrapper.borderWidth/2,
-      10,
-    );
+  private static cachedTextures = new Map<string, PIXI.RenderTexture>();
+  public static generateBoxTexture(
+    alpha: number,
+    selected: boolean,
+    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+  ): PIXI.RenderTexture {
+    const uniqueTextureString = JSON.stringify({alpha, selected});
+    if (VertexWrapper.cachedTextures.has(uniqueTextureString)) {
+      return VertexWrapper.cachedTextures.get(uniqueTextureString)!;
+    } else {
 
-    return graphics;
+      const graphics = new PIXI.Graphics();
+      const fillColor = selected ? VertexWrapper.selectedFillColor : VertexWrapper.unselectedFillColor;
+      graphics.beginFill(fillColor, alpha);
+      graphics.lineStyle(VertexWrapper.borderWidth, VertexWrapper.borderColor);
+      graphics.drawRoundedRect(
+        0 + VertexWrapper.borderWidth/2,
+        0 + VertexWrapper.borderWidth/2,
+        VertexWrapper.defaultWidth + VertexWrapper.borderWidth/2,
+        VertexWrapper.defaultHeight + VertexWrapper.borderWidth/2,
+        10,
+      );
+
+      const texture = renderer.generateTexture(
+        graphics,
+        undefined, // scale mode
+        renderer.resolution*4, // resolution
+        undefined, // region
+      );
+      VertexWrapper.cachedTextures.set(uniqueTextureString, texture);
+
+      return texture;
+    }
   }
 
   private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
@@ -39,7 +58,6 @@ export class VertexWrapper {
   private isSelected = false;
 
   constructor(
-    data: VertexData,
     dragRegistry: DragRegistry,
     private registerPort: (vtx: VertexWrapper, portId: string, port: PortWrapper) => void,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
@@ -63,7 +81,7 @@ export class VertexWrapper {
       fontSize: 30,
       // fontStyle: 'italic',
       fontWeight: 'bold',
-      fill: ['#ffffff', '#00ff99'], // gradient
+      fill: '#ffffff',
       stroke: '#4a1850',
       strokeThickness: 5,
       dropShadow: true,
@@ -78,15 +96,13 @@ export class VertexWrapper {
     this.label = new PIXI.Text("", textStyle);
     this.container.addChild(this.label);
 
-    this.editIcon = new EditIcon(dragRegistry);
+    this.editIcon = new EditIcon(dragRegistry, renderer);
     this.editIcon.addTo(this.container);
     this.editIcon.addClickListener(() => {
       console.log("Edit icon clicked");
     });
 
-    this.positionChildren();
-
-    this.updateData(data);
+    // this.positionChildren();
   }
 
   public getDisplayObject() {
@@ -100,12 +116,7 @@ export class VertexWrapper {
 
   private redrawBackground(): void {
     this.container.removeChild(this.background);
-    this.background = new PIXI.Sprite(this.renderer.generateTexture(
-      VertexWrapper.generateBoxGraphics(1, this.isSelected),
-      undefined, // scale mode
-      this.renderer.resolution*4, // resolution
-      undefined, // region
-    ));
+    this.background = new PIXI.Sprite(VertexWrapper.generateBoxTexture(1, this.isSelected, this.renderer));
     this.container.addChildAt(this.background, 0); // insert behind other children
   }
 

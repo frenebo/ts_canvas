@@ -18,6 +18,7 @@ export class VertexDragHandler {
   } = null;
 
   constructor(
+    private vertexId: string,
     private vtxWrapper: VertexWrapper,
     listeners: DragListeners,
     private selectionManager: SelectionManager,
@@ -47,13 +48,13 @@ export class VertexDragHandler {
       // dragData: null,
     };
 
-    if (!this.selectionManager.vertexIsSelected(this.vtxWrapper) && !this.clickData.isCtrlClick) {
+    if (!this.selectionManager.vertexIsSelected(this.vertexId) && !this.clickData.isCtrlClick) {
       this.selectionManager.clearSelection();
 
       // this.selectionManager.selectVertex(this.vtxWrapper);
     }
 
-    this.selectionManager.selectVertex(this.vtxWrapper);
+    this.selectionManager.selectVertex(this.vertexId);
   }
 
   private continueClick(event: PIXI.interaction.InteractionEvent): void {
@@ -92,18 +93,10 @@ export class VertexDragHandler {
 
     if (this.clickData.isDrag) {
       this.selectionManager.endSelectionDrag(dx, dy);
-      // this.vtxWrapper.removeChild(this.clickData.dragData.ghost);
-
-      // const newVertexX = this.vtxWrapper.getDataRelativeLoc(event.data).x - this.clickData.mouseStartLocal.x;
-      // const newVertexY = this.vtxWrapper.getDataRelativeLoc(event.data).y - this.clickData.mouseStartLocal.y;
-      //
-      // for (const listener of this.dragListeners) {
-      //   listener(newVertexX, newVertexY, this.clickData.isCtrlClick);
-      // }
     } else {
       if (!this.clickData.isCtrlClick) {
         this.selectionManager.clearSelection();
-        this.selectionManager.selectVertex(this.vtxWrapper);
+        this.selectionManager.selectVertex(this.vertexId);
       }
     }
 

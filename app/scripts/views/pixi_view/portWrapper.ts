@@ -2,7 +2,11 @@ import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 
 export class PortWrapper {
   private static borderWidth = 2;
+
+  private static cachedPortTexture: PIXI.RenderTexture | null = null;
   private static createSprite(renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
+    if (PortWrapper.cachedPortTexture !== null) return new PIXI.Sprite(PortWrapper.cachedPortTexture);
+
     const graphics = new PIXI.Graphics();
 
     graphics.lineColor = 0x000000;
@@ -16,12 +20,16 @@ export class PortWrapper {
       5,
     );
 
-    return new PIXI.Sprite(renderer.generateTexture(
+    const texture = renderer.generateTexture(
       graphics,
       undefined, // scale mode
       renderer.resolution*4, // resolution
       undefined, // region
-    ));
+    );
+
+    PortWrapper.cachedPortTexture = texture;
+
+    return new PIXI.Sprite(texture);
   }
 
   private isOutput: boolean;

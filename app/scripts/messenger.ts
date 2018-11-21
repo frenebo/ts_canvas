@@ -21,10 +21,10 @@ export class Messenger {
     view.setModelData(this.model.getModelData());
   }
 
-  public newRequestHandler(): (req: ModelChangeRequest) => void {
+  public newRequestHandler(): (...reqs: ModelChangeRequest[]) => void {
     const that = this;
-    return (req: ModelChangeRequest) => {
-      that.model.requestModelChange(req);
+    return (...reqs: ModelChangeRequest[]) => {
+      that.model.requestModelChanges(...reqs);
     }
   }
 
