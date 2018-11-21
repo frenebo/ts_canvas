@@ -9,6 +9,7 @@ import { ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestType, ModelIn
 import { PortDragHandler } from "./portDragHandler.js";
 import { EdgeDrawHandler } from "./edgeDrawHandler.js";
 import { EditIcon } from "../icons/editIcon.js";
+import { SelectionManager } from "./selectionManager.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
 
@@ -21,47 +22,102 @@ export type DragListeners = {
 export class DragRegistry {
   private locked: boolean;
   private edgeDrawHandler: EdgeDrawHandler;
+  private selectionManager: SelectionManager;
+
   constructor(
     private sendModelChangeRequest: (req: ModelChangeRequest) => void,
     private sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
-    private uniqueVtxId: () => string,
-    private uniqueEdgeId: () => string,
-    private portsByCloseness: (targetX: number, targetY: number) => Array<{
+    private getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
+    private getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
+    private backgroundWrapper: BackgroundWrapper,
+  ) {
+    this.locked = false;
+    this.edgeDrawHandler = new EdgeDrawHandler(this.backgroundWrapper);
+    this.selectionManager = new SelectionManager(
+      getVertexWrappers,
+      getEdgeWrappers,
+    );
+    this.registerBackground(this.backgroundWrapper);
+  }
+
+  private portsByCloseness(targetX: number, targetY: number): Array<{
+    portKey: string,
+    port: PortWrapper,
+    vtxKey: string,
+    vtx: VertexWrapper,
+    distanceSquared: number,
+  }> {
+    const portDescriptions: Array<{
       portKey: string,
       port: PortWrapper,
       vtxKey: string,
       vtx: VertexWrapper,
       distanceSquared: number,
-    }>,
-    private backgroundWrapper: BackgroundWrapper,
-  ) {
-    this.locked = false;
-    this.registerBackground(this.backgroundWrapper);
-    this.edgeDrawHandler = new EdgeDrawHandler(this.backgroundWrapper);
+    }> = [];
+
+    for (const vertexKey in this.getVertexWrappers()) {
+      const vertexWrapper = this.getVertexWrappers()[vertexKey];
+      for (const portKey of vertexWrapper.portKeys()) {
+        const portWrapper = vertexWrapper.getPortWrapper(portKey);
+        const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + portWrapper.getWidth()/2);
+        const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + portWrapper.getHeight()/2);
+        portDescriptions.push({
+          portKey: portKey,
+          port: portWrapper,
+          vtxKey: vertexKey,
+          vtx: vertexWrapper,
+          distanceSquared: xDistance*xDistance + yDistance*yDistance,
+        });
+      }
+    }
+
+    const sortedDescriptions = portDescriptions.sort((d1, d2) => d1.distanceSquared - d2.distanceSquared);
+
+    return sortedDescriptions;
+  }
+
+  private uniqueEdgeId(): string {
+    let i = 0;
+    while (true) {
+      const id = "edge" + i.toString();
+
+      i++;
+
+      if (this.getEdgeWrappers()[id] === undefined) return id;
+    }
+  }
+
+  private uniqueVtxId(): string {
+    let i = 0;
+    while (true) {
+      const id = "vertex" + i.toString();
+      i++;
+      if (this.getVertexWrappers()[id] === undefined) return id;
+    }
   }
 
   public registerMenuBar(menuBar: MenuBar): void {
-    this.register(menuBar.getDisplayObject());
+    this.registerDisplayObject(menuBar.getDisplayObject());
   }
 
   private registerBackground(background: BackgroundWrapper): void {
-    const listeners = this.register(background.getDisplayObject());
-    new BackgroundDragHandler(background, listeners);
+    const listeners = this.registerDisplayObject(background.getDisplayObject());
+    new BackgroundDragHandler(this.selectionManager, background, listeners);
   }
 
   public registerEdge(id: string, edge: EdgeWrapper): void {
-    this.register(edge.getDisplayObject());
+    this.registerDisplayObject(edge.getDisplayObject());
   }
 
   public registerEditIcon(editIcon: EditIcon, clickBegin: () => void, clickEnd: () => void): void {
-    const listeners = this.register(editIcon.getDisplayObject());
+    const listeners = this.registerDisplayObject(editIcon.getDisplayObject());
     listeners.onDragStart(clickBegin);
     listeners.onDragEnd(clickEnd);
   }
 
   public registerVertex(id: string, vertex: VertexWrapper): void {
-    const listeners = this.register(vertex.getDisplayObject());
-    const dragHandler = new VertexDragHandler(vertex, listeners);
+    const listeners = this.registerDisplayObject(vertex.getDisplayObject());
+    const dragHandler = new VertexDragHandler(vertex, listeners, this.selectionManager);
     dragHandler.afterDrag((x: number, y: number, ctrlKey: boolean) => {
       if (ctrlKey) {
         this.sendModelChangeRequest({
@@ -83,7 +139,7 @@ export class DragRegistry {
   }
 
   public registerPort(vertexId: string, vtxWrapper: VertexWrapper, portId: string, port: PortWrapper): void {
-    const listeners = this.register(port.getDisplayObject());
+    const listeners = this.registerDisplayObject(port.getDisplayObject());
     const portDragHandler = new PortDragHandler(port, listeners);
 
     portDragHandler.onPortDragStart(() => {
@@ -159,7 +215,7 @@ export class DragRegistry {
     });
   }
 
-  private register(obj: PIXI.DisplayObject) {
+  private registerDisplayObject(obj: PIXI.DisplayObject) {
 
     const dragStartListeners: DragListener[] = [];
     const dragMoveListeners: DragListener[] = [];

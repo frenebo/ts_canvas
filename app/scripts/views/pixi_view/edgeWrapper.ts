@@ -74,7 +74,6 @@ export class EdgeWrapper {
     sourceVertex.addPositionChangedListener(() => this.redraw());
     targetPort.addPositionChangedListener(() => this.redraw());
     targetVertex.addPositionChangedListener(() => this.redraw());
-
   }
 
   public getDisplayObject() {

@@ -40,7 +40,7 @@ export class VertexWrapper {
 
   constructor(
     data: VertexData,
-    private dragRegistry: DragRegistry,
+    dragRegistry: DragRegistry,
     private registerPort: (vtx: VertexWrapper, portId: string, port: PortWrapper) => void,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
@@ -106,7 +106,7 @@ export class VertexWrapper {
       this.renderer.resolution*4, // resolution
       undefined, // region
     ));
-    this.container.addChild(this.background);
+    this.container.addChildAt(this.background, 0); // insert behind other children
   }
 
   private positionChildren(): void {

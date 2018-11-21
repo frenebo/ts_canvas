@@ -1,6 +1,5 @@
 import { BACKGROUND_TILE_PATH } from "../../constants.js";
 import { VertexWrapper } from "./vertexWrapper.js";
-import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { EdgeWrapper } from "./edgeWrapper.js";
 
 export class BackgroundWrapper {

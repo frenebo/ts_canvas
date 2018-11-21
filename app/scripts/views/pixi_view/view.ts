@@ -20,7 +20,6 @@ export class PixiView implements ViewInterface {
     const removedVertexKeys = oldVertexKeys.filter(key => newVertexKeys.indexOf(key) === -1);
     const addedVertexKeys = newVertexKeys.filter(key => oldVertexKeys.indexOf(key) === -1);
     const sharedVertexKeys = oldVertexKeys.filter(key => newVertexKeys.indexOf(key) !== -1);
-    console.log(addedVertexKeys);
 
     const newEdgeKeys = Object.keys(newData.edges);
     const oldEdgeKeys = Object.keys(this.data.edges);
@@ -30,6 +29,7 @@ export class PixiView implements ViewInterface {
     const sharedEdgeKeys = oldEdgeKeys.filter(key => newEdgeKeys.indexOf(key) === 1);
     const changedEdgeKeys = sharedEdgeKeys.filter(key => JSON.stringify(newData.edges[key]) !== JSON.stringify(this.data.edges[key]));
 
+    // remove an edge if its data changed
     for (const removedEdgeKey of removedEdgeKeys.concat(changedEdgeKeys)) {
       this.pixiAdapter.removeEdge(removedEdgeKey);
     }
@@ -46,6 +46,7 @@ export class PixiView implements ViewInterface {
       this.pixiAdapter.updateVertex(sharedVertexKey, newData.vertices[sharedVertexKey]);
     }
 
+    // add back an edge if its data changed
     for (const addedEdgeKey of addedEdgeKeys.concat(changedEdgeKeys)) {
       this.pixiAdapter.addEdge(addedEdgeKey, newData.edges[addedEdgeKey]);
     }
