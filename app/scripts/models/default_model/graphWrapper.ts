@@ -43,6 +43,12 @@ export class Graph {
     vtx.geo.y = y;
   }
 
+  public deleteVertex(vertexId: string): void {
+    if (this.modelData.vertices[vertexId] === undefined) throw new Error(`Could not find vertex with id ${vertexId}`);
+
+    delete this.modelData.vertices[vertexId];
+  }
+
   public cloneVertex(newVtxId: string, oldVtxId: string, x: number, y: number): void {
     if (this.modelData.vertices[newVtxId] !== undefined) throw new Error(`Vertex with id ${newVtxId} already exists`);
     const oldVtx = this.modelData.vertices[oldVtxId];

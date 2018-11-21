@@ -45,6 +45,7 @@ export class EdgeWrapper {
         graphics.height + EdgeWrapper.spriteTopBottomPadding,
       ), // region
     ));
+    sprite.cacheAsBitmap = true;
 
     return sprite;
   }
@@ -67,13 +68,7 @@ export class EdgeWrapper {
 
     this.sprite = new PIXI.Sprite();
 
-    this.redraw();
-    // this.container.addChild(this.sprite);
-
-    sourcePort.addPositionChangedListener(() => this.redraw());
-    sourceVertex.addPositionChangedListener(() => this.redraw());
-    targetPort.addPositionChangedListener(() => this.redraw());
-    targetVertex.addPositionChangedListener(() => this.redraw());
+    this.refresh();
   }
 
   public getDisplayObject() {
@@ -82,7 +77,7 @@ export class EdgeWrapper {
 
   public toggleSelected(selected: boolean): void {
     this.isSelected = selected;
-    this.redraw();
+    this.refresh();
   }
 
   public addTo(obj: PIXI.Container): void {
@@ -93,27 +88,49 @@ export class EdgeWrapper {
     obj.removeChild(this.container);
   }
 
-  private redraw(): void {
+  private previousSourceX = 0;
+  private previousTargetX = 0;
+  private previousSourceY = 0;
+  private previousTargetY = 0;
+
+  public refresh(): void {
     const sourceX = this.sourcePort.localX() + this.sourceVertex.localX() + this.sourcePort.getWidth()/2;
     const sourceY = this.sourcePort.localY() + this.sourceVertex.localY() + this.sourcePort.getHeight()/2;
     const targetX = this.targetPort.localX() + this.targetVertex.localX() + this.targetPort.getWidth()/2;
     const targetY = this.targetPort.localY() + this.targetVertex.localY() + this.targetPort.getHeight()/2;
 
-    this.container.removeChild(this.sprite);
-    this.sprite = EdgeWrapper.drawSprite(
-      sourceX,
-      sourceY,
-      targetX,
-      targetY,
-      this.isSelected,
-      this.renderer,
-    );
-    this.container.addChild(this.sprite);
+    if (
+      sourceX === this.previousSourceX &&
+      sourceY === this.previousSourceY &&
+      targetX === this.previousTargetX &&
+      targetY === this.previousTargetY
+    ) {
+      // if the line has not changed at all, do nothing
+      return;
+    }
 
-    this.container.position.set(
-      Math.min(sourceX, targetX) - EdgeWrapper.spriteLeftRightPadding,
-      Math.min(sourceY, targetY) - EdgeWrapper.spriteTopBottomPadding,
-    );
+    // Don't redraw if the line has not changed
+    if (
+      targetY - sourceY === this.previousTargetY - this.previousSourceY &&
+      targetX - sourceX === this.previousTargetX - this.previousSourceX
+    ) {
+      // skip redraw
+    } else {
+      this.container.removeChild(this.sprite);
+      this.sprite = EdgeWrapper.drawSprite(
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+        this.isSelected,
+        this.renderer,
+      );
+      this.container.addChild(this.sprite);
+    }
+    this.previousSourceX = sourceX;
+    this.previousSourceY = sourceY;
+    this.previousTargetX = targetX;
+    this.previousTargetY = targetY;
 
     const angle = Math.atan((targetY - sourceY)/(targetX - sourceX)) + (targetX < sourceX ? Math.PI : 0);
     const thicknessHorizontalOffset = Math.sin(angle)*EdgeWrapper.lineWidth/2;
@@ -136,6 +153,11 @@ export class EdgeWrapper {
         targetX - this.container.position.x + thicknessHorizontalOffset,
         targetY - this.container.position.y - thicknessVerticalOffset,
       ),
+    );
+
+    this.container.position.set(
+      Math.min(sourceX, targetX) - EdgeWrapper.spriteLeftRightPadding,
+      Math.min(sourceY, targetY) - EdgeWrapper.spriteTopBottomPadding,
     );
   }
 }

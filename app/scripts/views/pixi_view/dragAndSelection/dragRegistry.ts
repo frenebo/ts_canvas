@@ -43,6 +43,7 @@ export class DragRegistry {
       sendModelChangeRequests,
       sendModelInfoRequest,
       renderer,
+      backgroundWrapper,
     );
     this.registerBackground(this.backgroundWrapper);
 
@@ -103,6 +104,14 @@ export class DragRegistry {
   private registerBackground(background: BackgroundWrapper): void {
     const listeners = this.registerDisplayObject(background.getDisplayObject());
     new BackgroundDragHandler(this.selectionManager, background, listeners);
+  }
+
+  public removeEdge(id: string, edge: EdgeWrapper): void {
+    this.selectionManager.removeDeletedEdge(id, edge);
+  }
+
+  public removeVertex(id: string, vertex: VertexWrapper): void {
+    this.selectionManager.removeDeletedVertex(id, vertex);
   }
 
   public registerEdge(id: string, edge: EdgeWrapper): void {

@@ -32,6 +32,8 @@ export class DefaultModel implements ModelInterface {
       this.graph.createEdge(req.newPortId, req.sourceVertexId, req.sourcePortId, req.targetVertexId, req.targetPortId);
     } else if (req.type === "cloneVertex") {
       this.graph.cloneVertex(req.newVertexId, req.sourceVertexId, req.x, req.y);
+    } else if (req.type === "deleteVertex") {
+      this.graph.deleteVertex(req.vertexId);
     } else {
       // console.log(`Unimplemented request ${req.type}`);
     }

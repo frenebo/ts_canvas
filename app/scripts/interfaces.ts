@@ -65,6 +65,9 @@ export type ModelChangeRequest = {
   sourcePortId: string,
   targetVertexId: string,
   targetPortId: string,
+} | {
+  type: "deleteVertex",
+  vertexId: string,
 };
 
 export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoResponseMap;

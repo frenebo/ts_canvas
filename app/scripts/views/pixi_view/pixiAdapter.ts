@@ -15,6 +15,7 @@ export class PixiAdapter {
   private vertexWrappers: {
     [key: string]: VertexWrapper;
   } = {};
+
   private edgeWrappers: {
     [key: string]: EdgeWrapper;
   } = {};
@@ -49,6 +50,8 @@ export class PixiAdapter {
 
     this.backgroundWrapper.removeVertex(vertexWrapper);
     delete this.vertexWrappers[vertexKey];
+
+    this.dragRegistry.removeVertex(vertexKey, vertexWrapper);
   }
 
   public createVertex(vertexKey: string, data: VertexData): void {
@@ -82,6 +85,8 @@ export class PixiAdapter {
 
     this.backgroundWrapper.removeEdge(edgeWrapper);
     delete this.edgeWrappers[edgeKey];
+
+    this.dragRegistry.removeEdge(edgeKey, edgeWrapper);
   }
 
   public addEdge(edgeKey: string, edgeData: EdgeData): void {
@@ -105,5 +110,9 @@ export class PixiAdapter {
 
     this.backgroundWrapper.addEdge(edgeWrapper);
     this.edgeWrappers[edgeKey] = edgeWrapper;
+  }
+
+  public refreshEdge(edgeId: string): void {
+    this.edgeWrappers[edgeId].refresh();
   }
 }

@@ -2,6 +2,21 @@ import { ViewInterface, ModelData, ModelChangeRequest, ModelInfoRequestType, Mod
 import { PixiAdapter } from "./pixiAdapter.js";
 
 export class PixiView implements ViewInterface {
+  private static edgesByVertex(data: ModelData) {
+    const edgesByVertex: {[key: string]: string[]} = {};
+    for (const vertexId in data.vertices) {
+      edgesByVertex[vertexId] = [];
+    }
+    for (const edgeId in data.edges) {
+      const edge = data.edges[edgeId];
+
+      edgesByVertex[edge.sourceVertexId].push(edgeId);
+      edgesByVertex[edge.targetVertexId].push(edgeId);
+    }
+
+    return edgesByVertex;
+  }
+
   private data: ModelData = {vertices: {}, edges: {}};
   private pixiAdapter: PixiAdapter;
 
@@ -49,6 +64,20 @@ export class PixiView implements ViewInterface {
     // add back an edge if its data changed
     for (const addedEdgeKey of addedEdgeKeys.concat(changedEdgeKeys)) {
       this.pixiAdapter.addEdge(addedEdgeKey, newData.edges[addedEdgeKey]);
+    }
+
+    // refresh edges connected to changed vertices
+    const edgesByVertex = PixiView.edgesByVertex(newData);
+    const edgesToUpdate = new Set<string>();
+    for (const vertexKey of sharedVertexKeys) {
+      if (JSON.stringify(this.data.vertices[vertexKey])!== JSON.stringify(newData.vertices[vertexKey])) {
+        for (const edgeId of edgesByVertex[vertexKey]) {
+          edgesToUpdate.add(edgeId);
+        }
+      }
+    }
+    for (const edgeToUpdate of edgesToUpdate) {
+      this.pixiAdapter.refreshEdge(edgeToUpdate);
     }
 
     this.data = JSON.parse(JSON.stringify(newData));

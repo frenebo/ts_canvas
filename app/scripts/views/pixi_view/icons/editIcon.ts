@@ -21,8 +21,16 @@ export class EditIcon {
   private static cachedNotClicking: PIXI.RenderTexture | null = null;
 
   private static draw(clicking: boolean, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
-    if (clicking && EditIcon.cachedClicking !== null) return new PIXI.Sprite(EditIcon.cachedClicking);
-    if (!clicking && EditIcon.cachedNotClicking !== null) return new PIXI.Sprite(EditIcon.cachedNotClicking);
+    if (clicking && EditIcon.cachedClicking !== null) {
+      const sprite = new PIXI.Sprite(EditIcon.cachedClicking);
+      sprite.cacheAsBitmap = true;
+      return sprite;
+    }
+    if (!clicking && EditIcon.cachedNotClicking !== null) {
+      const sprite = new PIXI.Sprite(EditIcon.cachedNotClicking);
+      sprite.cacheAsBitmap = true;
+      return sprite;
+    }
 
     const graphics = new PIXI.Graphics();
     graphics.beginFill(clicking ? 0x888888 : 0x555555);
@@ -63,7 +71,9 @@ export class EditIcon {
     if (clicking) EditIcon.cachedClicking = texture;
     else EditIcon.cachedNotClicking = texture;
 
-    return new PIXI.Sprite(texture);
+    const sprite = new PIXI.Sprite(texture);
+    sprite.cacheAsBitmap = true;
+    return sprite;
   }
 
   private static getHitArea(): PIXI.Polygon {
