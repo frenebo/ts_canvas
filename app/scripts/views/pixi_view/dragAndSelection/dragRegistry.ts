@@ -20,6 +20,8 @@ export type DragListeners = {
 }
 
 export class DragRegistry {
+  private static portSnapDistance = 20;
+
   private locked: boolean;
   private edgeDrawHandler: EdgeDrawHandler;
   private selectionManager: SelectionManager;
@@ -36,6 +38,8 @@ export class DragRegistry {
     this.selectionManager = new SelectionManager(
       getVertexWrappers,
       getEdgeWrappers,
+      sendModelChangeRequest,
+      sendModelInfoRequest,
     );
     this.registerBackground(this.backgroundWrapper);
   }
@@ -87,15 +91,6 @@ export class DragRegistry {
     }
   }
 
-  private uniqueVtxId(): string {
-    let i = 0;
-    while (true) {
-      const id = "vertex" + i.toString();
-      i++;
-      if (this.getVertexWrappers()[id] === undefined) return id;
-    }
-  }
-
   public registerMenuBar(menuBar: MenuBar): void {
     this.registerDisplayObject(menuBar.getDisplayObject());
   }
@@ -118,24 +113,6 @@ export class DragRegistry {
   public registerVertex(id: string, vertex: VertexWrapper): void {
     const listeners = this.registerDisplayObject(vertex.getDisplayObject());
     const dragHandler = new VertexDragHandler(vertex, listeners, this.selectionManager);
-    dragHandler.afterDrag((x: number, y: number, ctrlKey: boolean) => {
-      if (ctrlKey) {
-        this.sendModelChangeRequest({
-          type: "cloneVertex",
-          newVertexId: this.uniqueVtxId(),
-          sourceVertexId: id,
-          x: x,
-          y: y,
-        });
-      } else {
-        this.sendModelChangeRequest({
-          type: "moveVertex",
-          vertexId: id,
-          x: x,
-          y: y,
-        });
-      }
-    });
   }
 
   public registerPort(vertexId: string, vtxWrapper: VertexWrapper, portId: string, port: PortWrapper): void {
@@ -154,7 +131,7 @@ export class DragRegistry {
 
       if (
         (closestPortVertex !== vtxWrapper || closestPort !== port) &&
-        closestInfo.distanceSquared < 100
+        closestInfo.distanceSquared < DragRegistry.portSnapDistance*DragRegistry.portSnapDistance
       ) {
         const edgeValidityInfo = this.sendModelInfoRequest({
           type: "validateEdge",

@@ -3,7 +3,6 @@ import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
 
 export class VertexDragHandler {
-  private static ghostAlpha = 0.5;
   private static dragThreshold = 5;
 
   private clickData: null | {
@@ -12,12 +11,11 @@ export class VertexDragHandler {
       y: number;
     };
     isCtrlClick: boolean;
-    dragData: {
-      ghost: PIXI.Graphics;
-    } | null;
+    isDrag: boolean;
+    // dragData: {
+    //   ghost: PIXI.Graphics;
+    // } | null;
   } = null;
-
-  private dragListeners: Array<(x: number, y: number, ctrlKey: boolean) => void> = [];
 
   constructor(
     private vtxWrapper: VertexWrapper,
@@ -29,10 +27,6 @@ export class VertexDragHandler {
     listeners.onDragStart(ev => that.beginClick(ev));
     listeners.onDragMove(ev => that.continueClick(ev));
     listeners.onDragEnd(ev => that.endClick(ev));
-  }
-
-  public afterDrag(listener: (x: number, y: number, ctrlKey: boolean) => void): void {
-    this.dragListeners.push(listener);
   }
 
   private beginClick(event: PIXI.interaction.InteractionEvent): void {
@@ -49,10 +43,15 @@ export class VertexDragHandler {
         y: mouseLocalY,
       },
       isCtrlClick: ctrlKeyDown,
-      dragData: null,
+      isDrag: false,
+      // dragData: null,
     };
 
-    if (!ctrlKeyDown) this.selectionManager.clearSelection();
+    if (!this.selectionManager.vertexIsSelected(this.vtxWrapper) && !this.clickData.isCtrlClick) {
+      this.selectionManager.clearSelection();
+
+      // this.selectionManager.selectVertex(this.vtxWrapper);
+    }
 
     this.selectionManager.selectVertex(this.vtxWrapper);
   }
@@ -65,35 +64,46 @@ export class VertexDragHandler {
     const dx = mouseLocalX - this.clickData.mouseStartLocal.x;
     const dy = mouseLocalY - this.clickData.mouseStartLocal.y;
 
+
     // If the current click doesn't count as a drag
-    if (this.clickData.dragData === null) {
+    if (!this.clickData.isDrag) {
 
 
       if (dx*dx + dy*dy > VertexDragHandler.dragThreshold*VertexDragHandler.dragThreshold) {
         // begin drag
-        this.clickData.dragData = {
-          ghost: VertexWrapper.generateBoxGraphics(VertexDragHandler.ghostAlpha),
-        };
-        this.vtxWrapper.addChild(this.clickData.dragData.ghost);
+        this.clickData.isDrag = true;
+        this.selectionManager.startSelectionDrag(dx, dy, this.clickData.isCtrlClick);
       }
     }
 
-    if (this.clickData.dragData !== null) {
-      this.clickData.dragData.ghost.position.set(dx, dy);
+    if (this.clickData.isDrag) {
+      this.selectionManager.continueSelectionDrag(dx, dy);
     }
   }
 
   private endClick(event: PIXI.interaction.InteractionEvent): void {
     if (this.clickData === null) throw new Error("No click in progress");
 
-    if (this.clickData.dragData !== null) {
-      this.vtxWrapper.removeChild(this.clickData.dragData.ghost);
+    const mouseLocalX = this.vtxWrapper.getDataRelativeLoc(event.data).x - this.vtxWrapper.localX();
+    const mouseLocalY = this.vtxWrapper.getDataRelativeLoc(event.data).y - this.vtxWrapper.localY();
 
-      const newVertexX = this.vtxWrapper.getDataRelativeLoc(event.data).x - this.clickData.mouseStartLocal.x;
-      const newVertexY = this.vtxWrapper.getDataRelativeLoc(event.data).y - this.clickData.mouseStartLocal.y;
+    const dx = mouseLocalX - this.clickData.mouseStartLocal.x;
+    const dy = mouseLocalY - this.clickData.mouseStartLocal.y;
 
-      for (const listener of this.dragListeners) {
-        listener(newVertexX, newVertexY, this.clickData.isCtrlClick);
+    if (this.clickData.isDrag) {
+      this.selectionManager.endSelectionDrag(dx, dy);
+      // this.vtxWrapper.removeChild(this.clickData.dragData.ghost);
+
+      // const newVertexX = this.vtxWrapper.getDataRelativeLoc(event.data).x - this.clickData.mouseStartLocal.x;
+      // const newVertexY = this.vtxWrapper.getDataRelativeLoc(event.data).y - this.clickData.mouseStartLocal.y;
+      //
+      // for (const listener of this.dragListeners) {
+      //   listener(newVertexX, newVertexY, this.clickData.isCtrlClick);
+      // }
+    } else {
+      if (!this.clickData.isCtrlClick) {
+        this.selectionManager.clearSelection();
+        this.selectionManager.selectVertex(this.vtxWrapper);
       }
     }
 

@@ -9,6 +9,7 @@ export class EdgeDrawHandler {
     sourcePort: PortWrapper,
     graphics: PIXI.Graphics;
   } | null = null;
+
   constructor(backgroundWrapper: BackgroundWrapper) {
     this.backgroundWrapper = backgroundWrapper;
   }

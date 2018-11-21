@@ -61,7 +61,10 @@ export class BackgroundDragHandler {
     }
 
     if (this.dragData.isDrag) {
-      this.backgroundWrapper.setPosition(this.dragData.backgroundStart.x + deltaX, this.dragData.backgroundStart.y + deltaY);
+      this.backgroundWrapper.setPosition(
+        this.dragData.backgroundStart.x + deltaX,
+        this.dragData.backgroundStart.y + deltaY,
+      );
     }
   }
 
