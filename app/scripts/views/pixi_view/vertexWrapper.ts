@@ -98,15 +98,12 @@ export class VertexWrapper {
 
     const dragListeners = this.dragRegistry.register(this.container);
     dragListeners.onDragStart(ev => {
-      console.log("drag start")
       for (const listener of this.dragStartListeners) listener(ev);
     });
     dragListeners.onDragMove(ev => {
-      console.log("drag move")
       for (const listener of this.dragMoveListeners) listener(ev);
     });
     dragListeners.onDragEnd(ev => {
-      console.log("drag end")
       for (const listener of this.dragEndListeners) listener(ev);
     });
   }

@@ -21,9 +21,9 @@ export class VertexDragHandler {
     this.dragRegistry = dragRegistry;
     const that = this;
 
-    this.vtxWrapper.onDragStart(() => that.onDragStart);
-    this.vtxWrapper.onDragEnd(() => that.onDragEnd);
-    this.vtxWrapper.onDragMove(() => that.onDragMove);
+    this.vtxWrapper.onDragStart(ev => that.onDragStart(ev));
+    this.vtxWrapper.onDragEnd(ev => that.onDragEnd(ev));
+    this.vtxWrapper.onDragMove(ev => that.onDragMove(ev));
   }
 
   public afterDrag(listener: (x: number, y: number, ctrlKey: boolean) => void): void {
