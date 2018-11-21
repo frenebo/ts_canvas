@@ -1,9 +1,11 @@
 import { PortWrapper } from "./portWrapper";
 import { VertexWrapper } from "./vertexWrapper";
+import { DragRegistry } from "./dragRegistry";
 
 export class EdgeWrapper {
-  private static spriteLeftRightPadding = 10;
-  private static spriteTopBottomPadding = 10;
+  private static spriteLeftRightPadding = 25;
+  private static spriteTopBottomPadding = 25;
+  private static lineWidth = 10;
 
   private static drawSprite(
     sourceX: number,
@@ -14,7 +16,7 @@ export class EdgeWrapper {
   ): PIXI.Sprite {
     const graphics = new PIXI.Graphics();
     graphics.lineColor = 0x000000;
-    graphics.lineWidth = 10;
+    graphics.lineWidth = EdgeWrapper.lineWidth;
 
     const topLeftX = Math.min(sourceX, targetX);
     const topLeftY = Math.min(sourceY, targetY);
@@ -40,8 +42,6 @@ export class EdgeWrapper {
       ), // region
     ));
 
-    console.log("drew sprite");
-
     return sprite;
   }
 
@@ -54,8 +54,12 @@ export class EdgeWrapper {
     private targetVertex: VertexWrapper,
     private targetPort: PortWrapper,
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    dragRegistry: DragRegistry,
   ) {
     this.container = new PIXI.Container();
+    this.container.interactive = true;
+    // this.container.buttonMode = true;
+
     this.sprite = new PIXI.Sprite();
 
     this.redraw();
@@ -65,6 +69,28 @@ export class EdgeWrapper {
     sourceVertex.addPositionChangedListener(() => this.redraw());
     targetPort.addPositionChangedListener(() => this.redraw());
     targetVertex.addPositionChangedListener(() => this.redraw());
+
+    let isClicking = false;
+    function clickStart() {
+      if (!dragRegistry.isLocked()) {
+        dragRegistry.lock();
+        isClicking = true;
+      }
+    }
+    function clickEnd() {
+      if (isClicking) {
+        dragRegistry.unlock();
+        isClicking = false;
+      }
+    }
+
+    this.container
+      .on('mousedown',       clickStart)
+      .on('touchstart',      clickStart)
+      .on('mouseup',         clickEnd)
+      .on('mouseupoutside',  clickEnd)
+      .on('touchend',        clickEnd)
+      .on('touchendoutside', clickEnd)
   }
 
   public addTo(obj: PIXI.Container): void {
@@ -94,6 +120,29 @@ export class EdgeWrapper {
     this.container.position.set(
       Math.min(sourceX, targetX) - EdgeWrapper.spriteLeftRightPadding,
       Math.min(sourceY, targetY) - EdgeWrapper.spriteTopBottomPadding,
+    );
+
+    const angle = Math.atan((targetY - sourceY)/(targetX - sourceX)) + (targetX < sourceX ? Math.PI : 0);
+    const thicknessHorizontalOffset = Math.sin(angle)*EdgeWrapper.lineWidth/2;
+    const thicknessVerticalOffset = Math.cos(angle)*EdgeWrapper.lineWidth/2;
+
+    this.container.hitArea = new PIXI.Polygon(
+      new PIXI.Point(
+        sourceX - this.container.position.x + thicknessHorizontalOffset,
+        sourceY - this.container.position.y - thicknessVerticalOffset,
+      ),
+      new PIXI.Point(
+        sourceX - this.container.position.x - thicknessHorizontalOffset,
+        sourceY - this.container.position.y + thicknessVerticalOffset,
+      ),
+      new PIXI.Point(
+        targetX - this.container.position.x - thicknessHorizontalOffset,
+        targetY - this.container.position.y + thicknessVerticalOffset,
+      ),
+      new PIXI.Point(
+        targetX - this.container.position.x + thicknessHorizontalOffset,
+        targetY - this.container.position.y - thicknessVerticalOffset,
+      ),
     );
   }
 }

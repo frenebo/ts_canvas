@@ -5,11 +5,26 @@ import { EditIcon } from "./icons/editIcon.js";
 import { PortWrapper } from "./portWrapper.js";
 
 export class VertexWrapper {
-  public static fillColor = 0xE6E6E6;
-  public static borderColor = 0x333333;
-  public static borderWidth = 5;
-  public static defaultWidth = 250;
-  public static defaultHeight = 80;
+  private static fillColor = 0xE6E6E6;
+  private static borderColor = 0x333333;
+  private static borderWidth = 5;
+  private static defaultWidth = 250;
+  private static defaultHeight = 80;
+
+  public static generateBoxGraphics(alpha = 1) {
+    const graphics = new PIXI.Graphics();
+    graphics.beginFill(VertexWrapper.fillColor, alpha);
+    graphics.lineStyle(VertexWrapper.borderWidth, VertexWrapper.borderColor);
+    graphics.drawRoundedRect(
+      0 + VertexWrapper.borderWidth/2,
+      0 + VertexWrapper.borderWidth/2,
+      VertexWrapper.defaultWidth + VertexWrapper.borderWidth/2,
+      VertexWrapper.defaultHeight + VertexWrapper.borderWidth/2,
+      10,
+    );
+
+    return graphics;
+  }
 
   private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
   private dragRegistry: DragRegistry;
@@ -35,25 +50,14 @@ export class VertexWrapper {
     this.width = VertexWrapper.defaultWidth;
     this.height = VertexWrapper.defaultHeight;
 
-    const graphics = new PIXI.Graphics();
-    graphics.beginFill(VertexWrapper.fillColor);
-    graphics.lineStyle(VertexWrapper.borderWidth, VertexWrapper.borderColor);
-    graphics.drawRoundedRect(
-      0 + VertexWrapper.borderWidth/2,
-      0 + VertexWrapper.borderWidth/2,
-      this.width + VertexWrapper.borderWidth/2,
-      this.height + VertexWrapper.borderWidth/2,
-      10,
-    );
-
     this.sprite = new PIXI.Sprite(this.renderer.generateTexture(
-      graphics,
+      VertexWrapper.generateBoxGraphics(),
       undefined, // scale mode
       this.renderer.resolution*4, // resolution
       undefined, // region
     ));
     this.sprite.interactive = true;
-    this.sprite.buttonMode = true;
+    // this.sprite.buttonMode = true;
     // this.graphics.hitArea = new PIXI.Rectangle(data.geo.w, data.geo.h);
     const dragHandler = new VertexDragHandler(this, this.dragRegistry);
     dragHandler.afterDrag((x: number, y: number, ctrlKey: boolean) => {

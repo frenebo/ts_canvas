@@ -41,15 +41,8 @@ export class VertexDragHandler {
     if (this.dragRegistry.isLocked()) return;
     this.dragRegistry.lock();
 
-    const dragOutline = new PIXI.Graphics();
+    const dragOutline = VertexWrapper.generateBoxGraphics(VertexDragHandler.ghostAlpha);
     this.vtxWrapper.addChild(dragOutline);
-
-    dragOutline.beginFill(VertexWrapper.fillColor, VertexDragHandler.ghostAlpha);
-    // set the line style to have a width of 5 and set the color to red
-    dragOutline.lineStyle(VertexWrapper.borderWidth, VertexWrapper.borderColor);
-
-    // dragOutline.position.set(this.vertex.graphics.position.x, this.vertex.graphics.position.y);
-    dragOutline.drawRoundedRect(0, 0, this.vtxWrapper.getWidth(), this.vtxWrapper.getHeight(), 10);
 
     this.dragData = {
       mouseLocalPos: {

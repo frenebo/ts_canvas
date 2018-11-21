@@ -220,6 +220,7 @@ export class PixiAdapter {
       targetVertex,
       targetPort,
       this.app.renderer,
+      this.dragRegistry,
     );
 
     this.backgroundWrapper.addEdge(edgeWrapper);

@@ -106,8 +106,6 @@ export class Graph {
       }
     }
 
-    console.log(sourceAncestorIds, targetVtxId);
-
     // return true if the target vertex is not an ancestor of the source vertex
     if (sourceAncestorIds.indexOf(targetVtxId) === -1) {
       return true;
