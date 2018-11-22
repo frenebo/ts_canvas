@@ -1,11 +1,12 @@
 import { SelectionManager } from "./selectionManager";
-import { ModelChangeRequest } from "../../../interfaces";
+import { ModelChangeRequest, ModelVersioningRequest } from "../../../interfaces";
 
 export class KeyboardHandler {
   constructor(
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
     selectionManager: SelectionManager,
     sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
     let mouseIsOverCanvas = false;
     renderer.view.addEventListener("mousemove", () => {
@@ -20,7 +21,7 @@ export class KeyboardHandler {
       if (ev.key === "Delete") selectionManager.deleteSelection();
       if (ev.key === "Escape") selectionManager.clearSelection();
       if (ev.key === "z" && ev.ctrlKey && !ev.shiftKey) {
-        sendModelChangeRequests({
+        sendModelVersioningRequest({
           type: "undo",
         });
       }
@@ -28,7 +29,7 @@ export class KeyboardHandler {
         (ev.key === "Z" && ev.ctrlKey) || // capital Z for shift
         (ev.key === "y" && ev.ctrlKey)
       ) {
-        sendModelChangeRequests({
+        sendModelVersioningRequest({
           type: "redo",
         });
       }

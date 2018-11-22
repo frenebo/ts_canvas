@@ -7,6 +7,6 @@ export function main(...divs: HTMLDivElement[]): void {
   const messenger = new Messenger(model);
 
   for (const div of divs) {
-    messenger.addView(new PixiView(div, messenger.newRequestHandler(), messenger.newInfoRequestHandler()));
+    messenger.addView(new PixiView(div, messenger.newRequestHandler(), messenger.newInfoRequestHandler(), messenger.newVersioningRequestHandler()));
   }
 }

@@ -1,5 +1,5 @@
 import {
-  ModelInterface, ViewInterface, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
+  ModelInterface, ViewInterface, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, ModelVersioningRequest,
 } from "./interfaces.js";
 
 
@@ -35,5 +35,12 @@ export class Messenger {
     return <V extends ModelInfoRequestType>(req: ModelInfoRequestMap[V]): ModelInfoResponseMap[V] => {
       return that.model.requestModelInfo(req);
     };
+  }
+
+  public newVersioningRequestHandler() {
+    const that = this;
+    return (req: ModelVersioningRequest) => {
+      that.model.requestVersioningChange(req);
+    }
   }
 }

@@ -1,17 +1,40 @@
 import {
-  ModelInterface, ModelData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap,
+  ModelInterface, ModelData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap, ModelVersioningRequest,
 } from "../../interfaces.js";
-import { Graph } from "./graphWrapper.js";
+import { GraphUtils } from "./graphUtils.js";
+import { Diffable, DiffType, applyDiff, createDiff, undoDiff } from "../../diff.js";
 
 export class DefaultModel implements ModelInterface {
-  private readonly graph: Graph;
+  private pastDiffs: Array<DiffType<ModelData & Diffable>> = [];
+  private futureDiffs: Array<DiffType<ModelData & Diffable>> = [];
   private readonly modelChangedListeners: Array<() => void> = [];
+  private modelData: ModelData = {vertices: {}, edges: {}};
   constructor() {
-    this.graph = new Graph();
+    for (let i = 0; i < 10; i++) {
+      this.modelData.vertices[i.toString()] = {
+        label: i.toString(),
+        geo: {
+          x: i*20,
+          y: i*20,
+        },
+        ports: {
+          "port0": {
+            portType: "input",
+            side: "top",
+            position: 0.5,
+          },
+          "port1": {
+            portType: "output",
+            side: "bottom",
+            position: 0.5,
+          },
+        }
+      }
+    }
   }
 
   public getModelData(): ModelData {
-    return this.graph.getModelData();
+    return this.modelData;
   }
 
   public addModelChangedListener(listener: () => void): void {
@@ -19,9 +42,15 @@ export class DefaultModel implements ModelInterface {
   }
 
   public requestModelChanges(...reqs: ModelChangeRequest[]): void {
+    this.futureDiffs = []; // redos are lost when model is changed
+
+    const beforeChange: ModelData = JSON.parse(JSON.stringify(this.modelData));
     for (const req of reqs) {
       this.requestSingleModelChange(req);
     }
+    const changeDiff = createDiff(beforeChange as unknown as Diffable, this.modelData as unknown as Diffable);
+    this.pastDiffs.push(changeDiff as DiffType<ModelData & Diffable>);
+
     for (const listener of this.modelChangedListeners) {
       listener();
     }
@@ -29,27 +58,51 @@ export class DefaultModel implements ModelInterface {
 
   private requestSingleModelChange(req: ModelChangeRequest): void {
     if (req.type === "moveVertex") {
-      this.graph.moveVertex(req.vertexId, req.x, req.y);
+      GraphUtils.moveVertex(this.modelData, req.vertexId, req.x, req.y);
     } else if (req.type === "createEdge") {
-      this.graph.createEdge(req.newEdgeId, req.sourceVertexId, req.sourcePortId, req.targetVertexId, req.targetPortId);
+      GraphUtils.createEdge(this.modelData, req.newEdgeId, req.sourceVertexId, req.sourcePortId, req.targetVertexId, req.targetPortId);
     } else if (req.type === "cloneVertex") {
-      this.graph.cloneVertex(req.newVertexId, req.sourceVertexId, req.x, req.y);
+      GraphUtils.cloneVertex(this.modelData, req.newVertexId, req.sourceVertexId, req.x, req.y);
     } else if (req.type === "deleteVertex") {
-      this.graph.deleteVertex(req.vertexId);
+      GraphUtils.deleteVertex(this.modelData, req.vertexId);
     } else if (req.type === "deleteEdge") {
-      this.graph.deleteEdge(req.edgeId);
-    } else if (req.type === "undo") {
-      this.graph.undo();
-    } else if (req.type === "redo") {
-      this.graph.redo();
+      GraphUtils.deleteEdge(this.modelData, req.edgeId);
     } else {
       // console.log(`Unimplemented request ${req.type}`);
     }
   }
 
+  public requestVersioningChange(req: ModelVersioningRequest): void {
+    if (req.type === "undo") {
+      if (this.pastDiffs.length === 0) return;
+      const pastDiff = this.pastDiffs.pop()!;
+
+      const newData = undoDiff(this.modelData as unknown as Diffable, pastDiff) as unknown as ModelData;
+
+      this.futureDiffs.splice(0, 0, pastDiff);
+
+      this.modelData = newData;
+    } else if (req.type === "redo") {
+      if (this.futureDiffs.length === 0) return;
+      const redoDiff = this.futureDiffs.splice(0, 1)[0];
+
+      const newData = applyDiff(this.modelData as unknown as Diffable, redoDiff) as unknown as ModelData;
+
+      this.pastDiffs.push(redoDiff);
+
+      this.modelData = newData;
+    } else {
+
+    }
+    for (const listener of this.modelChangedListeners) {
+      listener();
+    }
+  }
+
   public requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T] {
     if (req.type === "validateEdge") {
-      const isValid = this.graph.validateEdge(
+      const isValid = GraphUtils.validateEdge(
+        this.modelData,
         (req as ModelInfoRequestMap["validateEdge"]).sourceVertexId,
         (req as ModelInfoRequestMap["validateEdge"]).sourcePortId,
         (req as ModelInfoRequestMap["validateEdge"]).targetVertexId,
@@ -60,7 +113,8 @@ export class DefaultModel implements ModelInterface {
       };
       return response;
     } else if (req.type === "edgesBetweenVertices") {
-      const edgesBetweenVertices = this.graph.edgesBetweenVertices(
+      const edgesBetweenVertices = GraphUtils.edgesBetweenVertices(
+        this.modelData,
         (req as ModelInfoRequestMap["edgesBetweenVertices"]).vertexIds,
       );
       const response: ModelInfoResponseMap["edgesBetweenVertices"] = {

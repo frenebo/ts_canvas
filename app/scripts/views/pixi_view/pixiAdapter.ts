@@ -1,5 +1,5 @@
 import {
-  VertexData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, EdgeData,
+  VertexData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, EdgeData, ModelVersioningRequest,
 } from "../../interfaces.js";
 import { VertexWrapper } from "./vertexWrapper.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
@@ -26,6 +26,7 @@ export class PixiAdapter {
     div: HTMLDivElement,
     sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
     this.app = new PIXI.Application(800, 600);
     div.appendChild(this.app.view);
@@ -37,6 +38,7 @@ export class PixiAdapter {
     this.dragRegistry = new DragRegistry(
       sendModelChangeRequests,
       sendModelInfoRequest,
+      sendModelVersioningRequest,
       () => this.vertexWrappers,
       () => this.edgeWrappers,
       this.backgroundWrapper,

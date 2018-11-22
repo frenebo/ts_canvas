@@ -6,7 +6,7 @@ import { VertexDragHandler } from "./vertexDragHandler.js";
 import { MenuBar } from "../menuBar.js";
 import { PortWrapper } from "../portWrapper.js";
 import {
-  ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestType, ModelInfoRequestMap,
+  ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest,
 } from "../../../interfaces.js";
 import { PortDragHandler } from "./portDragHandler.js";
 import { EdgeDrawHandler } from "./edgeDrawHandler.js";
@@ -39,6 +39,7 @@ export class DragRegistry {
     private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(
       req: ModelInfoRequestMap[T],
     ) => ModelInfoResponseMap[T],
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
     private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
     private readonly backgroundWrapper: BackgroundWrapper,
@@ -60,6 +61,7 @@ export class DragRegistry {
       renderer,
       this.selectionManager,
       sendModelChangeRequests,
+      sendModelVersioningRequest,
     );
   }
 

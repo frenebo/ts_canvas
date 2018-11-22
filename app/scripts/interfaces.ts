@@ -43,6 +43,7 @@ export interface ModelInterface {
   addModelChangedListener(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): void;
   requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T];
+  requestVersioningChange(req: ModelVersioningRequest): void;
 }
 
 document.createElement("div");
@@ -71,7 +72,9 @@ export type ModelChangeRequest = {
 } | {
   type: "deleteEdge";
   edgeId: string;
-} | {
+};
+
+export type ModelVersioningRequest = {
   type: "undo";
 } | {
   type: "redo";
