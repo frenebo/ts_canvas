@@ -32,6 +32,7 @@ export class KeyboardHandler {
           type: "redo",
         });
       }
+      if (ev.key === "a" && ev.ctrlKey) selectionManager.selectAll();
     });
   }
 }

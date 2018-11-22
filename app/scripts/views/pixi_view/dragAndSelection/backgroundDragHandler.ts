@@ -51,6 +51,7 @@ export class BackgroundDragHandler {
     dragListeners.onDragStart(ev => that.onClickStart(ev));
     dragListeners.onDragMove(ev => that.onClickMove(ev));
     dragListeners.onDragEnd(ev => that.onClickEnd(ev));
+    dragListeners.onDragAbort(() => that.onClickAbort());
   }
 
   private onClickStart(event: PIXI.interaction.InteractionEvent): void {
@@ -153,6 +154,16 @@ export class BackgroundDragHandler {
         Math.abs(this.mouseData.mouseStartLocal.x - mouseLocalPos.x),
         Math.abs(this.mouseData.mouseStartLocal.y - mouseLocalPos.y),
       )
+    }
+
+    this.mouseData = null;
+  }
+
+  private onClickAbort(): void {
+    if (this.mouseData === null) return;
+
+    if (this.mouseData.type === "select") {
+      this.backgroundWrapper.removeChild(this.mouseData.graphics);
     }
 
     this.mouseData = null;

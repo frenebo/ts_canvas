@@ -19,14 +19,18 @@ export type DragListeners = {
   onDragStart: (listener: DragListener) => void;
   onDragMove: (listener: DragListener) => void;
   onDragEnd: (listener: DragListener) => void;
+  onDragAbort: (listener: () => void) => void;
 }
 
 export class DragRegistry {
   private static portSnapDistance = 20;
 
-  private locked: boolean;
+  private currentObject: PIXI.DisplayObject | null;
   private edgeDrawHandler: EdgeDrawHandler;
   private selectionManager: SelectionManager;
+
+  private edgeDragAbortListeners: {[key: string]: Array<() => void>} = {};
+  private vertexDragAbortListeners: {[key: string]: Array<() => void>} = {};
 
   constructor(
     private sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
@@ -36,7 +40,7 @@ export class DragRegistry {
     private backgroundWrapper: BackgroundWrapper,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
-    this.locked = false;
+    this.currentObject = null;
     this.edgeDrawHandler = new EdgeDrawHandler(this.backgroundWrapper);
     this.selectionManager = new SelectionManager(
       getVertexWrappers,
@@ -111,29 +115,53 @@ export class DragRegistry {
     new BackgroundDragHandler(this.selectionManager, background, listeners);
   }
 
-  public removeEdge(id: string, edge: EdgeWrapper): void {
-    this.selectionManager.removeDeletedEdge(id, edge);
+  public registerVertex(id: string, vertex: VertexWrapper): void {
+    this.vertexDragAbortListeners[id] = [];
+    const listeners = this.registerDisplayObject(
+      vertex.getDisplayObject(),
+      (l) => this.vertexDragAbortListeners[id].push(l),
+    );
+    new VertexDragHandler(id, vertex, listeners, this.selectionManager);
   }
 
   public removeVertex(id: string, vertex: VertexWrapper): void {
     this.selectionManager.removeDeletedVertex(id, vertex);
+
+    if (this.currentObject === vertex.getDisplayObject()) {
+      this.currentObject = null;
+
+      for (const l of this.vertexDragAbortListeners[id]) l();
+    }
+
+    delete this.vertexDragAbortListeners[id];
   }
 
   public registerEdge(id: string, edge: EdgeWrapper): void {
-    const listeners = this.registerDisplayObject(edge.getDisplayObject());
+    this.edgeDragAbortListeners[id] = [];
+    const listeners = this.registerDisplayObject(
+      edge.getDisplayObject(),
+      (l) => this.edgeDragAbortListeners[id].push(l),
+    );
 
     new EdgeDragHandler(id, edge, listeners, this.selectionManager);
+  }
+
+  public removeEdge(id: string, edge: EdgeWrapper): void {
+    this.selectionManager.removeDeletedEdge(id, edge);
+
+    if (this.currentObject === edge.getDisplayObject()) {
+      this.currentObject = null;
+
+      for (const l of this.edgeDragAbortListeners[id]) l();
+    }
+
+    delete this.edgeDragAbortListeners[id];
   }
 
   public registerEditIcon(editIcon: EditIcon, clickBegin: () => void, clickEnd: () => void): void {
     const listeners = this.registerDisplayObject(editIcon.getDisplayObject());
     listeners.onDragStart(clickBegin);
     listeners.onDragEnd(clickEnd);
-  }
-
-  public registerVertex(id: string, vertex: VertexWrapper): void {
-    const listeners = this.registerDisplayObject(vertex.getDisplayObject());
-    new VertexDragHandler(id, vertex, listeners, this.selectionManager);
   }
 
   public registerPort(vertexId: string, vtxWrapper: VertexWrapper, portId: string, port: PortWrapper): void {
@@ -211,20 +239,24 @@ export class DragRegistry {
         });
       }
     });
+    portDragHandler.onPortDragAbort(() => {
+      this.edgeDrawHandler.endDrag();
+    });
   }
 
-  private registerDisplayObject(obj: PIXI.DisplayObject) {
+  private registerDisplayObject(obj: PIXI.DisplayObject, setAbortListener?: (l: () => void) => void) {
 
     const dragStartListeners: DragListener[] = [];
     const dragMoveListeners: DragListener[] = [];
     const dragEndListeners: DragListener[] = [];
+    const dragAbortListeners: Array<() => void> = [];
 
     let dragging = false;
 
     const onDragStart = (ev: PIXI.interaction.InteractionEvent) => {
-      if (this.locked) return;
+      if (this.currentObject !== null) return;
 
-      this.locked = true;
+      this.currentObject = obj;
       dragging = true;
 
       for (const listener of dragStartListeners) listener(ev);
@@ -240,10 +272,17 @@ export class DragRegistry {
       if (!dragging) return;
 
       dragging = false;
-      this.locked = false;
+      this.currentObject = null;
 
       for (const listener of dragEndListeners) listener(ev);
     }
+
+    const callAbortListeners = () => {
+      for (const listener of dragAbortListeners) listener();
+    }
+
+    if (setAbortListener !== undefined) setAbortListener(callAbortListeners);
+
     obj
       .on('mousedown',       onDragStart)
       .on('touchstart',      onDragStart)
@@ -253,10 +292,12 @@ export class DragRegistry {
       .on('touchendoutside', onDragEnd)
       .on('mousemove',       onDragMove)
       .on('touchmove',       onDragMove);
+
     return {
       onDragStart: (listener: DragListener) => { dragStartListeners.push(listener); },
       onDragMove: (listener: DragListener) => { dragMoveListeners.push(listener); },
       onDragEnd: (listener: DragListener) => { dragEndListeners.push(listener); },
+      onDragAbort: (listener: () => void) => { dragAbortListeners.push(listener); },
     }
   }
 }

@@ -166,6 +166,14 @@ export class SelectionManager {
     return null;
   }
 
+  public abortSelectionDrag(): void {
+    if (this.selectionDrag === null) return;
+
+    this.background.removeChild(this.selectionDrag.ghostRoot);
+
+    this.selectionDrag = null;
+  }
+
   public endSelectionDrag(dx: number, dy: number): void {
     if (this.selectionDrag === null) throw new Error("No drag currently happening");
 
@@ -235,6 +243,15 @@ export class SelectionManager {
     this.selectionDrag = null;
   }
 
+  public selectAll(): void {
+    for (const vertexId in this.getVertexWrappers()) {
+      this.selectVertex(vertexId);
+    }
+    for (const edgeId in this.getEdgeWrappers()) {
+      this.selectEdge(edgeId);
+    }
+  }
+
   public deleteSelection(): void {
     const requests: ModelChangeRequest[] = [];
 
@@ -242,7 +259,7 @@ export class SelectionManager {
       requests.push({
         type: "deleteEdge",
         edgeId: edgeId,
-      })
+      });
     }
 
     for (const vertexId in this.selectedVertices) {
@@ -272,46 +289,4 @@ export class SelectionManager {
       if (this.getEdgeWrappers()[id] === undefined) return id;
     }
   }
-
-  // public addVertex(key: string, vertexWrapper: VertexWrapper): void {
-  //   this.vertices[key] = vertexWrapper;
-  //   vertexWrapper.toggleSelected(true);
-  // }
-  //
-  // public addEdge(key: string, edgeWrapper: EdgeWrapper): void {
-  //   this.edges[key] = edgeWrapper;
-  //   edgeWrapper.toggleSelected(true);
-  // }
-  //
-  // public removeEdge(key: string): void {
-  //   const edgeWrapper = this.edges[key];
-  //   if (edgeWrapper === undefined) throw new Error(`Edge ${key} is not selected`);
-  //   delete this.edges[key];
-  //
-  //   edgeWrapper.toggleSelected(false);
-  // }
-  //
-  // public removeVertex(key: string): void {
-  //   const vertexWrapper = this.vertices[key];
-  //   if (vertexWrapper === undefined) throw new Error(`Vertex ${key} is not selected`);
-  //   delete this.vertices[key];
-  //
-  //   vertexWrapper.toggleSelected(false);
-  // }
-  //
-  // public pruneVertexKeys(keysToKeep: string[]): void {
-  //   for (const selectedVertexKey of Object.keys(this.vertices)) {
-  //     if (keysToKeep.indexOf(selectedVertexKey) === -1) {
-  //       this.removeVertex(selectedVertexKey);
-  //     }
-  //   }
-  // }
-  //
-  // public pruneEdgeKeys(keysToKeep: string[]): void {
-  //   for (const selectedEdgeKey of Object.keys(this.edges)) {
-  //     if (keysToKeep.indexOf(selectedEdgeKey) === -1) {
-  //       this.removeEdge(selectedEdgeKey);
-  //     }
-  //   }
-  // }
 }

@@ -63,7 +63,7 @@ export class EdgeDragHandler {
       if (clickData.isDrag) {
         selectionManager.continueSelectionDrag(dx, dy);
       }
-    })
+    });
     listeners.onDragEnd(event => {
       if (clickData === null) throw new Error("no click in progress");
 
@@ -83,6 +83,14 @@ export class EdgeDragHandler {
       }
 
       clickData = null;
-    })
+    });
+    listeners.onDragAbort(() => {
+      if (clickData === null) return;
+
+      if (clickData.isDrag) {
+        selectionManager.abortSelectionDrag();
+      }
+      clickData = null;
+    });
   }
 }

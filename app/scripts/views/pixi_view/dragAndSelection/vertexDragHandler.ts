@@ -28,6 +28,7 @@ export class VertexDragHandler {
     listeners.onDragStart(ev => that.beginClick(ev));
     listeners.onDragMove(ev => that.continueClick(ev));
     listeners.onDragEnd(ev => that.endClick(ev));
+    listeners.onDragAbort(() => that.abortClick());
   }
 
   private beginClick(event: PIXI.interaction.InteractionEvent): void {
@@ -101,6 +102,14 @@ export class VertexDragHandler {
     }
 
     this.clickData = null;
+  }
+
+  private abortClick() {
+    if (this.clickData === null) return;
+
+    if (this.clickData.isDrag) {
+      this.selectionManager.abortSelectionDrag();
+    }
   }
 
   // private beginDrag(event: PIXI.interaction.InteractionEvent): void {
