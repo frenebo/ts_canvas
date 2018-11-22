@@ -59,22 +59,22 @@ export type ModelChangeRequest = {
   x: number;
   y: number;
 } | {
-  type: "createEdge",
-  newEdgeId: string,
-  sourceVertexId: string,
-  sourcePortId: string,
-  targetVertexId: string,
-  targetPortId: string,
+  type: "createEdge";
+  newEdgeId: string;
+  sourceVertexId: string;
+  sourcePortId: string;
+  targetVertexId: string;
+  targetPortId: string;
 } | {
-  type: "deleteVertex",
-  vertexId: string,
+  type: "deleteVertex";
+  vertexId: string;
 } | {
-  type: "deleteEdge",
-  edgeId: string,
+  type: "deleteEdge";
+  edgeId: string;
 } | {
-  type: "undo",
+  type: "undo";
 } | {
-  type: "redo",
+  type: "redo";
 };
 
 export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoResponseMap;
@@ -90,7 +90,7 @@ export interface ModelInfoRequestMap {
   "edgesBetweenVertices": {
     type: "edgesBetweenVertices";
     vertexIds: string[];
-  }
+  };
 }
 
 export interface ModelInfoResponseMap {
@@ -101,5 +101,5 @@ export interface ModelInfoResponseMap {
     edges: {
       [key: string]: EdgeData;
     };
-  }
+  };
 }

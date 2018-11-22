@@ -3,15 +3,15 @@ import { VertexWrapper } from "../vertexWrapper.js";
 import { BackgroundWrapper } from "../backgroundWrapper.js";
 
 export class EdgeDrawHandler {
-  private backgroundWrapper: BackgroundWrapper;
   private dragData: {
-    sourceVtx: VertexWrapper,
-    sourcePort: PortWrapper,
+    sourceVtx: VertexWrapper;
+    sourcePort: PortWrapper;
     graphics: PIXI.Graphics;
   } | null = null;
 
-  constructor(backgroundWrapper: BackgroundWrapper) {
-    this.backgroundWrapper = backgroundWrapper;
+  constructor(
+    private readonly backgroundWrapper: BackgroundWrapper,
+  ) {
   }
 
   public beginDraw(sourceVertex: VertexWrapper, sourcePort: PortWrapper): void {
@@ -33,8 +33,10 @@ export class EdgeDrawHandler {
   public redrawLine(endX: number, endY: number, validity?: "valid" | "invalid"): void {
     if (this.dragData === null) throw new Error("Not currently drawing edge");
 
-    const startX = this.dragData.sourcePort.localX() + this.dragData.sourcePort.getWidth()/2 + this.dragData.sourceVtx.localX();
-    const startY = this.dragData.sourcePort.localY() + this.dragData.sourcePort.getHeight()/2 + this.dragData.sourceVtx.localY();
+    const startX =
+      this.dragData.sourcePort.localX() + this.dragData.sourcePort.getWidth()/2 + this.dragData.sourceVtx.localX();
+    const startY =
+      this.dragData.sourcePort.localY() + this.dragData.sourcePort.getHeight()/2 + this.dragData.sourceVtx.localY();
 
     this.dragData.graphics.clear();
 
@@ -50,7 +52,7 @@ export class EdgeDrawHandler {
   }
 
   public endDrag(): void {
-    if (this.dragData == null) throw new Error("Not currently drawing edge");
+    if (this.dragData === null) throw new Error("Not currently drawing edge");
 
     this.backgroundWrapper.removeChild(this.dragData.graphics);
     this.dragData = null;

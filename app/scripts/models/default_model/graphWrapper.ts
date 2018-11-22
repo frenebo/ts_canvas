@@ -1,8 +1,8 @@
 import { ModelData, EdgeData, VertexData } from "../../interfaces";
 
 export class Graph {
-  private modelData: ModelData;
-  private edgesByVertex: {[key: string]: Set<string>} = {};
+  private readonly modelData: ModelData;
+  private readonly edgesByVertex: {[key: string]: Set<string>} = {};
 
   constructor() {
     this.modelData = {
@@ -26,8 +26,8 @@ export class Graph {
             side: "bottom",
             position: 0.5,
             portType: "output",
-          }
-        }
+          },
+        },
       });
     }
   }
@@ -107,7 +107,13 @@ export class Graph {
     this.edgesByVertex[id] = new Set();
   }
 
-  public createEdge(edgeId: string, sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): void {
+  public createEdge(
+    edgeId: string,
+    sourceVtxId: string,
+    sourcePortId: string,
+    targetVtxId: string,
+    targetPortId: string,
+  ): void {
     const edgeIsValid = this.validateEdge(sourceVtxId, sourcePortId, targetVtxId, targetPortId);
     if (!edgeIsValid) throw new Error(`Invalid create edge arguments: ${arguments}`);
 
@@ -137,7 +143,7 @@ export class Graph {
 
     // @TODO check for loops in graph
 
-    let edgesByTarget: {
+    const edgesByTarget: {
       [targetId: string]: EdgeData[];
     } = {};
 
@@ -150,9 +156,9 @@ export class Graph {
       edgesByTarget[edgeData.targetVertexId].push(edgeData);
     }
 
-    let sourceAncestorIds: string[] = [];
+    const sourceAncestorIds: string[] = [];
 
-    let vertexIdsToInvestigate: string[] = [sourceVtxId];
+    const vertexIdsToInvestigate: string[] = [sourceVtxId];
     while (vertexIdsToInvestigate.length > 0) {
       const idToInvestigate = vertexIdsToInvestigate.pop() as string;
       sourceAncestorIds.push(idToInvestigate);

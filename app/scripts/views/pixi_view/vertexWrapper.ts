@@ -4,20 +4,20 @@ import { EditIcon } from "./icons/editIcon.js";
 import { PortWrapper } from "./portWrapper.js";
 
 export class VertexWrapper {
-  private static unselectedFillColor = 0xE6E6E6;
-  private static selectedFillColor = 0xFFFF00;
-  private static borderColor = 0x333333;
-  private static borderWidth = 5;
-  private static defaultWidth = 250;
-  private static defaultHeight = 80;
+  private static readonly unselectedFillColor = 0xE6E6E6;
+  private static readonly selectedFillColor = 0xFFFF00;
+  private static readonly borderColor = 0x333333;
+  private static readonly borderWidth = 5;
+  private static readonly defaultWidth = 250;
+  private static readonly defaultHeight = 80;
 
-  private static cachedTextures = new Map<string, PIXI.RenderTexture>();
+  private static readonly cachedTextures = new Map<string, PIXI.RenderTexture>();
   public static generateBoxTexture(
     alpha: number,
     selected: boolean,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ): PIXI.RenderTexture {
-    const uniqueTextureString = JSON.stringify({alpha, selected});
+    const uniqueTextureString = alpha.toString() + selected.toString();
     if (VertexWrapper.cachedTextures.has(uniqueTextureString)) {
       return VertexWrapper.cachedTextures.get(uniqueTextureString)!;
     } else {
@@ -46,20 +46,20 @@ export class VertexWrapper {
     }
   }
 
-  private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
-  private container: PIXI.Container;
-  private background: PIXI.Sprite;
-  private width: number;
-  private height: number;
-  private label: PIXI.Text;
-  private editIcon: EditIcon;
-  private portWrappers: { [key: string]: PortWrapper } = {};
-  private positionChangedListeners: Array<() => void> = [];
+  private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
+  private readonly container: PIXI.Container;
+  private readonly width: number;
+  private readonly height: number;
+  private readonly label: PIXI.Text;
+  private readonly editIcon: EditIcon;
+  private readonly portWrappers: { [key: string]: PortWrapper } = {};
+  private readonly positionChangedListeners: Array<() => void> = [];
   private isSelected = false;
+  private background: PIXI.Sprite;
 
   constructor(
     dragRegistry: DragRegistry,
-    private registerPort: (vtx: VertexWrapper, portId: string, port: PortWrapper) => void,
+    private readonly registerPort: (vtx: VertexWrapper, portId: string, port: PortWrapper) => void,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     this.renderer = renderer;
@@ -77,15 +77,15 @@ export class VertexWrapper {
     // this.graphics.hitArea = new PIXI.Rectangle(data.geo.w, data.geo.h);
 
     const textStyle = new PIXI.TextStyle({
-      fontFamily: 'Arial',
+      fontFamily: "Arial",
       fontSize: 30,
       // fontStyle: 'italic',
-      fontWeight: 'bold',
-      fill: '#ffffff',
-      stroke: '#4a1850',
+      fontWeight: "bold",
+      fill: "#ffffff",
+      stroke: "#4a1850",
       strokeThickness: 5,
       dropShadow: true,
-      dropShadowColor: '#000000',
+      dropShadowColor: "#000000",
       dropShadowBlur: 4,
       // dropShadowAngle: Math.PI / 6,
       // dropShadowDistance: 6,
@@ -151,36 +151,37 @@ export class VertexWrapper {
     const currentPortKeys = Object.keys(this.portWrappers);
     const dataPortKeys = Object.keys(data.ports);
 
-    const removedPortKeys = currentPortKeys.filter(key => dataPortKeys.indexOf(key) === -1);
-    const addedPortKeys = dataPortKeys.filter(key => currentPortKeys.indexOf(key) === -1);
-    const sharedPortKeys = dataPortKeys.filter(key => currentPortKeys.indexOf(key) !== -1);
+    const removedPortKeys = currentPortKeys.filter((key) => dataPortKeys.indexOf(key) === -1);
+    const addedPortKeys = dataPortKeys.filter((key) => currentPortKeys.indexOf(key) === -1);
+    const sharedPortKeys = dataPortKeys.filter((key) => currentPortKeys.indexOf(key) !== -1);
 
     for (const removedPortKey of removedPortKeys) {
       this.portWrappers[removedPortKey].removeFrom(this.container);
     }
 
-    const portX = (portWrapper: PortWrapper, data: PortData) => {
-      if (data.side === "top" || data.side === "bottom") {
-        return this.width*data.position - portWrapper.getWidth()/2;
-      } else if (data.side === "left") {
+    const portX = (portWrapper: PortWrapper, portData: PortData) => {
+      if (portData.side === "top" || portData.side === "bottom") {
+        return this.width*portData.position - portWrapper.getWidth()/2;
+      } else if (portData.side === "left") {
         return - portWrapper.getWidth()/2 + VertexWrapper.borderWidth/2;
-      } else if (data.side === "right") {
+      } else if (portData.side === "right") {
         return this.width + VertexWrapper.borderWidth - portWrapper.getWidth()/2;
       } else {
-        throw new Error(`Invalid side type ${data.side}`);
+        throw new Error(`Invalid side type ${portData.side}`);
       }
-    }
-    const portY = (portWrapper: PortWrapper, data: PortData) => {
-      if (data.side === "left" || data.side === "right") {
-        return this.height*data.position - portWrapper.getHeight()/2;
-      } else if (data.side === "top") {
+    };
+
+    const portY = (portWrapper: PortWrapper, portData: PortData) => {
+      if (portData.side === "left" || portData.side === "right") {
+        return this.height*portData.position - portWrapper.getHeight()/2;
+      } else if (portData.side === "top") {
         return - portWrapper.getHeight()/2 + VertexWrapper.borderWidth/2;
-      } else if (data.side === "bottom") {
+      } else if (portData.side === "bottom") {
         return this.height + VertexWrapper.borderWidth - portWrapper.getHeight()/2;
       } else {
-        throw new Error(`Invalid side type ${data.side}`);
+        throw new Error(`Invalid side type ${portData.side}`);
       }
-    }
+    };
 
     for (const addedPortKey of addedPortKeys) {
       const portData = data.ports[addedPortKey];
@@ -224,7 +225,7 @@ export class VertexWrapper {
   }
 
   public addPositionChangedListener(listener: () => void): void {
-    this.positionChangedListeners.push(listener);;
+    this.positionChangedListeners.push(listener);
   }
 
   public setPosition(x: number, y: number): void {
@@ -250,11 +251,6 @@ export class VertexWrapper {
 
   public getHeight(): number {
     return this.height;
-  }
-
-  public on(ev: string, fn: Function, context?: any): this {
-    this.container.on(ev, fn, context);
-    return this;
   }
 
   public getDataRelativeLoc(data: PIXI.interaction.InteractionData): PIXI.Point {

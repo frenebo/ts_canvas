@@ -3,7 +3,7 @@ import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
 
 export class EdgeDragHandler {
-  private static dragThreshold = 5;
+  private static readonly dragThreshold = 5;
 
   constructor(
     id: string,
@@ -20,7 +20,7 @@ export class EdgeDragHandler {
       isDrag: boolean;
     } | null = null;
 
-    listeners.onDragStart(event => {
+    listeners.onDragStart((event) => {
       if (clickData !== null) throw new Error("click already in progress");
       const mouseLocalX = edgeWrapper.getDataRelativeLoc(event.data).x - edgeWrapper.localX();
       const mouseLocalY = edgeWrapper.getDataRelativeLoc(event.data).y - edgeWrapper.localY();
@@ -39,7 +39,7 @@ export class EdgeDragHandler {
       }
       selectionManager.selectEdge(id);
     });
-    listeners.onDragMove(event => {
+    listeners.onDragMove((event) => {
       if (clickData === null) throw new Error("no click in progress");
 
       const mouseLocalX = edgeWrapper.getDataRelativeLoc(event.data).x - edgeWrapper.localX();
@@ -64,7 +64,7 @@ export class EdgeDragHandler {
         selectionManager.continueSelectionDrag(dx, dy);
       }
     });
-    listeners.onDragEnd(event => {
+    listeners.onDragEnd((event) => {
       if (clickData === null) throw new Error("no click in progress");
 
       const mouseLocalX = edgeWrapper.getDataRelativeLoc(event.data).x - edgeWrapper.localX();

@@ -2,18 +2,34 @@ import { DragListeners } from "./dragRegistry.js";
 import { PortWrapper } from "../portWrapper.js";
 
 export class PortDragHandler {
-  private portDragStartListeners: Array<(x: number, y: number) => void> = [];
-  private portDragMoveListeners: Array<(x: number, y: number) => void> = [];
-  private portDragEndListeners: Array<(x: number, y: number) => void> = [];
-  private portDragAbortListeners: Array<() => void> = [];
+  private readonly portDragStartListeners: Array<(x: number, y: number) => void> = [];
+  private readonly portDragMoveListeners: Array<(x: number, y: number) => void> = [];
+  private readonly portDragEndListeners: Array<(x: number, y: number) => void> = [];
+  private readonly portDragAbortListeners: Array<() => void> = [];
   constructor(port: PortWrapper, listeners: DragListeners) {
     const that = this;
 
     if (port.getIsOutput()) {
-      listeners.onDragStart(ev => that.portDragStartListeners.forEach(l => l(ev.data.global.x, ev.data.global.y)));
-      listeners.onDragMove(ev => that.portDragMoveListeners.forEach(l => l(ev.data.global.x, ev.data.global.y)));
-      listeners.onDragEnd(ev => that.portDragEndListeners.forEach(l => l(ev.data.global.x, ev.data.global.y)));
-      listeners.onDragAbort(() => that.portDragAbortListeners.forEach(l => l()));
+      listeners.onDragStart((ev) => {
+        for (const listener of that.portDragStartListeners) {
+          listener(ev.data.global.x, ev.data.global.y);
+        }
+      });
+      listeners.onDragMove((ev) => {
+        for (const listener of that.portDragMoveListeners) {
+          listener(ev.data.global.x, ev.data.global.y);
+        }
+      });
+      listeners.onDragEnd((ev) => {
+        for (const listener of that.portDragEndListeners) {
+          listener(ev.data.global.x, ev.data.global.y);
+        }
+      });
+      listeners.onDragAbort(() => {
+        for (const listener of that.portDragAbortListeners) {
+          listener();
+        }
+      });
     }
   }
 

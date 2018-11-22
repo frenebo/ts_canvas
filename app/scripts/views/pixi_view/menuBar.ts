@@ -6,8 +6,8 @@ export class MenuBar {
   private static readonly itemSpacing = 10;
   private static readonly fillColor = 0x222222;
 
-  private graphics: PIXI.Graphics;
-  private menuItems: string[] = ["File", "Edit"];
+  private readonly graphics: PIXI.Graphics;
+  private readonly menuItems: string[] = ["File", "Edit"];
 
   constructor(dragRegistry: DragRegistry) {
     this.graphics = new PIXI.Graphics();
@@ -44,15 +44,14 @@ export class MenuBar {
 }
 
 class MenuItem {
-  private static fillColor = 0x444444;
+  private static readonly fillColor = 0x444444;
 
-  private text: PIXI.Text;
+  private readonly text: PIXI.Text;
 
-  private width: number;
-  private height: number;
+  private readonly width: number;
+  private readonly height: number;
+  private readonly graphics: PIXI.Graphics;
 
-  // private sta
-  private graphics: PIXI.Graphics;
   constructor(label: string, w: number, h: number) {
     this.graphics = new PIXI.Graphics();
     this.width = w;
@@ -68,15 +67,15 @@ class MenuItem {
     this.graphics.drawRect(0, 0, this.width, this.height);
 
     const textStyle = new PIXI.TextStyle({
-      fontFamily: 'Arial',
+      fontFamily: "Arial",
       fontSize: 30,
-      fontStyle: 'italic',
-      fontWeight: 'bold',
-      fill: ['#ffffff', '#00ff99'], // gradient
-      stroke: '#4a1850',
+      fontStyle: "italic",
+      fontWeight: "bold",
+      fill: ["#ffffff", "#00ff99"], // gradient
+      stroke: "#4a1850",
       strokeThickness: 5,
       dropShadow: true,
-      dropShadowColor: '#000000',
+      dropShadowColor: "#000000",
       dropShadowBlur: 4,
       dropShadowAngle: Math.PI / 6,
       dropShadowDistance: 6,

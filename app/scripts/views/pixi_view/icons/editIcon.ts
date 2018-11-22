@@ -1,8 +1,8 @@
 import { DragRegistry } from "../dragAndSelection/dragRegistry";
 
 export class EditIcon {
-  private static texturePadding = 5;
-  private static outlinePoints = [
+  private static readonly texturePadding = 5;
+  private static readonly outlinePoints = [
     [0, 50],
     [0, 35],
     [35, 0],
@@ -11,25 +11,24 @@ export class EditIcon {
     [0, 50],
     [0, 35],
   ];
-  private static eraserPoints = [
+  private static readonly eraserPoints = [
     [25, 10],
     [40, 25],
   ];
-
 
   private static cachedClicking: PIXI.RenderTexture | null = null;
   private static cachedNotClicking: PIXI.RenderTexture | null = null;
 
   private static draw(clicking: boolean, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
     if (clicking && EditIcon.cachedClicking !== null) {
-      const sprite = new PIXI.Sprite(EditIcon.cachedClicking);
-      sprite.cacheAsBitmap = true;
-      return sprite;
+      const spriteFromCachedTexture = new PIXI.Sprite(EditIcon.cachedClicking);
+      spriteFromCachedTexture.cacheAsBitmap = true;
+      return spriteFromCachedTexture;
     }
     if (!clicking && EditIcon.cachedNotClicking !== null) {
-      const sprite = new PIXI.Sprite(EditIcon.cachedNotClicking);
-      sprite.cacheAsBitmap = true;
-      return sprite;
+      const spriteFromCachedTexture = new PIXI.Sprite(EditIcon.cachedNotClicking);
+      spriteFromCachedTexture.cacheAsBitmap = true;
+      return spriteFromCachedTexture;
     }
 
     const graphics = new PIXI.Graphics();
@@ -54,8 +53,6 @@ export class EditIcon {
     graphPoints(EditIcon.outlinePoints);
     graphPoints(EditIcon.eraserPoints);
 
-    // graphics.position.set(EditIcon.texturePadding, EditIcon.texturePadding);
-
     const texture = renderer.generateTexture(
       graphics,
       undefined,
@@ -65,7 +62,7 @@ export class EditIcon {
         0,
         graphics.width + EditIcon.texturePadding*2,
         graphics.height + EditIcon.texturePadding*2,
-      )
+      ),
     );
 
     if (clicking) EditIcon.cachedClicking = texture;
@@ -84,14 +81,14 @@ export class EditIcon {
       new PIXI.Point(50, 15),
       new PIXI.Point(15, 50),
       new PIXI.Point(0, 50),
-    ].map(pt => new PIXI.Point(pt.x + EditIcon.texturePadding, pt.y + EditIcon.texturePadding));
+    ].map((pt) => new PIXI.Point(pt.x + EditIcon.texturePadding, pt.y + EditIcon.texturePadding));
 
     return new PIXI.Polygon(...points);
   }
 
-  private container: PIXI.Container;
+  private readonly container: PIXI.Container;
+  private readonly clickListeners: Array<() => void> = [];
   private sprite: PIXI.Sprite;
-  private clickListeners: Array<() => void> = [];
 
   constructor(
     dragRegistry: DragRegistry,
@@ -106,7 +103,7 @@ export class EditIcon {
       this.container.removeChild(this.sprite);
       this.sprite = EditIcon.draw(true, renderer);
       this.container.addChild(this.sprite);
-    }
+    };
     const clickEnd = () => {
       this.container.removeChild(this.sprite);
       this.sprite = EditIcon.draw(false, renderer);
@@ -115,7 +112,7 @@ export class EditIcon {
       for (const clickListener of this.clickListeners) {
         clickListener();
       }
-    }
+    };
 
     dragRegistry.registerEditIcon(this, clickBegin, clickEnd);
 

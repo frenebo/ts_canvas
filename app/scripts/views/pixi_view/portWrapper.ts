@@ -1,14 +1,14 @@
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 
 export class PortWrapper {
-  private static borderWidth = 2;
+  private static readonly borderWidth = 2;
 
   private static cachedPortTexture: PIXI.RenderTexture | null = null;
   private static createSprite(renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
     if (PortWrapper.cachedPortTexture !== null) {
-      const sprite = new PIXI.Sprite(PortWrapper.cachedPortTexture);
-      sprite.cacheAsBitmap = true;
-      return sprite;
+      const spriteFromCachedTexture = new PIXI.Sprite(PortWrapper.cachedPortTexture);
+      spriteFromCachedTexture.cacheAsBitmap = true;
+      return spriteFromCachedTexture;
     }
 
     const graphics = new PIXI.Graphics();
@@ -38,10 +38,10 @@ export class PortWrapper {
     return sprite;
   }
 
-  private isOutput: boolean;
-  private sprite: PIXI.Sprite;
+  private readonly isOutput: boolean;
+  private readonly sprite: PIXI.Sprite;
 
-  private positionChangedListeners: Array<() => void> = [];
+  private readonly positionChangedListeners: Array<() => void> = [];
 
   constructor(renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer, isOutput: boolean) {
     this.isOutput = isOutput;
@@ -61,8 +61,9 @@ export class PortWrapper {
   }
 
   public addPositionChangedListener(listener: () => void): void {
-    this.positionChangedListeners.push(listener);;
+    this.positionChangedListeners.push(listener);
   }
+
   public setPosition(x: number, y: number): void {
     if (this.sprite.position.x !== x || this.sprite.position.y !== y) {
       this.sprite.position.set(x, y);

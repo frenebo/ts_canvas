@@ -1,9 +1,11 @@
-import { ModelInterface, ViewInterface, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "./interfaces.js";
+import {
+  ModelInterface, ViewInterface, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
+} from "./interfaces.js";
 
 
 export class Messenger {
-  private model: ModelInterface;
-  private views: ViewInterface[];
+  private readonly model: ModelInterface;
+  private readonly views: ViewInterface[];
 
   constructor(model: ModelInterface) {
     this.model = model;
@@ -25,13 +27,13 @@ export class Messenger {
     const that = this;
     return (...reqs: ModelChangeRequest[]) => {
       that.model.requestModelChanges(...reqs);
-    }
+    };
   }
 
   public newInfoRequestHandler() {
     const that = this;
     return <V extends ModelInfoRequestType>(req: ModelInfoRequestMap[V]): ModelInfoResponseMap[V] => {
       return that.model.requestModelInfo(req);
-    }
+    };
   }
 }

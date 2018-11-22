@@ -1,30 +1,33 @@
 import { VertexWrapper } from "../vertexWrapper.js";
 import { EdgeWrapper } from "../edgeWrapper.js";
-import { ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestMap, ModelInfoRequestType } from "../../../interfaces.js";
+import {
+  ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestMap, ModelInfoRequestType,
+} from "../../../interfaces.js";
 import { BackgroundWrapper } from "../backgroundWrapper.js";
 
 export class SelectionManager {
-  private static ghostAlpha = 0.5;
+  private static readonly ghostAlpha = 0.5;
 
-  private selectedVertices: {[key: string]: VertexWrapper} = {};
-  private selectedEdges: {[key: string]: EdgeWrapper} = {};
+  private readonly selectedVertices: {[key: string]: VertexWrapper} = {};
+  private readonly selectedEdges: {[key: string]: EdgeWrapper} = {};
 
   private selectionDrag: null | {
-    dx: number,
-    dy: number,
+    dx: number;
+    dy: number;
     isClone: boolean;
     ghostRoot: PIXI.Container;
     ghosts: Map<string, PIXI.Sprite>;
   } = null;
-  // private selectedEdges: EdgeWrapper[] = [];
 
   constructor(
-    private getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
-    private getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
-    private sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    private sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
-    private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
-    private background: BackgroundWrapper,
+    private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
+    private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
+    private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
+    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(
+      req: ModelInfoRequestMap[T],
+    ) => ModelInfoResponseMap[T],
+    private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    private readonly background: BackgroundWrapper,
   ) {
     // empty
   }
@@ -142,7 +145,11 @@ export class SelectionManager {
 
     for (const selectedVertexId in this.selectedVertices) {
       const selectedVertex = this.selectedVertices[selectedVertexId];
-      const ghost = new PIXI.Sprite(VertexWrapper.generateBoxTexture(SelectionManager.ghostAlpha, false, this.renderer));
+      const ghost = new PIXI.Sprite(VertexWrapper.generateBoxTexture(
+        SelectionManager.ghostAlpha,
+        false,
+        this.renderer,
+      ));
       ghost.cacheAsBitmap = true;
       ghostRoot.addChild(ghost);
       ghost.position.set(selectedVertex.localX(), selectedVertex.localY());
@@ -275,7 +282,7 @@ export class SelectionManager {
   private static vtxIdCounter = 0;
   private uniqueVtxId(): string {
     while (true) {
-      const id = "vertex" + SelectionManager.vtxIdCounter.toString();
+      const id = `vertex${SelectionManager.vtxIdCounter.toString()}`;
       SelectionManager.vtxIdCounter++;
       if (this.getVertexWrappers()[id] === undefined) return id;
     }
@@ -284,7 +291,7 @@ export class SelectionManager {
   private static edgeIdCounter = 0;
   private uniqueEdgeId(): string {
     while (true) {
-      const id = "edge" + SelectionManager.edgeIdCounter.toString();
+      const id = `edge${SelectionManager.edgeIdCounter.toString()}`;
       SelectionManager.edgeIdCounter++;
       if (this.getEdgeWrappers()[id] === undefined) return id;
     }

@@ -3,7 +3,7 @@ import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
 
 export class VertexDragHandler {
-  private static dragThreshold = 5;
+  private static readonly dragThreshold = 5;
 
   private clickData: null | {
     mouseStartLocal: {
@@ -18,17 +18,25 @@ export class VertexDragHandler {
   } = null;
 
   constructor(
-    private vertexId: string,
-    private vtxWrapper: VertexWrapper,
+    private readonly vertexId: string,
+    private readonly vtxWrapper: VertexWrapper,
     listeners: DragListeners,
-    private selectionManager: SelectionManager,
+    private readonly selectionManager: SelectionManager,
   ) {
     const that = this;
 
-    listeners.onDragStart(ev => that.beginClick(ev));
-    listeners.onDragMove(ev => that.continueClick(ev));
-    listeners.onDragEnd(ev => that.endClick(ev));
-    listeners.onDragAbort(() => that.abortClick());
+    listeners.onDragStart((ev) => {
+      that.beginClick(ev);
+    });
+    listeners.onDragMove((ev) => {
+      that.continueClick(ev);
+    });
+    listeners.onDragEnd((ev) => {
+      that.endClick(ev);
+    });
+    listeners.onDragAbort(() => {
+      that.abortClick();
+    });
   }
 
   private beginClick(event: PIXI.interaction.InteractionEvent): void {
@@ -111,44 +119,4 @@ export class VertexDragHandler {
       this.selectionManager.abortSelectionDrag();
     }
   }
-
-  // private beginDrag(event: PIXI.interaction.InteractionEvent): void {
-  //   if (this.oldDragData !== null) throw new Error("Previous drag has not ended");
-  //
-  //   const dragOutline = VertexWrapper.generateBoxGraphics(VertexDragHandler.ghostAlpha);
-  //   this.vtxWrapper.addChild(dragOutline);
-  //
-  //   this.oldDragData = {
-  //     mouseLocalPos: {
-  //       x: this.vtxWrapper.getDataRelativeLoc(event.data).x - this.vtxWrapper.localX(),
-  //       y: this.vtxWrapper.getDataRelativeLoc(event.data).y - this.vtxWrapper.localY(),
-  //     },
-  //     dragOutline: dragOutline,
-  //     isCtrlDrag: event.data.originalEvent.ctrlKey,
-  //   };
-  // }
-  //
-  // private endDrag(event: PIXI.interaction.InteractionEvent): void {
-  //   if (this.oldDragData === null) return;
-  //
-  //   this.vtxWrapper.removeChild(this.oldDragData.dragOutline);
-  //
-  //   const newVertexX = this.vtxWrapper.getDataRelativeLoc(event.data).x - this.oldDragData.mouseLocalPos.x;
-  //   const newVertexY = this.vtxWrapper.getDataRelativeLoc(event.data).y - this.oldDragData.mouseLocalPos.y;
-  //
-  //   for (const listener of this.dragListeners) {
-  //     listener(newVertexX, newVertexY, this.oldDragData.isCtrlDrag);
-  //   }
-  //
-  //   this.oldDragData = null;
-  // }
-  //
-  // private continueDrag(event: PIXI.interaction.InteractionEvent): void {
-  //   if (this.oldDragData === null) return;
-  //
-  //   const relativeX = (this.vtxWrapper.getDataRelativeLoc(event.data).x - this.oldDragData.mouseLocalPos.x) - this.vtxWrapper.localX();
-  //   const relativeY = (this.vtxWrapper.getDataRelativeLoc(event.data).y - this.oldDragData.mouseLocalPos.y) - this.vtxWrapper.localY();
-  //
-  //   this.oldDragData.dragOutline.position.set(relativeX, relativeY);
-  // }
 }

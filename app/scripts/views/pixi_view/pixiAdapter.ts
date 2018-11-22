@@ -1,4 +1,6 @@
-import { VertexData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, EdgeData } from "../../interfaces.js";
+import {
+  VertexData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, EdgeData,
+} from "../../interfaces.js";
 import { VertexWrapper } from "./vertexWrapper.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
@@ -7,16 +9,16 @@ import { EdgeWrapper } from "./edgeWrapper.js";
 import { PortWrapper } from "./portWrapper.js";
 
 export class PixiAdapter {
-  private app: PIXI.Application;
-  private backgroundWrapper: BackgroundWrapper;
-  private menuBar: MenuBar;
-  private dragRegistry: DragRegistry;
+  private readonly app: PIXI.Application;
+  private readonly backgroundWrapper: BackgroundWrapper;
+  private readonly menuBar: MenuBar;
+  private readonly dragRegistry: DragRegistry;
 
-  private vertexWrappers: {
+  private readonly vertexWrappers: {
     [key: string]: VertexWrapper;
   } = {};
 
-  private edgeWrappers: {
+  private readonly edgeWrappers: {
     [key: string]: EdgeWrapper;
   } = {};
 
@@ -60,7 +62,7 @@ export class PixiAdapter {
     const vtxWrapper = new VertexWrapper(
       this.dragRegistry,
       // @TODO find cleaner solution
-      (vtx, portId, portWrapper) => this.dragRegistry.registerPort(vertexKey, vtx, portId, portWrapper),
+      (vtx, portId, portWrapper) => { this.dragRegistry.registerPort(vertexKey, vtx, portId, portWrapper); },
       this.app.renderer,
     );
     this.vertexWrappers[vertexKey] = vtxWrapper;
@@ -103,7 +105,6 @@ export class PixiAdapter {
       sourcePort,
       targetVertex,
       targetPort,
-      this.app.renderer,
     );
     this.dragRegistry.registerEdge(edgeKey, edgeWrapper);
 

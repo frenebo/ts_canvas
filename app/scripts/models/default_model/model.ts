@@ -1,9 +1,11 @@
-import { ModelInterface, ModelData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap } from "../../interfaces.js";
+import {
+  ModelInterface, ModelData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap,
+} from "../../interfaces.js";
 import { Graph } from "./graphWrapper.js";
 
 export class DefaultModel implements ModelInterface {
-  private graph: Graph;
-  private modelChangedListeners: Array<() => void> = [];
+  private readonly graph: Graph;
+  private readonly modelChangedListeners: Array<() => void> = [];
   constructor() {
     this.graph = new Graph();
   }
@@ -55,7 +57,7 @@ export class DefaultModel implements ModelInterface {
       );
       const response: ModelInfoResponseMap["validateEdge"] = {
         validity: isValid ? "valid" : "invalid",
-      }
+      };
       return response;
     } else if (req.type === "edgesBetweenVertices") {
       const edgesBetweenVertices = this.graph.edgesBetweenVertices(
@@ -66,7 +68,7 @@ export class DefaultModel implements ModelInterface {
       };
       return response;
     } else {
-      throw new Error(`Unimplemented request ${req.type}`)
+      throw new Error(`Unimplemented request ${req.type}`);
     }
   }
 }

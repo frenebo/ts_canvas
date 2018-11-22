@@ -3,11 +3,11 @@ import { VertexWrapper } from "./vertexWrapper.js";
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 
 export class EdgeWrapper {
-  private static spriteLeftRightPadding = 25;
-  private static spriteTopBottomPadding = 25;
-  private static lineWidth = 10;
-  private static unselectedLineColor = 0x000000;
-  private static selectedLineColor = 0xFFFF00;
+  private static readonly spriteLeftRightPadding = 25;
+  private static readonly spriteTopBottomPadding = 25;
+  private static readonly lineWidth = 10;
+  private static readonly unselectedLineColor = 0x000000;
+  private static readonly selectedLineColor = 0xFFFF00;
 
 
   private static draw(
@@ -38,16 +38,15 @@ export class EdgeWrapper {
     return graphics;
   }
 
-  private container: PIXI.Container;
-  private graphics: PIXI.Graphics;
+  private readonly container: PIXI.Container;
+  private readonly graphics: PIXI.Graphics;
   private isSelected = false;
 
   constructor(
-    private sourceVertex: VertexWrapper,
-    private sourcePort: PortWrapper,
-    private targetVertex: VertexWrapper,
-    private targetPort: PortWrapper,
-    private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    private readonly sourceVertex: VertexWrapper,
+    private readonly sourcePort: PortWrapper,
+    private readonly targetVertex: VertexWrapper,
+    private readonly targetPort: PortWrapper,
   ) {
     this.container = new PIXI.Container();
     this.container.interactive = true;
@@ -127,6 +126,7 @@ export class EdgeWrapper {
         this.isSelected,
       );
     }
+
     this.previousSourceX = sourceX;
     this.previousSourceY = sourceY;
     this.previousTargetX = targetX;

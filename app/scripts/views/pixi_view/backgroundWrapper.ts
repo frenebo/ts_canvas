@@ -3,15 +3,15 @@ import { VertexWrapper } from "./vertexWrapper.js";
 import { EdgeWrapper } from "./edgeWrapper.js";
 
 export class BackgroundWrapper {
-  private sprite: PIXI.extras.TilingSprite;
-  private childContainer: PIXI.Container;
+  private readonly sprite: PIXI.extras.TilingSprite;
+  private readonly childContainer: PIXI.Container;
 
   constructor(
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
-    var texture = PIXI.Texture.fromImage(BACKGROUND_TILE_PATH);
+    const texture = PIXI.Texture.fromImage(BACKGROUND_TILE_PATH);
     this.sprite = new PIXI.extras.TilingSprite(texture, renderer.width, renderer.height);
-    this.childContainer = new PIXI.Container;
+    this.childContainer = new PIXI.Container();
     this.sprite.addChild(this.childContainer);
 
     this.sprite.interactive = true;

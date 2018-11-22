@@ -13,8 +13,8 @@ export class KeyboardHandler {
     });
     renderer.view.addEventListener("mouseout", () => {
       mouseIsOverCanvas = false;
-    })
-    document.addEventListener("keydown", ev => {
+    });
+    document.addEventListener("keydown", (ev) => {
       if (!mouseIsOverCanvas) return;
 
       if (ev.key === "Delete") selectionManager.deleteSelection();

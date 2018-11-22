@@ -2,6 +2,8 @@ var gulp = require("gulp");
 var ts = require("gulp-typescript");
 var del = require("del");
 var connect = require('gulp-connect');
+var gulpTslint = require("gulp-tslint");
+var tslint = require("tslint");
 
 gulp.task("clean", () => del(["build"]));
 
@@ -24,3 +26,17 @@ gulp.task("ts", function() {
 
 
 gulp.task("serve", gulp.series("clean", "ts", "copy", "start_server"));
+
+gulp.task("tslint", function() {
+  var program = tslint.Linter.createProgram("./tsconfig.json");
+
+   return gulp.src(["app/scripts/**/*.ts"])
+       .pipe(gulpTslint({ program: program }))
+       .pipe(gulpTslint.report({
+            configuration: {},
+            rulesDirectory: null,
+            emitError: true,
+            reportLimit: 0,
+            summarizeFailureOutput: true
+        }));;
+})

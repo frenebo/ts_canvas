@@ -1,4 +1,6 @@
-import { ViewInterface, ModelData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces.js";
+import {
+  ViewInterface, ModelData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
+} from "../../interfaces.js";
 import { PixiAdapter } from "./pixiAdapter.js";
 
 export class PixiView implements ViewInterface {
@@ -18,7 +20,7 @@ export class PixiView implements ViewInterface {
   }
 
   private data: ModelData = {vertices: {}, edges: {}};
-  private pixiAdapter: PixiAdapter;
+  private readonly pixiAdapter: PixiAdapter;
 
   constructor(
     div: HTMLDivElement,
@@ -32,17 +34,27 @@ export class PixiView implements ViewInterface {
     const newVertexKeys = Object.keys(newData.vertices);
     const oldVertexKeys = Object.keys(this.data.vertices);
 
-    const removedVertexKeys = oldVertexKeys.filter(key => newVertexKeys.indexOf(key) === -1);
-    const addedVertexKeys = newVertexKeys.filter(key => oldVertexKeys.indexOf(key) === -1);
-    const sharedVertexKeys = oldVertexKeys.filter(key => newVertexKeys.indexOf(key) !== -1);
+    const removedVertexKeys = oldVertexKeys.filter((key) => newVertexKeys.indexOf(key) === -1);
+    const addedVertexKeys = newVertexKeys.filter((key) => oldVertexKeys.indexOf(key) === -1);
+    const sharedVertexKeys = oldVertexKeys.filter((key) => newVertexKeys.indexOf(key) !== -1);
 
     const newEdgeKeys = Object.keys(newData.edges);
     const oldEdgeKeys = Object.keys(this.data.edges);
 
-    const removedEdgeKeys = oldEdgeKeys.filter(key => newEdgeKeys.indexOf(key) === -1);
-    const addedEdgeKeys = newEdgeKeys.filter(key => oldEdgeKeys.indexOf(key) === -1);
-    const sharedEdgeKeys = oldEdgeKeys.filter(key => newEdgeKeys.indexOf(key) === 1);
-    const changedEdgeKeys = sharedEdgeKeys.filter(key => JSON.stringify(newData.edges[key]) !== JSON.stringify(this.data.edges[key]));
+    const removedEdgeKeys = oldEdgeKeys.filter((key) => newEdgeKeys.indexOf(key) === -1);
+    const addedEdgeKeys = newEdgeKeys.filter((key) => oldEdgeKeys.indexOf(key) === -1);
+    const sharedEdgeKeys = oldEdgeKeys.filter((key) => newEdgeKeys.indexOf(key) === 1);
+    const changedEdgeKeys = sharedEdgeKeys.filter((key) => {
+      const newEdge = newData.edges[key];
+      const oldEdge = this.data.edges[key];
+
+      if (newEdge.sourcePortId !== oldEdge.sourcePortId) return true;
+      if (newEdge.sourceVertexId !== oldEdge.sourceVertexId) return true;
+      if (newEdge.targetPortId !== oldEdge.targetPortId) return true;
+      if (newEdge.targetVertexId !== oldEdge.targetVertexId) return true;
+
+      return true;
+    });
 
     // remove an edge if its data changed
     for (const removedEdgeKey of removedEdgeKeys.concat(changedEdgeKeys)) {
@@ -70,7 +82,9 @@ export class PixiView implements ViewInterface {
     const edgesByVertex = PixiView.edgesByVertex(newData);
     const edgesToUpdate = new Set<string>();
     for (const vertexKey of sharedVertexKeys) {
-      if (JSON.stringify(this.data.vertices[vertexKey])!== JSON.stringify(newData.vertices[vertexKey])) {
+      // @NOTE May decide identical vertices to be different if their attributes are in different order, but will never
+      // decide different vertices to be identical
+      if (JSON.stringify(this.data.vertices[vertexKey]) !== JSON.stringify(newData.vertices[vertexKey])) {
         for (const edgeId of edgesByVertex[vertexKey]) {
           edgesToUpdate.add(edgeId);
         }

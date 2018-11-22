@@ -3,9 +3,8 @@ import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
 
 export class BackgroundDragHandler {
-  private static dragThreshold = 2;
+  private static readonly dragThreshold = 2;
 
-  private backgroundWrapper: BackgroundWrapper;
   private mouseData: {
     type: "click";
     mouseStart: {
@@ -40,18 +39,16 @@ export class BackgroundDragHandler {
   }| null = null;
 
   constructor(
-    private selectionManager: SelectionManager,
-    backgroundWrapper: BackgroundWrapper,
+    private readonly selectionManager: SelectionManager,
+    private readonly backgroundWrapper: BackgroundWrapper,
     dragListeners: DragListeners,
   ) {
-    this.backgroundWrapper = backgroundWrapper;
-
     const that = this;
 
-    dragListeners.onDragStart(ev => that.onClickStart(ev));
-    dragListeners.onDragMove(ev => that.onClickMove(ev));
-    dragListeners.onDragEnd(ev => that.onClickEnd(ev));
-    dragListeners.onDragAbort(() => that.onClickAbort());
+    dragListeners.onDragStart((ev) => { that.onClickStart(ev); });
+    dragListeners.onDragMove((ev) => { that.onClickMove(ev); });
+    dragListeners.onDragEnd((ev) => { that.onClickEnd(ev); });
+    dragListeners.onDragAbort(() => { that.onClickAbort(); });
   }
 
   private onClickStart(event: PIXI.interaction.InteractionEvent): void {
@@ -79,7 +76,7 @@ export class BackgroundDragHandler {
       const mouseStartLocal = {
         x: this.backgroundWrapper.getDataRelativeLoc(event.data).x,
         y: this.backgroundWrapper.getDataRelativeLoc(event.data).y,
-      }
+      };
 
       this.mouseData = {
         type: "select",
@@ -153,7 +150,7 @@ export class BackgroundDragHandler {
         Math.min(this.mouseData.mouseStartLocal.y, mouseLocalPos.y),
         Math.abs(this.mouseData.mouseStartLocal.x - mouseLocalPos.x),
         Math.abs(this.mouseData.mouseStartLocal.y - mouseLocalPos.y),
-      )
+      );
     }
 
     this.mouseData = null;
