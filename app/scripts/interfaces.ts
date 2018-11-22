@@ -71,6 +71,10 @@ export type ModelChangeRequest = {
 } | {
   type: "deleteEdge",
   edgeId: string,
+} | {
+  type: "undo",
+} | {
+  type: "redo",
 };
 
 export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoResponseMap;

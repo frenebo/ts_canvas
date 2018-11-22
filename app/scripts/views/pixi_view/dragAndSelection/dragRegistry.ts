@@ -48,7 +48,11 @@ export class DragRegistry {
     );
     this.registerBackground(this.backgroundWrapper);
 
-    new KeyboardHandler(renderer, this.selectionManager);
+    new KeyboardHandler(
+      renderer,
+      this.selectionManager,
+      sendModelChangeRequests,
+    );
   }
 
   private portsByCloseness(targetX: number, targetY: number): Array<{

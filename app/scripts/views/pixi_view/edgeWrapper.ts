@@ -118,7 +118,6 @@ export class EdgeWrapper {
     ) {
       // skip redraw
     } else {
-      console.log("drawing again")
       EdgeWrapper.draw(
         this.graphics,
         sourceX,

@@ -36,6 +36,10 @@ export class DefaultModel implements ModelInterface {
       this.graph.deleteVertex(req.vertexId);
     } else if (req.type === "deleteEdge") {
       this.graph.deleteEdge(req.edgeId);
+    } else if (req.type === "undo") {
+      this.graph.undo();
+    } else if (req.type === "redo") {
+      this.graph.redo();
     } else {
       // console.log(`Unimplemented request ${req.type}`);
     }

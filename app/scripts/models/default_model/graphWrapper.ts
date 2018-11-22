@@ -82,6 +82,14 @@ export class Graph {
     this.edgesByVertex[edge.sourceVertexId].delete(edgeId);
   }
 
+  public undo(): void {
+    console.log("undo unimplemented");
+  }
+
+  public redo(): void {
+    console.log("redo unimplemented");
+  }
+
   public cloneVertex(newVtxId: string, oldVtxId: string, x: number, y: number): void {
     if (this.modelData.vertices[newVtxId] !== undefined) throw new Error(`Vertex with id ${newVtxId} already exists`);
     const oldVtx = this.modelData.vertices[oldVtxId];
