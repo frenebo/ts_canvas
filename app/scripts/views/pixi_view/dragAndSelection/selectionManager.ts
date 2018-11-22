@@ -30,6 +30,7 @@ export class SelectionManager {
   }
 
   // call when an edge has been removed, but still may be in selectedEdges
+
   public removeDeletedEdge(id: string, edge: EdgeWrapper): void {
     if (this.selectedEdges[id] !== undefined) {
       delete this.selectedEdges[id];
@@ -37,6 +38,7 @@ export class SelectionManager {
   }
 
   // call when a vertex has been removed, but still may be in selectedVertices
+
   public removeDeletedVertex(id: string, vertex: VertexWrapper): void {
     if (this.selectedVertices[id] !== undefined) {
       delete this.selectedVertices[id];
@@ -54,10 +56,36 @@ export class SelectionManager {
     for (const selectedVertexId of Object.keys(this.selectedVertices)) {
       this.deselectVertex(selectedVertexId);
     }
+
+    for (const selectedEdgeId of Object.keys(this.selectedEdges)) {
+      this.deselectEdge(selectedEdgeId);
+    }
   }
 
   public vertexIsSelected(vertexId: string): boolean {
     return this.selectedVertices[vertexId] !== undefined;
+  }
+
+  public edgeIsSelected(edgeId: string): boolean {
+    return this.selectedEdges[edgeId] !== undefined;
+  }
+
+  public selectEdge(edgeId: string): void {
+    if (this.selectedEdges[edgeId] === undefined) {
+      const edge = this.getEdgeWrappers()[edgeId];
+      if (edge === undefined) throw new Error(`Couldn't find edge with id ${edgeId}`);
+
+      this.selectedEdges[edgeId] = edge;
+      edge.toggleSelected(true);
+    }
+  }
+
+  public deselectEdge(edgeId: string): void {
+    const edge = this.selectedEdges[edgeId];
+    if (edge !== undefined) {
+      edge.toggleSelected(false);
+      delete this.selectedEdges[edgeId];
+    }
   }
 
   public selectVertex(vertexId: string): void {
@@ -209,6 +237,13 @@ export class SelectionManager {
 
   public deleteSelection(): void {
     const requests: ModelChangeRequest[] = [];
+
+    for (const edgeId in this.selectedEdges) {
+      requests.push({
+        type: "deleteEdge",
+        edgeId: edgeId,
+      })
+    }
 
     for (const vertexId in this.selectedVertices) {
       requests.push({

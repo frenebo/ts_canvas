@@ -34,6 +34,8 @@ export class DefaultModel implements ModelInterface {
       this.graph.cloneVertex(req.newVertexId, req.sourceVertexId, req.x, req.y);
     } else if (req.type === "deleteVertex") {
       this.graph.deleteVertex(req.vertexId);
+    } else if (req.type === "deleteEdge") {
+      this.graph.deleteEdge(req.edgeId);
     } else {
       // console.log(`Unimplemented request ${req.type}`);
     }

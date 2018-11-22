@@ -48,7 +48,7 @@ export class DragRegistry {
     );
     this.registerBackground(this.backgroundWrapper);
 
-    new KeyboardHandler(this.selectionManager);
+    new KeyboardHandler(renderer, this.selectionManager);
   }
 
   private portsByCloseness(targetX: number, targetY: number): Array<{
@@ -116,9 +116,9 @@ export class DragRegistry {
   }
 
   public registerEdge(id: string, edge: EdgeWrapper): void {
-    this.registerDisplayObject(edge.getDisplayObject());
+    const listeners = this.registerDisplayObject(edge.getDisplayObject());
 
-    new EdgeDragHandler(id, edge);
+    new EdgeDragHandler(id, edge, listeners, this.selectionManager);
   }
 
   public registerEditIcon(editIcon: EditIcon, clickBegin: () => void, clickEnd: () => void): void {

@@ -64,11 +64,22 @@ export class EdgeWrapper {
   ) {
     this.container = new PIXI.Container();
     this.container.interactive = true;
-    // this.container.buttonMode = true;
 
     this.sprite = new PIXI.Sprite();
 
     this.refresh();
+  }
+
+  public getDataRelativeLoc(data: PIXI.interaction.InteractionData) {
+    return data.getLocalPosition(this.container);
+  }
+
+  public localX(): number {
+    return this.container.position.x;
+  }
+
+  public localY(): number {
+    return this.container.position.y;
   }
 
   public getDisplayObject() {
@@ -92,6 +103,7 @@ export class EdgeWrapper {
   private previousTargetX = 0;
   private previousSourceY = 0;
   private previousTargetY = 0;
+  private previousIsSelected = false;
 
   public refresh(): void {
     const sourceX = this.sourcePort.localX() + this.sourceVertex.localX() + this.sourcePort.getWidth()/2;
@@ -103,7 +115,8 @@ export class EdgeWrapper {
       sourceX === this.previousSourceX &&
       sourceY === this.previousSourceY &&
       targetX === this.previousTargetX &&
-      targetY === this.previousTargetY
+      targetY === this.previousTargetY &&
+      this.isSelected === this.previousIsSelected
     ) {
       // if the line has not changed at all, do nothing
       return;
@@ -112,7 +125,8 @@ export class EdgeWrapper {
     // Don't redraw if the line has not changed
     if (
       targetY - sourceY === this.previousTargetY - this.previousSourceY &&
-      targetX - sourceX === this.previousTargetX - this.previousSourceX
+      targetX - sourceX === this.previousTargetX - this.previousSourceX &&
+      this.isSelected === this.previousIsSelected
     ) {
       // skip redraw
     } else {
@@ -131,6 +145,12 @@ export class EdgeWrapper {
     this.previousSourceY = sourceY;
     this.previousTargetX = targetX;
     this.previousTargetY = targetY;
+    this.previousIsSelected = this.isSelected;
+
+    this.container.position.set(
+      Math.min(sourceX, targetX) - EdgeWrapper.spriteLeftRightPadding,
+      Math.min(sourceY, targetY) - EdgeWrapper.spriteTopBottomPadding,
+    );
 
     const angle = Math.atan((targetY - sourceY)/(targetX - sourceX)) + (targetX < sourceX ? Math.PI : 0);
     const thicknessHorizontalOffset = Math.sin(angle)*EdgeWrapper.lineWidth/2;
@@ -153,11 +173,6 @@ export class EdgeWrapper {
         targetX - this.container.position.x + thicknessHorizontalOffset,
         targetY - this.container.position.y - thicknessVerticalOffset,
       ),
-    );
-
-    this.container.position.set(
-      Math.min(sourceX, targetX) - EdgeWrapper.spriteLeftRightPadding,
-      Math.min(sourceY, targetY) - EdgeWrapper.spriteTopBottomPadding,
     );
   }
 }

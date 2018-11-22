@@ -68,6 +68,9 @@ export type ModelChangeRequest = {
 } | {
   type: "deleteVertex",
   vertexId: string,
+} | {
+  type: "deleteEdge",
+  edgeId: string,
 };
 
 export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoResponseMap;

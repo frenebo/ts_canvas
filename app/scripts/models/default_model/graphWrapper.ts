@@ -2,6 +2,7 @@ import { ModelData, EdgeData, VertexData } from "../../interfaces";
 
 export class Graph {
   private modelData: ModelData;
+  private edgesByVertex: {[key: string]: Set<string>} = {};
 
   constructor() {
     this.modelData = {
@@ -9,7 +10,7 @@ export class Graph {
       edges: {},
     };
     for (let i = 0; i < 10; i++) {
-      this.modelData.vertices[i.toString()] = {
+      this.createVertex(i.toString(), {
         label: i.toString(),
         geo: {
           x: i*20,
@@ -27,7 +28,7 @@ export class Graph {
             portType: "output",
           }
         }
-      }
+      });
     }
   }
 
@@ -59,9 +60,26 @@ export class Graph {
   }
 
   public deleteVertex(vertexId: string): void {
-    if (this.modelData.vertices[vertexId] === undefined) throw new Error(`Could not find vertex with id ${vertexId}`);
+    if (this.modelData.vertices[vertexId] === undefined) return;
+
+    const connectedEdges = this.edgesByVertex[vertexId];
+    for (const connectedEdge of connectedEdges) {
+      this.deleteEdge(connectedEdge);
+    }
 
     delete this.modelData.vertices[vertexId];
+    delete this.edgesByVertex[vertexId];
+  }
+
+  public deleteEdge(edgeId: string): void {
+    if (this.modelData.edges[edgeId] === undefined) return;
+
+    const edge = this.modelData.edges[edgeId];
+
+    delete this.modelData.edges[edgeId];
+
+    this.edgesByVertex[edge.targetVertexId].delete(edgeId);
+    this.edgesByVertex[edge.sourceVertexId].delete(edgeId);
   }
 
   public cloneVertex(newVtxId: string, oldVtxId: string, x: number, y: number): void {
@@ -72,7 +90,13 @@ export class Graph {
     const newVtx: VertexData = JSON.parse(JSON.stringify(oldVtx));
     newVtx.geo.x = x;
     newVtx.geo.y = y;
-    this.modelData.vertices[newVtxId] = newVtx;
+
+    this.createVertex(newVtxId, newVtx);
+  }
+
+  private createVertex(id: string, vtxData: VertexData): void {
+    this.modelData.vertices[id] = vtxData;
+    this.edgesByVertex[id] = new Set();
   }
 
   public createEdge(edgeId: string, sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): void {
@@ -85,6 +109,9 @@ export class Graph {
       targetVertexId: targetVtxId,
       targetPortId: targetPortId,
     };
+
+    this.edgesByVertex[sourceVtxId].add(edgeId);
+    this.edgesByVertex[targetVtxId].add(edgeId);
   }
 
   public validateEdge(sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): boolean {
