@@ -29,7 +29,7 @@ export class PixiAdapter {
     div.appendChild(this.app.view);
     this.app.ticker.start(); // To continually refresh view
 
-    this.backgroundWrapper = new BackgroundWrapper(div, this.app.renderer);
+    this.backgroundWrapper = new BackgroundWrapper(this.app.renderer);
     this.backgroundWrapper.addTo(this.app.stage);
 
     this.dragRegistry = new DragRegistry(
@@ -104,7 +104,6 @@ export class PixiAdapter {
       targetVertex,
       targetPort,
       this.app.renderer,
-      this.dragRegistry,
     );
     this.dragRegistry.registerEdge(edgeKey, edgeWrapper);
 

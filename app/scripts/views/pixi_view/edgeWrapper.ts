@@ -10,15 +10,16 @@ export class EdgeWrapper {
   private static selectedLineColor = 0xFFFF00;
 
 
-  private static drawSprite(
+  private static draw(
+    graphics: PIXI.Graphics,
     sourceX: number,
     sourceY: number,
     targetX: number,
     targetY: number,
     selected: boolean,
-    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
-  ): PIXI.Sprite {
-    const graphics = new PIXI.Graphics();
+  ): PIXI.Graphics {
+    // graphics.cacheAsBitmap = false;
+    graphics.clear();
     graphics.lineColor = selected ? EdgeWrapper.selectedLineColor : EdgeWrapper.unselectedLineColor;
     graphics.lineWidth = EdgeWrapper.lineWidth;
 
@@ -33,25 +34,12 @@ export class EdgeWrapper {
       (targetX - topLeftX) + EdgeWrapper.spriteLeftRightPadding,
       (targetY - topLeftY) + EdgeWrapper.spriteTopBottomPadding,
     );
-
-    const sprite = new PIXI.Sprite(renderer.generateTexture(
-      graphics,
-      undefined, // scale mode
-      renderer.resolution*4,
-      new PIXI.Rectangle(
-        0,
-        0,
-        graphics.width + EdgeWrapper.spriteLeftRightPadding,
-        graphics.height + EdgeWrapper.spriteTopBottomPadding,
-      ), // region
-    ));
-    sprite.cacheAsBitmap = true;
-
-    return sprite;
+    // graphics.cacheAsBitmap = true;
+    return graphics;
   }
 
   private container: PIXI.Container;
-  private sprite: PIXI.Sprite;
+  private graphics: PIXI.Graphics;
   private isSelected = false;
 
   constructor(
@@ -60,12 +48,12 @@ export class EdgeWrapper {
     private targetVertex: VertexWrapper,
     private targetPort: PortWrapper,
     private renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
-    dragRegistry: DragRegistry,
   ) {
     this.container = new PIXI.Container();
     this.container.interactive = true;
 
-    this.sprite = new PIXI.Sprite();
+    this.graphics = new PIXI.Graphics();
+    this.container.addChild(this.graphics);
 
     this.refresh();
   }
@@ -130,16 +118,15 @@ export class EdgeWrapper {
     ) {
       // skip redraw
     } else {
-      this.container.removeChild(this.sprite);
-      this.sprite = EdgeWrapper.drawSprite(
+      console.log("drawing again")
+      EdgeWrapper.draw(
+        this.graphics,
         sourceX,
         sourceY,
         targetX,
         targetY,
         this.isSelected,
-        this.renderer,
       );
-      this.container.addChild(this.sprite);
     }
     this.previousSourceX = sourceX;
     this.previousSourceY = sourceY;

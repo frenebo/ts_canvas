@@ -7,7 +7,6 @@ export class BackgroundWrapper {
   private childContainer: PIXI.Container;
 
   constructor(
-    container: HTMLDivElement,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     var texture = PIXI.Texture.fromImage(BACKGROUND_TILE_PATH);
@@ -18,7 +17,9 @@ export class BackgroundWrapper {
     this.sprite.interactive = true;
 
     const that = this;
-    container.addEventListener("wheel", (ev) => {
+    renderer.view.addEventListener("wheel", (ev) => {
+      ev.preventDefault();
+
       const scrollFactor = Math.pow(1.003, -ev.deltaY);
       const mouseGlobalPos: PIXI.Point = renderer.plugins.interaction.mouse.global;
       const mouseAbsoluteX = mouseGlobalPos.x - that.childContainer.position.x;

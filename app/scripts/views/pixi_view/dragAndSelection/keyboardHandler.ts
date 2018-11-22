@@ -3,7 +3,7 @@ import { SelectionManager } from "./selectionManager";
 export class KeyboardHandler {
   constructor(
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
-    private selectionManager: SelectionManager,
+    selectionManager: SelectionManager,
   ) {
     let mouseIsOverCanvas = false;
     renderer.view.addEventListener("mousemove", () => {
