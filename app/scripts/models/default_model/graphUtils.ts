@@ -95,49 +95,49 @@ export class GraphUtils {
     if (sourcePort.portType !== "output") return false;
     if (targetPort.portType !== "input") return false;
 
-    // @TODO check for loops in graph
-
-    const edgesByTarget: {
-      [targetId: string]: EdgeData[];
-    } = {};
-
-    for (const edgeId in modelData.edges) {
-      const edgeData = modelData.edges[edgeId];
-      if (edgesByTarget[edgeData.targetVertexId] === undefined) {
-        edgesByTarget[edgeData.targetVertexId] = [];
-      }
-
-      edgesByTarget[edgeData.targetVertexId].push(edgeData);
-    }
-
-    const sourceAncestorIds: string[] = [];
-
-    const vertexIdsToInvestigate: string[] = [sourceVtxId];
-    while (vertexIdsToInvestigate.length > 0) {
-      const idToInvestigate = vertexIdsToInvestigate.pop() as string;
-      sourceAncestorIds.push(idToInvestigate);
-
-      // if the investigated vertex is the target of no edges, skip it
-      if (edgesByTarget[idToInvestigate] === undefined) {
-        continue;
-      } else {
-        for (const edgeData of edgesByTarget[idToInvestigate]) {
-          // check if the edge's source has not been seen before
-          if (
-            vertexIdsToInvestigate.indexOf(edgeData.sourceVertexId) === -1 &&
-            sourceAncestorIds.indexOf(edgeData.sourceVertexId) === -1
-          ) {
-            vertexIdsToInvestigate.push(edgeData.sourceVertexId);
-          }
-        }
-      }
-    }
-
-    // return true if the target vertex is not an ancestor of the source vertex
-    if (sourceAncestorIds.indexOf(targetVtxId) === -1) {
-      return true;
-    } else {
-      return false;
-    }
+    // // Loop detection commented out
+    return true;
+    // const edgesByTarget: {
+    //   [targetId: string]: EdgeData[];
+    // } = {};
+    //
+    // for (const edgeId in modelData.edges) {
+    //   const edgeData = modelData.edges[edgeId];
+    //   if (edgesByTarget[edgeData.targetVertexId] === undefined) {
+    //     edgesByTarget[edgeData.targetVertexId] = [];
+    //   }
+    //
+    //   edgesByTarget[edgeData.targetVertexId].push(edgeData);
+    // }
+    //
+    // const sourceAncestorIds: string[] = [];
+    //
+    // const vertexIdsToInvestigate: string[] = [sourceVtxId];
+    // while (vertexIdsToInvestigate.length > 0) {
+    //   const idToInvestigate = vertexIdsToInvestigate.pop() as string;
+    //   sourceAncestorIds.push(idToInvestigate);
+    //
+    //   // if the investigated vertex is the target of no edges, skip it
+    //   if (edgesByTarget[idToInvestigate] === undefined) {
+    //     continue;
+    //   } else {
+    //     for (const edgeData of edgesByTarget[idToInvestigate]) {
+    //       // check if the edge's source has not been seen before
+    //       if (
+    //         vertexIdsToInvestigate.indexOf(edgeData.sourceVertexId) === -1 &&
+    //         sourceAncestorIds.indexOf(edgeData.sourceVertexId) === -1
+    //       ) {
+    //         vertexIdsToInvestigate.push(edgeData.sourceVertexId);
+    //       }
+    //     }
+    //   }
+    // }
+    //
+    // // return true if the target vertex is not an ancestor of the source vertex
+    // if (sourceAncestorIds.indexOf(targetVtxId) === -1) {
+    //   return true;
+    // } else {
+    //   return false;
+    // }
   }
 }

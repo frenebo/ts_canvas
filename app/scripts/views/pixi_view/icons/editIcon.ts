@@ -87,11 +87,12 @@ export class EditIcon {
   }
 
   private readonly container: PIXI.Container;
+  private readonly width: number;
+  private readonly height: number;
   private readonly clickListeners: Array<() => void> = [];
   private sprite: PIXI.Sprite;
 
   constructor(
-    // dragRegistry: DragRegistry,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     this.container = new PIXI.Container();
@@ -114,12 +115,13 @@ export class EditIcon {
       }
     };
 
-    // dragRegistry.registerEditIcon(this, clickBegin, clickEnd);
-
     this.sprite = EditIcon.draw(false, renderer);
     this.container.addChild(this.sprite);
 
     this.container.hitArea = EditIcon.getHitArea();
+
+    this.width = this.container.width;
+    this.height = this.container.height;
   }
 
   public getDisplayObject() {
@@ -139,10 +141,10 @@ export class EditIcon {
   }
 
   public getWidth(): number {
-    return this.container.width;
+    return this.width;
   }
 
   public getHeight(): number {
-    return this.container.height;
+    return this.height;
   }
 }

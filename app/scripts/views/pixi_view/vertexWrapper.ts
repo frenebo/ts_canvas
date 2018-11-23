@@ -77,13 +77,13 @@ export class VertexWrapper {
       fontFamily: "Arial",
       fontSize: 30,
       // fontStyle: 'italic',
-      fontWeight: "bold",
-      fill: "#ffffff",
-      stroke: "#4a1850",
-      strokeThickness: 5,
-      dropShadow: true,
-      dropShadowColor: "#000000",
-      dropShadowBlur: 4,
+      // fontWeight: "bold",
+      // fill: "#ffffff",
+      // stroke: "#4a1850",
+      // strokeThickness: 5,
+      // dropShadow: true,
+      // dropShadowColor: "#000000",
+      // dropShadowBlur: 4,
       // dropShadowAngle: Math.PI / 6,
       // dropShadowDistance: 6,
       // wordWrap: true,
@@ -131,8 +131,10 @@ export class VertexWrapper {
       widthForLabel = this.container.width;
     }
 
-    this.label.x = (widthForLabel - this.label.width)/2;
-    this.label.y = (this.container.height - this.label.height)/2;
+    this.label.position.set(
+      (widthForLabel - this.label.width)/2,
+      this.label.y = (this.container.height - this.label.height)/2,
+    );
   }
 
   public positionPort(portWrapper: PortWrapper, position: number, side: "top" | "bottom" | "left" | "right"): void {
