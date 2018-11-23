@@ -1,9 +1,9 @@
-import { VertexWrapper } from "../vertexWrapper.js";
-import { EdgeWrapper } from "../edgeWrapper.js";
+import { VertexWrapper } from "./vertexWrapper.js";
+import { EdgeWrapper } from "./edgeWrapper.js";
 import {
   ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestMap, ModelInfoRequestType,
-} from "../../../interfaces.js";
-import { BackgroundWrapper } from "../backgroundWrapper.js";
+} from "../../interfaces.js";
+import { BackgroundWrapper } from "./backgroundWrapper.js";
 
 export class SelectionManager {
   private static readonly ghostAlpha = 0.5;

@@ -1,6 +1,6 @@
 import { VertexWrapper } from "../vertexWrapper.js";
 import { DragListeners } from "./dragRegistry.js";
-import { SelectionManager } from "./selectionManager.js";
+import { SelectionManager } from "../selectionManager.js";
 
 export class VertexDragHandler {
   private static readonly dragThreshold = 5;

@@ -11,8 +11,7 @@ import {
 import { PortDragHandler } from "./portDragHandler.js";
 import { EdgeDrawHandler } from "./edgeDrawHandler.js";
 import { EditIcon } from "../icons/editIcon.js";
-import { SelectionManager } from "./selectionManager.js";
-import { KeyboardHandler } from "./keyboardHandler.js";
+import { SelectionManager } from "../selectionManager.js";
 import { EdgeDragHandler } from "./edgeDragHandler.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
@@ -29,7 +28,6 @@ export class DragRegistry {
 
   private currentObject: PIXI.DisplayObject | null;
   private readonly edgeDrawHandler: EdgeDrawHandler;
-  private readonly selectionManager: SelectionManager;
 
   private readonly edgeDragAbortListeners: {[key: string]: Array<() => void>} = {};
   private readonly vertexDragAbortListeners: {[key: string]: Array<() => void>} = {};
@@ -42,27 +40,14 @@ export class DragRegistry {
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
     private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
+    private readonly getPortWrappers: () => Readonly<{[vertexKey: string]: Readonly<{[portKey: string]: PortWrapper}>}>,
     private readonly backgroundWrapper: BackgroundWrapper,
+    private readonly selectionManager: SelectionManager,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     this.currentObject = null;
     this.edgeDrawHandler = new EdgeDrawHandler(this.backgroundWrapper);
-    this.selectionManager = new SelectionManager(
-      getVertexWrappers,
-      getEdgeWrappers,
-      sendModelChangeRequests,
-      sendModelInfoRequest,
-      renderer,
-      backgroundWrapper,
-    );
     this.registerBackground(this.backgroundWrapper);
-
-    new KeyboardHandler(
-      renderer,
-      this.selectionManager,
-      sendModelChangeRequests,
-      sendModelVersioningRequest,
-    );
   }
 
   private portsByCloseness(targetX: number, targetY: number): Array<{
@@ -82,8 +67,8 @@ export class DragRegistry {
 
     for (const vertexKey in this.getVertexWrappers()) {
       const vertexWrapper = this.getVertexWrappers()[vertexKey];
-      for (const portKey of vertexWrapper.portKeys()) {
-        const portWrapper = vertexWrapper.getPortWrapper(portKey);
+      for (const portKey in this.getPortWrappers()[vertexKey]) {
+        const portWrapper = this.getPortWrappers()[vertexKey][portKey];
         const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + portWrapper.getWidth()/2);
         const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + portWrapper.getHeight()/2);
         portDescriptions.push({

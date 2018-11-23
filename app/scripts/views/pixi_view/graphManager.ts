@@ -5,6 +5,8 @@ import { EditIcon } from "./icons/editIcon.js";
 import { PortWrapper } from "./portWrapper.js";
 import { StageManager } from "./stageManager.js";
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
+import { SelectionManager } from "./selectionManager.js";
+import { KeyboardHandler } from "./keyboardHandler.js";
 
 export type GraphManagerCommand = {
   type: "removeEdge",
@@ -46,6 +48,7 @@ export class GraphManager {
   } = {};
 
   private stageManager: StageManager;
+  private selectionManager: SelectionManager;
   private dragRegistry: DragRegistry;
 
   constructor(
@@ -55,14 +58,31 @@ export class GraphManager {
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
     this.stageManager = new StageManager(div);
+    this.selectionManager = new SelectionManager(
+      () => this.vertexWrappers,
+      () => this.edgeWrappers,
+      sendModelChangeRequest,
+      sendModelInfoRequest,
+      this.stageManager.getRenderer(),
+      this.stageManager.getBackgroundWrapper(),
+    )
     this.dragRegistry = new DragRegistry(
       sendModelChangeRequest,
       sendModelInfoRequest,
       sendModelVersioningRequest,
       () => this.vertexWrappers,
       () => this.edgeWrappers,
+      () => this.ports,
       this.stageManager.getBackgroundWrapper(),
+      this.selectionManager,
       this.stageManager.getRenderer(),
+    );
+
+    new KeyboardHandler(
+      this.stageManager.getRenderer(),
+      this.selectionManager,
+      sendModelChangeRequest,
+      sendModelVersioningRequest,
     );
   }
 
@@ -91,9 +111,12 @@ export class GraphManager {
     if (this.vertexWrappers[vertexKey] !== undefined) throw new Error(`A vertex with the key ${vertexKey} is already present`);
 
     const vertexWrapper = new VertexWrapper(this.stageManager.getRenderer());
-    vertexWrapper.addEditIcon(new EditIcon(this.stageManager.getRenderer()));
+    const editIcon = new EditIcon(this.stageManager.getRenderer())
+    vertexWrapper.addEditIcon(editIcon);
+    this.dragRegistry.registerEditIcon(editIcon, () => console.log("edit icon click"), () => {});
 
     this.stageManager.addVertex(vertexWrapper);
+    this.dragRegistry.registerVertex(vertexKey, vertexWrapper);
 
     this.vertexWrappers[vertexKey] = vertexWrapper;
     this.ports[vertexKey] = {};
@@ -118,6 +141,7 @@ export class GraphManager {
     this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].push(edgeKey);
 
     this.stageManager.addEdge(edgeWrapper);
+    this.dragRegistry.registerEdge(edgeKey, edgeWrapper);
   }
 
   private removeVertex(vertexKey: string) {
@@ -128,6 +152,7 @@ export class GraphManager {
     delete this.ports[vertexKey];
 
     this.stageManager.removeVertex(vertexWrapper);
+    this.dragRegistry.removeVertex(vertexKey, vertexWrapper);
   }
 
   private removeEdge(edgeKey: string, edgeData: EdgeData) {
@@ -137,6 +162,7 @@ export class GraphManager {
 
     delete this.edgeWrappers[edgeKey];
     this.stageManager.removeEdge(edgeWrapper);
+    this.dragRegistry.removeEdge(edgeKey, edgeWrapper);
     this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].splice(this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].indexOf(edgeKey), 1);
     this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].splice(this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].indexOf(edgeKey), 1);
   }
@@ -168,6 +194,7 @@ export class GraphManager {
 
       this.ports[vertexKey][addedPortId] = portWrapper;
       this.portEdges[vertexKey][addedPortId] = [];
+      this.dragRegistry.registerPort(vertexKey, vertexWrapper, addedPortId, portWrapper);
     }
     for (const sharedPortId of sharedPortIds) {
       const portData = vertexData.ports[sharedPortId];

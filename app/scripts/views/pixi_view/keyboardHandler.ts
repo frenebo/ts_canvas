@@ -1,5 +1,5 @@
 import { SelectionManager } from "./selectionManager";
-import { ModelChangeRequest, ModelVersioningRequest } from "../../../interfaces";
+import { ModelChangeRequest, ModelVersioningRequest } from "../../interfaces";
 
 export class KeyboardHandler {
   constructor(

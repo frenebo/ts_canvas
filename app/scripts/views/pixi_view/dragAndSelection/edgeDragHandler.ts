@@ -1,6 +1,6 @@
 import { EdgeWrapper } from "../edgeWrapper.js";
 import { DragListeners } from "./dragRegistry.js";
-import { SelectionManager } from "./selectionManager.js";
+import { SelectionManager } from "../selectionManager.js";
 
 export class EdgeDragHandler {
   private static readonly dragThreshold = 5;

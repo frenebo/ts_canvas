@@ -1,6 +1,6 @@
 import { BackgroundWrapper } from "../backgroundWrapper.js";
 import { DragListeners } from "./dragRegistry.js";
-import { SelectionManager } from "./selectionManager.js";
+import { SelectionManager } from "../selectionManager.js";
 
 export class BackgroundDragHandler {
   private static readonly dragThreshold = 2;

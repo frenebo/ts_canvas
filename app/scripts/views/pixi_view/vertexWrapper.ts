@@ -51,7 +51,6 @@ export class VertexWrapper {
   private readonly height: number;
   private readonly label: PIXI.Text;
   private editIcon: EditIcon | null = null;
-  private readonly portWrappers: { [key: string]: PortWrapper } = {};
   private readonly positionChangedListeners: Array<() => void> = [];
   private isSelected = false;
   private background: PIXI.Sprite;
@@ -134,17 +133,6 @@ export class VertexWrapper {
 
     this.label.x = (widthForLabel - this.label.width)/2;
     this.label.y = (this.container.height - this.label.height)/2;
-  }
-
-  public getPortWrapper(key: string): PortWrapper {
-    const portWrapper = this.portWrappers[key];
-    if (portWrapper === undefined) throw new Error(`Could not find port wrapper with key ${key}`);
-
-    return portWrapper;
-  }
-
-  public portKeys(): string[] {
-    return Object.keys(this.portWrappers);
   }
 
   public positionPort(portWrapper: PortWrapper, position: number, side: "top" | "bottom" | "left" | "right"): void {

@@ -60,7 +60,7 @@ export class PixiView implements ViewInterface {
       if (newEdge.targetPortId !== oldEdge.targetPortId) return true;
       if (newEdge.targetVertexId !== oldEdge.targetVertexId) return true;
 
-      return true;
+      return false;
     });
 
     let graphManagerCommands: GraphManagerCommand[] = [];

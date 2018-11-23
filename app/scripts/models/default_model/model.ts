@@ -41,30 +41,30 @@ export class DefaultModel implements ModelInterface {
       }
     }
 
-    const that = this;
-    setTimeout(() => {
-      that.requestModelChanges({
-        type: "deleteVertex",
-        vertexId: "0",
-      });
-    }, 1000);
-    setTimeout(() => {
-      that.modelData.vertices["2"].ports["port0"].position = 0;
-      that.requestModelChanges();
-    }, 1500);
-    setTimeout(() => {
-      that.modelData.vertices["2"].ports["portnew0"] = {
-        side: "right",
-        portType: "output",
-        position: 0.5,
-      };
-      that.modelData.vertices["2"].ports["portnew1"] = {
-        side: "left",
-        portType: "input",
-        position: 0.2,
-      };
-      that.requestModelChanges();
-    }, 1500);
+    // const that = this;
+    // setTimeout(() => {
+    //   that.requestModelChanges({
+    //     type: "deleteVertex",
+    //     vertexId: "0",
+    //   });
+    // }, 1000);
+    // setTimeout(() => {
+    //   that.modelData.vertices["2"].ports["port0"].position = 0;
+    //   that.requestModelChanges();
+    // }, 1500);
+    // setTimeout(() => {
+    //   that.modelData.vertices["2"].ports["portnew0"] = {
+    //     side: "right",
+    //     portType: "output",
+    //     position: 0.5,
+    //   };
+    //   that.modelData.vertices["2"].ports["portnew1"] = {
+    //     side: "left",
+    //     portType: "input",
+    //     position: 0.2,
+    //   };
+    //   that.requestModelChanges();
+    // }, 1500);
   }
 
   public getModelData(): ModelData {
