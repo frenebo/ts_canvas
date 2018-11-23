@@ -1,7 +1,8 @@
 import {
   ViewInterface, ModelData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, ModelVersioningRequest,
 } from "../../interfaces.js";
-import { PixiAdapter } from "./pixiAdapter.js";
+import { GraphManager, GraphManagerCommand } from "./graphManager.js";
+// import { PixiAdapter } from "./pixiAdapter.js";
 
 export class PixiView implements ViewInterface {
   private static edgesByVertex(data: ModelData) {
@@ -20,7 +21,7 @@ export class PixiView implements ViewInterface {
   }
 
   private data: ModelData = {vertices: {}, edges: {}};
-  private readonly pixiAdapter: PixiAdapter;
+  private readonly graphManager: GraphManager;
 
   constructor(
     div: HTMLDivElement,
@@ -28,7 +29,12 @@ export class PixiView implements ViewInterface {
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
-    this.pixiAdapter = new PixiAdapter(div, sendModelChangeRequest, sendModelInfoRequest, sendModelVersioningRequest);
+    this.graphManager = new GraphManager(
+      div,
+      sendModelChangeRequest,
+      sendModelInfoRequest,
+      sendModelVersioningRequest,
+    );
   }
 
   public setModelData(newData: ModelData): void {
@@ -57,43 +63,57 @@ export class PixiView implements ViewInterface {
       return true;
     });
 
+    let graphManagerCommands: GraphManagerCommand[] = [];
+
     // remove an edge if its data changed
     for (const removedEdgeKey of removedEdgeKeys.concat(changedEdgeKeys)) {
-      this.pixiAdapter.removeEdge(removedEdgeKey);
+      graphManagerCommands.push({
+        type: "removeEdge",
+        edgeKey: removedEdgeKey,
+        edgeData: this.data.edges[removedEdgeKey],
+      });
+      // this.graphManager.removeEdge(removedEdgeKey, this.data.edges[removedEdgeKey]);
     }
 
     for (const removedVertexKey of removedVertexKeys) {
-      this.pixiAdapter.removeVertex(removedVertexKey);
+      graphManagerCommands.push({
+        type: "removeVertex",
+        vertexKey: removedVertexKey,
+      });
+      // this.graphManager.removeVertex(removedVertexKey);
     }
 
     for (const addedVertexKey of addedVertexKeys) {
-      this.pixiAdapter.createVertex(addedVertexKey, newData.vertices[addedVertexKey]);
+      graphManagerCommands.push({
+        type: "addVertex",
+        vertexKey: addedVertexKey,
+        vertexData: newData.vertices[addedVertexKey],
+      });
+      // this.graphManager.addVertex(addedVertexKey, newData.vertices[addedVertexKey]);
     }
 
     for (const sharedVertexKey of sharedVertexKeys) {
-      this.pixiAdapter.updateVertex(sharedVertexKey, newData.vertices[sharedVertexKey]);
+      graphManagerCommands.push({
+        type: "updateVertex",
+        vertexKey: sharedVertexKey,
+        vertexData: newData.vertices[sharedVertexKey],
+      });
+      // this.graphManager.updateVertex(sharedVertexKey, newData.vertices[sharedVertexKey]);
     }
 
     // add back an edge if its data changed
     for (const addedEdgeKey of addedEdgeKeys.concat(changedEdgeKeys)) {
-      this.pixiAdapter.addEdge(addedEdgeKey, newData.edges[addedEdgeKey]);
+      graphManagerCommands.push({
+        type: "addEdge",
+        edgeKey: addedEdgeKey,
+        edgeData: newData.edges[addedEdgeKey],
+      });
+      // this.graphManager.addEdge(addedEdgeKey, newData.edges[addedEdgeKey]);
     }
 
-    // refresh edges connected to changed vertices
-    const edgesByVertex = PixiView.edgesByVertex(newData);
-    const edgesToUpdate = new Set<string>();
-    for (const vertexKey of sharedVertexKeys) {
-      // @NOTE May decide identical vertices to be different if their attributes are in different order, but will never
-      // decide different vertices to be identical
-      if (JSON.stringify(this.data.vertices[vertexKey]) !== JSON.stringify(newData.vertices[vertexKey])) {
-        for (const edgeId of edgesByVertex[vertexKey]) {
-          edgesToUpdate.add(edgeId);
-        }
-      }
-    }
-    for (const edgeToUpdate of edgesToUpdate) {
-      this.pixiAdapter.refreshEdge(edgeToUpdate);
-    }
+    // all changes are done at once inside here so graphManager can wait until all changes are made to do expensive
+    // updates
+    this.graphManager.applyCommands(graphManagerCommands);
 
     this.data = JSON.parse(JSON.stringify(newData));
   }

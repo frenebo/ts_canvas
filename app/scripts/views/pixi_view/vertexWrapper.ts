@@ -1,5 +1,4 @@
-import { VertexData, PortData } from "../../interfaces.js";
-import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
+// import { VertexData, PortData } from "../../interfaces.js";
 import { EditIcon } from "./icons/editIcon.js";
 import { PortWrapper } from "./portWrapper.js";
 
@@ -51,15 +50,14 @@ export class VertexWrapper {
   private readonly width: number;
   private readonly height: number;
   private readonly label: PIXI.Text;
-  private readonly editIcon: EditIcon;
+  private editIcon: EditIcon | null = null;
   private readonly portWrappers: { [key: string]: PortWrapper } = {};
   private readonly positionChangedListeners: Array<() => void> = [];
   private isSelected = false;
   private background: PIXI.Sprite;
 
   constructor(
-    dragRegistry: DragRegistry,
-    private readonly registerPort: (vtx: VertexWrapper, portId: string, port: PortWrapper) => void,
+    // private readonly registerPort: (vtx: VertexWrapper, portId: string, port: PortWrapper) => void,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     this.renderer = renderer;
@@ -96,13 +94,17 @@ export class VertexWrapper {
     this.label = new PIXI.Text("", textStyle);
     this.container.addChild(this.label);
 
-    this.editIcon = new EditIcon(dragRegistry, renderer);
+
+    // this.positionChildren();
+  }
+
+  public addEditIcon(editIcon: EditIcon): void {
+    this.editIcon = editIcon;
     this.editIcon.addTo(this.container);
     this.editIcon.addClickListener(() => {
       console.log("Edit icon clicked");
     });
-
-    // this.positionChildren();
+    this.positionChildren();
   }
 
   public getDisplayObject() {
@@ -121,9 +123,14 @@ export class VertexWrapper {
   }
 
   private positionChildren(): void {
-    const padding = (this.container.height - this.editIcon.getHeight())/2;
-    this.editIcon.setPosition(this.container.width - (this.editIcon.getWidth() + padding), padding);
-    const widthForLabel = this.container.width - (this.editIcon.getWidth() + padding);
+    let widthForLabel: number;
+    if (this.editIcon !== null) {
+      const padding = (this.container.height - this.editIcon.getHeight())/2;
+      this.editIcon.setPosition(this.container.width - (this.editIcon.getWidth() + padding), padding);
+      widthForLabel = this.container.width - (this.editIcon.getWidth() + padding);
+    } else {
+      widthForLabel = this.container.width;
+    }
 
     this.label.x = (widthForLabel - this.label.width)/2;
     this.label.y = (this.container.height - this.label.height)/2;
@@ -140,71 +147,36 @@ export class VertexWrapper {
     return Object.keys(this.portWrappers);
   }
 
-  public updateData(data: VertexData): void {
-    this.setPosition(data.geo.x, data.geo.y);
+  public positionPort(portWrapper: PortWrapper, position: number, side: "top" | "bottom" | "left" | "right"): void {
+    let portX: number;
+    let portY: number;
+    if (side === "top" || side === "bottom") {
+      portX = this.width*position - portWrapper.getWidth()/2;
+    } else if (side === "left") {
+      portX = - portWrapper.getWidth()/2 + VertexWrapper.borderWidth/2;
+    } else if (side === "right") {
+      portX = this.width + VertexWrapper.borderWidth - portWrapper.getWidth()/2;
+    } else {
+      throw new Error(`Invalid side type ${side}`);
+    }
 
-    if (this.label.text !== data.label) {
-      this.label.text = data.label;
+    if (side === "left" || side === "right") {
+      portY = this.height*position - portWrapper.getHeight()/2;
+    } else if (side === "top") {
+      portY = - portWrapper.getHeight()/2 + VertexWrapper.borderWidth/2;
+    } else if (side === "bottom") {
+      portY = this.height + VertexWrapper.borderWidth - portWrapper.getHeight()/2;
+    } else {
+      throw new Error(`Invalid side type ${side}`);
+    }
+
+    portWrapper.setPosition(portX, portY);
+  }
+
+  public setLabelText(text: string): void {
+    if (this.label.text !== text) {
+      this.label.text = text;
       this.positionChildren();
-    }
-
-    const currentPortKeys = Object.keys(this.portWrappers);
-    const dataPortKeys = Object.keys(data.ports);
-
-    const removedPortKeys = currentPortKeys.filter((key) => dataPortKeys.indexOf(key) === -1);
-    const addedPortKeys = dataPortKeys.filter((key) => currentPortKeys.indexOf(key) === -1);
-    const sharedPortKeys = dataPortKeys.filter((key) => currentPortKeys.indexOf(key) !== -1);
-
-    for (const removedPortKey of removedPortKeys) {
-      this.portWrappers[removedPortKey].removeFrom(this.container);
-    }
-
-    const portX = (portWrapper: PortWrapper, portData: PortData) => {
-      if (portData.side === "top" || portData.side === "bottom") {
-        return this.width*portData.position - portWrapper.getWidth()/2;
-      } else if (portData.side === "left") {
-        return - portWrapper.getWidth()/2 + VertexWrapper.borderWidth/2;
-      } else if (portData.side === "right") {
-        return this.width + VertexWrapper.borderWidth - portWrapper.getWidth()/2;
-      } else {
-        throw new Error(`Invalid side type ${portData.side}`);
-      }
-    };
-
-    const portY = (portWrapper: PortWrapper, portData: PortData) => {
-      if (portData.side === "left" || portData.side === "right") {
-        return this.height*portData.position - portWrapper.getHeight()/2;
-      } else if (portData.side === "top") {
-        return - portWrapper.getHeight()/2 + VertexWrapper.borderWidth/2;
-      } else if (portData.side === "bottom") {
-        return this.height + VertexWrapper.borderWidth - portWrapper.getHeight()/2;
-      } else {
-        throw new Error(`Invalid side type ${portData.side}`);
-      }
-    };
-
-    for (const addedPortKey of addedPortKeys) {
-      const portData = data.ports[addedPortKey];
-      const portWrapper = new PortWrapper(this.renderer, portData.portType === "output");
-      portWrapper.addTo(this.container);
-
-      this.registerPort(this, addedPortKey, portWrapper);
-      this.portWrappers[addedPortKey] = portWrapper;
-
-      portWrapper.setPosition(
-        portX(portWrapper, portData),
-        portY(portWrapper, portData),
-      );
-    }
-
-    for (const sharedPortKey of sharedPortKeys) {
-      const portData = data.ports[sharedPortKey];
-      const portWrapper = this.portWrappers[sharedPortKey];
-
-      portWrapper.setPosition(
-        portX(portWrapper, portData),
-        portY(portWrapper, portData),
-      );
     }
   }
 

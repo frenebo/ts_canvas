@@ -10,12 +10,12 @@ export class DefaultModel implements ModelInterface {
   private readonly modelChangedListeners: Array<() => void> = [];
   private modelData: ModelData = {vertices: {}, edges: {}};
   constructor() {
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 3; i++) {
       this.modelData.vertices[i.toString()] = {
         label: i.toString(),
         geo: {
-          x: i*20,
-          y: i*20,
+          x: i*100,
+          y: i*100,
         },
         ports: {
           "port0": {
@@ -30,11 +30,45 @@ export class DefaultModel implements ModelInterface {
           },
         }
       }
+
+      if (i !== 0) {
+        this.modelData.edges[i.toString()] = {
+          sourceVertexId: (i - 1).toString(),
+          sourcePortId: "port1",
+          targetVertexId: i.toString(),
+          targetPortId: "port0",
+        }
+      }
     }
+
+    const that = this;
+    setTimeout(() => {
+      that.requestModelChanges({
+        type: "deleteVertex",
+        vertexId: "0",
+      });
+    }, 1000);
+    setTimeout(() => {
+      that.modelData.vertices["2"].ports["port0"].position = 0;
+      that.requestModelChanges();
+    }, 1500);
+    setTimeout(() => {
+      that.modelData.vertices["2"].ports["portnew0"] = {
+        side: "right",
+        portType: "output",
+        position: 0.5,
+      };
+      that.modelData.vertices["2"].ports["portnew1"] = {
+        side: "left",
+        portType: "input",
+        position: 0.2,
+      };
+      that.requestModelChanges();
+    }, 1500);
   }
 
   public getModelData(): ModelData {
-    return this.modelData;
+    return JSON.parse(JSON.stringify(this.modelData));
   }
 
   public addModelChangedListener(listener: () => void): void {

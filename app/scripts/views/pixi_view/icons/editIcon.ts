@@ -91,7 +91,7 @@ export class EditIcon {
   private sprite: PIXI.Sprite;
 
   constructor(
-    dragRegistry: DragRegistry,
+    // dragRegistry: DragRegistry,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     this.container = new PIXI.Container();
@@ -114,7 +114,7 @@ export class EditIcon {
       }
     };
 
-    dragRegistry.registerEditIcon(this, clickBegin, clickEnd);
+    // dragRegistry.registerEditIcon(this, clickBegin, clickEnd);
 
     this.sprite = EditIcon.draw(false, renderer);
     this.container.addChild(this.sprite);
