@@ -1,10 +1,10 @@
-import { ModelData, EdgeData, VertexData } from "../../interfaces.js";
+import { GraphData, EdgeData, VertexData } from "../../interfaces.js";
 
 export class GraphUtils {
-  public static edgesBetweenVertices(modelData: ModelData, vtxIds: string[]) {
+  public static edgesBetweenVertices(graphData: GraphData, vtxIds: string[]) {
     const edgeIds: {[key: string]: EdgeData} = {};
-    for (const edgeId in modelData.edges) {
-      const edge = modelData.edges[edgeId];
+    for (const edgeId in graphData.edges) {
+      const edge = graphData.edges[edgeId];
       if (
         vtxIds.indexOf(edge.sourceVertexId) !== -1 &&
         vtxIds.indexOf(edge.targetVertexId) !== -1
@@ -16,65 +16,67 @@ export class GraphUtils {
     return edgeIds;
   }
 
-  public static moveVertex(modelData: ModelData, vtxId: string, x: number, y: number): void {
-    const vtx = modelData.vertices[vtxId];
+  public static moveVertex(graphData: GraphData, vtxId: string, x: number, y: number): void {
+    const vtx = graphData.vertices[vtxId];
     if (vtx === undefined) throw new Error(`Could not find vertex with id ${vtxId}`);
 
     vtx.geo.x = x;
     vtx.geo.y = y;
   }
 
-  public static deleteVertex(modelData: ModelData, vertexId: string): void {
-    if (modelData.vertices[vertexId] === undefined) return;
+  public static deleteVertex(graphData: GraphData, vertexId: string): void {
+    if (graphData.vertices[vertexId] === undefined) return;
 
     const connectedEdges: string[] = [];
-    for (const edgeId in modelData.edges) {
-      console.log(modelData.edges[edgeId]);
-      if (modelData.edges[edgeId].sourceVertexId === vertexId || modelData.edges[edgeId].targetVertexId === vertexId) {
+    for (const edgeId in graphData.edges) {
+      if (
+        graphData.edges[edgeId].sourceVertexId === vertexId ||
+        graphData.edges[edgeId].targetVertexId === vertexId
+      ) {
         connectedEdges.push(edgeId);
       }
     }
     for (const connectedEdge of connectedEdges) {
-      this.deleteEdge(modelData, connectedEdge);
+      this.deleteEdge(graphData, connectedEdge);
     }
 
-    delete modelData.vertices[vertexId];
+    delete graphData.vertices[vertexId];
   }
 
-  public static deleteEdge(modelData: ModelData, edgeId: string): void {
-    if (modelData.edges[edgeId] === undefined) return;
+  public static deleteEdge(graphData: GraphData, edgeId: string): void {
+    if (graphData.edges[edgeId] === undefined) return;
 
-    delete modelData.edges[edgeId];
+    delete graphData.edges[edgeId];
   }
 
-  public static cloneVertex(modelData: ModelData, newVtxId: string, oldVtxId: string, x: number, y: number): void {
-    if (modelData.vertices[newVtxId] !== undefined) throw new Error(`Vertex with id ${newVtxId} already exists`);
-    const oldVtx = modelData.vertices[oldVtxId];
+  public static cloneVertex(graphData: GraphData, newVtxId: string, oldVtxId: string, x: number, y: number): void {
+    if (graphData.vertices[newVtxId] !== undefined) throw new Error(`Vertex with id ${newVtxId} already exists`);
+    const oldVtx = graphData.vertices[oldVtxId];
     if (oldVtx === undefined) throw new Error(`Coudl not find vertex with id ${oldVtxId}`);
 
     const newVtx: VertexData = JSON.parse(JSON.stringify(oldVtx));
     newVtx.geo.x = x;
     newVtx.geo.y = y;
 
-    this.createVertex(modelData, newVtxId, newVtx);
+    this.createVertex(graphData, newVtxId, newVtx);
   }
 
-  private static createVertex(modelData: ModelData, id: string, vtxData: VertexData): void {
-    modelData.vertices[id] = vtxData;
+  private static createVertex(graphData: GraphData, id: string, vtxData: VertexData): void {
+    graphData.vertices[id] = vtxData;
   }
 
   public static createEdge(
-    modelData: ModelData,
+    graphData: GraphData,
     edgeId: string,
     sourceVtxId: string,
     sourcePortId: string,
     targetVtxId: string,
     targetPortId: string,
   ): void {
-    const edgeIsValid = this.validateEdge(modelData, sourceVtxId, sourcePortId, targetVtxId, targetPortId);
+    const edgeIsValid = this.validateEdge(graphData, sourceVtxId, sourcePortId, targetVtxId, targetPortId);
     if (!edgeIsValid) throw new Error(`Invalid create edge arguments: ${arguments}`);
 
-    modelData.edges[edgeId] = {
+    graphData.edges[edgeId] = {
       sourceVertexId: sourceVtxId,
       sourcePortId: sourcePortId,
       targetVertexId: targetVtxId,
@@ -82,9 +84,9 @@ export class GraphUtils {
     };
   }
 
-  public static validateEdge(modelData: ModelData, sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): boolean {
-    const sourceVertex = modelData.vertices[sourceVtxId];
-    const targetVertex = modelData.vertices[targetVtxId];
+  public static validateEdge(graphData: GraphData, sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): boolean {
+    const sourceVertex = graphData.vertices[sourceVtxId];
+    const targetVertex = graphData.vertices[targetVtxId];
     if (sourceVertex === undefined || targetVertex === undefined) return false;
 
     const sourcePort = sourceVertex.ports[sourcePortId];
@@ -101,8 +103,8 @@ export class GraphUtils {
     //   [targetId: string]: EdgeData[];
     // } = {};
     //
-    // for (const edgeId in modelData.edges) {
-    //   const edgeData = modelData.edges[edgeId];
+    // for (const edgeId in graphData.edges) {
+    //   const edgeData = graphData.edges[edgeId];
     //   if (edgesByTarget[edgeData.targetVertexId] === undefined) {
     //     edgesByTarget[edgeData.targetVertexId] = [];
     //   }

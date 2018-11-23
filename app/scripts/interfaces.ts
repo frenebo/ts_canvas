@@ -25,7 +25,7 @@ export interface EdgeData {
   targetPortId: string;
 }
 
-export interface ModelData {
+export interface GraphData {
   vertices: {
     [key: string]: VertexData;
   };
@@ -34,19 +34,28 @@ export interface ModelData {
   };
 }
 
+export interface LayerData {
+
+}
+
+export interface LayerDataDict {
+  [key: string]: LayerData;
+}
+
 export interface ViewInterface {
-  setModelData(data: ModelData): void;
+  setGraphData?(data: GraphData): void;
+  setLayerDataDict?(layerDataDict: LayerDataDict): void;
 }
 
 export interface ModelInterface {
-  getModelData(): ModelData;
-  addModelChangedListener(listener: () => void): void;
+  getGraphData(): GraphData;
+  getLayerDataDict(): LayerDataDict;
+  addGraphChangedListener(listener: () => void): void;
+  addLayerDataDictChangedListener(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): void;
   requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T];
   requestVersioningChange(req: ModelVersioningRequest): void;
 }
-
-document.createElement("div");
 
 export type ModelChangeRequest = {
   type: "moveVertex";

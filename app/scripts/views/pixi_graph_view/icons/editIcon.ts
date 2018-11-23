@@ -100,20 +100,20 @@ export class EditIcon {
     this.container.interactive = true;
     this.container.buttonMode = true;
 
-    const clickBegin = () => {
-      this.container.removeChild(this.sprite);
-      this.sprite = EditIcon.draw(true, renderer);
-      this.container.addChild(this.sprite);
-    };
-    const clickEnd = () => {
-      this.container.removeChild(this.sprite);
-      this.sprite = EditIcon.draw(false, renderer);
-      this.container.addChild(this.sprite);
-
-      for (const clickListener of this.clickListeners) {
-        clickListener();
-      }
-    };
+    // const clickBegin = () => {
+    //   this.container.removeChild(this.sprite);
+    //   this.sprite = EditIcon.draw(true, renderer);
+    //   this.container.addChild(this.sprite);
+    // };
+    // const clickEnd = () => {
+    //   this.container.removeChild(this.sprite);
+    //   this.sprite = EditIcon.draw(false, renderer);
+    //   this.container.addChild(this.sprite);
+    //
+    //   for (const clickListener of this.clickListeners) {
+    //     clickListener();
+    //   }
+    // };
 
     this.sprite = EditIcon.draw(false, renderer);
     this.container.addChild(this.sprite);

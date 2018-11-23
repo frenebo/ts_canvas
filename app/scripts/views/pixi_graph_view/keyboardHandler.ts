@@ -34,6 +34,7 @@ export class KeyboardHandler {
         });
       }
       if (ev.key === "a" && ev.ctrlKey) selectionManager.selectAll();
+      if (ev.key === "g" && ev.shiftKey) console.log("TODO: group");
     });
   }
 }

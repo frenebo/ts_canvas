@@ -11,16 +11,27 @@ export class Messenger {
     this.model = model;
     this.views = [];
 
-    this.model.addModelChangedListener(() => {
+    this.model.addGraphChangedListener(() => {
       for (const view of this.views) {
-        view.setModelData(this.model.getModelData());
+        if (view.setGraphData !== undefined) {
+          view.setGraphData(this.model.getGraphData());
+        }
       }
     });
+    this.model.addLayerDataDictChangedListener(() => {
+      for (const view of this.views) {
+        if (view.setLayerDataDict !== undefined) {
+          view.setLayerDataDict(this.model.getLayerDataDict());
+        }
+      }
+    })
   }
 
   public addView(view: ViewInterface): void {
     this.views.push(view);
-    view.setModelData(this.model.getModelData());
+    if (view.setGraphData !== undefined) {
+      view.setGraphData(this.model.getGraphData());
+    }
   }
 
   public newRequestHandler(): (...reqs: ModelChangeRequest[]) => void {

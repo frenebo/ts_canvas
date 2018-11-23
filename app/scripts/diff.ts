@@ -33,20 +33,20 @@ export function undoDiff<T extends Diffable>(
 }
 
 function undoObjectDiff<T extends DiffableObject>(
-  after: T,
+  after: Readonly<T>,
   diff: ObjectDiffRecord<T>,
 ): T {
   const before: T = JSON.parse(JSON.stringify(after));
   if (diff.added !== undefined) for (const addedKey in diff.added) {
-    delete after[addedKey]
+    delete before[addedKey]
   }
   if (diff.removed !== undefined) for (const removedKey in diff.removed) {
-    after[removedKey] = JSON.parse(JSON.stringify(diff.removed[removedKey]));
+    before[removedKey] = JSON.parse(JSON.stringify(diff.removed[removedKey]));
   }
   if (diff.changed !== undefined) for (const changedKey in diff.changed) {
     const attrDiff = diff.changed[changedKey];
 
-    after[changedKey] = undoDiff(before[changedKey], attrDiff!);
+    before[changedKey] = undoDiff(before[changedKey], attrDiff!);
   }
 
   return before;

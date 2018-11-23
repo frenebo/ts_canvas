@@ -1,11 +1,11 @@
 import {
-  ViewInterface, ModelData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, ModelVersioningRequest,
+  ViewInterface, GraphData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, ModelVersioningRequest,
 } from "../../interfaces.js";
 import { GraphManager, GraphManagerCommand } from "./graphManager.js";
 // import { PixiAdapter } from "./pixiAdapter.js";
 
 export class PixiView implements ViewInterface {
-  private static edgesByVertex(data: ModelData) {
+  private static edgesByVertex(data: GraphData) {
     const edgesByVertex: {[key: string]: string[]} = {};
     for (const vertexId in data.vertices) {
       edgesByVertex[vertexId] = [];
@@ -20,7 +20,7 @@ export class PixiView implements ViewInterface {
     return edgesByVertex;
   }
 
-  private data: ModelData = {vertices: {}, edges: {}};
+  private data: GraphData = {vertices: {}, edges: {}};
   private readonly graphManager: GraphManager;
 
   constructor(
@@ -37,7 +37,7 @@ export class PixiView implements ViewInterface {
     );
   }
 
-  public setModelData(newData: ModelData): void {
+  public setGraphData(newData: GraphData): void {
     const newVertexKeys = Object.keys(newData.vertices);
     const oldVertexKeys = Object.keys(this.data.vertices);
 
