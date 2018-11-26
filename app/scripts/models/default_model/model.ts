@@ -1,22 +1,21 @@
 import {
   ModelInterface, GraphData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap, ModelVersioningRequest, LayerDataDict,
 } from "../../interfaces.js";
-import { GraphUtils } from "./graphUtils.js";
+import { GraphUtils, AugmentedGraphData } from "./graphUtils.js";
 import { Diffable, DiffType, applyDiff, createDiff, undoDiff } from "../../diff.js";
 
-type ModelDataObj = {graph: GraphData, layers: LayerDataDict};
+type ModelDataObj = {graph: AugmentedGraphData, layers: LayerDataDict};
 export class DefaultModel implements ModelInterface {
   private pastDiffs: Array<DiffType<ModelDataObj & Diffable>> = [];
   private futureDiffs: Array<DiffType<ModelDataObj & Diffable>> = [];
   private readonly graphChangedListeners: Array<() => void> = [];
   private readonly layerDataDictChangedListeners: Array<() => void> = [];
 
-  private modelData: ModelDataObj = {graph: {vertices: {}, edges: {}}, layers: {}};
-  // private graphData: GraphData = {vertices: {}, edges: {} };
+  private modelData: ModelDataObj = {graph: {g: {vertices: {}, edges: {}}, edgesByVertex: {}}, layers: {}};
 
   constructor() {
     for (let i = 0; i < 3; i++) {
-      this.modelData.graph.vertices[i.toString()] = {
+      GraphUtils.createVertex(this.modelData.graph, i.toString(), {
         label: i.toString(),
         geo: {
           x: i*100,
@@ -28,27 +27,39 @@ export class DefaultModel implements ModelInterface {
             side: "top",
             position: 0.5,
           },
-          "port1": {
+          // "port1": {
+          //   portType: "input",
+          //   side: "top",
+          //   position: 0.2,
+          // },
+          "port2": {
             portType: "output",
             side: "bottom",
             position: 0.5,
           },
-        }
-      };
+          // "port3": {
+          //   portType: "output",
+          //   side: "bottom",
+          //   position: 0.8,
+          // }
+        },
+      });
 
-      if (i !== 0) {
-        this.modelData.graph.edges[i.toString()] = {
-          sourceVertexId: (i - 1).toString(),
-          sourcePortId: "port1",
-          targetVertexId: i.toString(),
-          targetPortId: "port0",
-        }
-      }
+      // if (i !== 0) {
+      //   GraphUtils.createEdge(
+      //     this.modelData.graph,
+      //     i.toString(),
+      //     (i - 1).toString(),
+      //     "port2",
+      //     i.toString(),
+      //     "port0",
+      //   );
+      // }
     }
   }
 
   public getGraphData(): GraphData {
-    return JSON.parse(JSON.stringify(this.modelData.graph));
+    return JSON.parse(JSON.stringify(this.modelData.graph.g));
   }
 
   public getLayerDataDict(): LayerDataDict {
