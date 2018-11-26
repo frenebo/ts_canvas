@@ -1,25 +1,11 @@
 import {
-  ViewInterface, GraphData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, ModelVersioningRequest,
+  ViewInterface, GraphData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
+  ModelVersioningRequest,
 } from "../../interfaces.js";
 import { GraphManager, GraphManagerCommand } from "./graphManager.js";
 // import { PixiAdapter } from "./pixiAdapter.js";
 
 export class PixiView implements ViewInterface {
-  private static edgesByVertex(data: GraphData) {
-    const edgesByVertex: {[key: string]: string[]} = {};
-    for (const vertexId in data.vertices) {
-      edgesByVertex[vertexId] = [];
-    }
-    for (const edgeId in data.edges) {
-      const edge = data.edges[edgeId];
-
-      edgesByVertex[edge.sourceVertexId].push(edgeId);
-      edgesByVertex[edge.targetVertexId].push(edgeId);
-    }
-
-    return edgesByVertex;
-  }
-
   private data: GraphData = {vertices: {}, edges: {}};
   private readonly graphManager: GraphManager;
 
@@ -63,7 +49,7 @@ export class PixiView implements ViewInterface {
       return false;
     });
 
-    let graphManagerCommands: GraphManagerCommand[] = [];
+    const graphManagerCommands: GraphManagerCommand[] = [];
 
     // remove an edge if its data changed
     for (const removedEdgeKey of removedEdgeKeys.concat(changedEdgeKeys)) {

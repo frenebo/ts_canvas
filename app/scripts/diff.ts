@@ -1,13 +1,16 @@
 
-type DiffableObject = {[key in string]: Diffable}
-export type Diffable = number | string | boolean | DiffableObject;
-
-type SimpleDiffRecord<T extends Diffable> = {
-  before: T,
-  after: T,
+interface DiffableObject {
+  [key: string]: Diffable;
 }
 
-type ObjectDiffRecord<T extends DiffableObject> = {
+export type Diffable = number | string | boolean | DiffableObject;
+
+interface SimpleDiffRecord<T extends Diffable> {
+  before: T;
+  after: T;
+}
+
+interface ObjectDiffRecord<T extends DiffableObject> {
   added?: {
     [key in keyof T]?: T[key];
   };
@@ -38,7 +41,7 @@ function undoObjectDiff<T extends DiffableObject>(
 ): T {
   const before: T = JSON.parse(JSON.stringify(after));
   if (diff.added !== undefined) for (const addedKey in diff.added) {
-    delete before[addedKey]
+    delete before[addedKey];
   }
   if (diff.removed !== undefined) for (const removedKey in diff.removed) {
     before[removedKey] = JSON.parse(JSON.stringify(diff.removed[removedKey]));
@@ -85,7 +88,8 @@ function applyObjectDiff<T extends DiffableObject>(
   return after;
 }
 
-export type DiffType<T extends Diffable> = null | (T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>);
+export type DiffType<T extends Diffable> =
+  null | (T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>);
 
 export function createDiff<T extends Diffable>(
   before: T,
@@ -93,7 +97,10 @@ export function createDiff<T extends Diffable>(
 ): DiffType<T> {
   // @TODO watch out for null? typeof null === "object" evaluates to true
   if (typeof before === "object" && typeof after === "object") {
-    return createObjectDiff(before as DiffableObject, after as DiffableObject) as T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>;
+    return createObjectDiff(
+      before as DiffableObject,
+      after as DiffableObject,
+    ) as T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>;
   } else {
     const beforeStr = JSON.stringify(before);
     const afterStr = JSON.stringify(after);
@@ -116,9 +123,9 @@ function createObjectDiff<T extends DiffableObject>(
 
   const beforeKeys = Object.keys(before);
   const afterKeys = Object.keys(after);
-  const addedKeys = afterKeys.filter(k => beforeKeys.indexOf(k) === -1);
-  const removedKeys = beforeKeys.filter(k => afterKeys.indexOf(k) === -1);
-  const sharedKeys = beforeKeys.filter(k => afterKeys.indexOf(k) !== -1);
+  const addedKeys = afterKeys.filter((k) => beforeKeys.indexOf(k) === -1);
+  const removedKeys = beforeKeys.filter((k) => afterKeys.indexOf(k) === -1);
+  const sharedKeys = beforeKeys.filter((k) => afterKeys.indexOf(k) !== -1);
   for (const addedKey of addedKeys) {
     if (objectDiff.added === undefined) objectDiff.added = {};
 
@@ -135,7 +142,12 @@ function createObjectDiff<T extends DiffableObject>(
     const diff = createDiff(before[sharedKey], after[sharedKey]);
     if (diff !== null) {
       if (objectDiff.changed === undefined) objectDiff.changed = {};
-      objectDiff.changed[sharedKey] = diff as T[typeof sharedKey] extends DiffableObject ? ObjectDiffRecord<T[typeof sharedKey]> : SimpleDiffRecord<T[typeof sharedKey]>;
+
+      objectDiff.changed[sharedKey] =
+        diff as T[typeof sharedKey] extends DiffableObject ?
+          ObjectDiffRecord<T[typeof sharedKey]> :
+          SimpleDiffRecord<T[typeof sharedKey]>;
+
       areIdentical = false;
     }
   }

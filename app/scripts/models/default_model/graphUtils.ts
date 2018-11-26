@@ -1,8 +1,13 @@
 import { GraphData, EdgeData, VertexData } from "../../interfaces.js";
 
-export type AugmentedGraphData = {
+export interface AugmentedGraphData {
   g: GraphData;
-  edgesByVertex: {[key: string]: {in: string[], out: string[]}};
+  edgesByVertex: {
+    [key: string]: {
+      in: string[];
+      out: string[];
+    };
+  };
 }
 
 export class GraphUtils {
@@ -61,7 +66,13 @@ export class GraphUtils {
     delete graphData.g.edges[edgeId];
   }
 
-  public static cloneVertex(graphData: AugmentedGraphData, newVtxId: string, oldVtxId: string, x: number, y: number): void {
+  public static cloneVertex(
+    graphData: AugmentedGraphData,
+    newVtxId: string,
+    oldVtxId: string,
+    x: number,
+    y: number,
+  ): void {
     if (graphData.g.vertices[newVtxId] !== undefined) throw new Error(`Vertex with id ${newVtxId} already exists`);
     const oldVtx = graphData.g.vertices[oldVtxId];
     if (oldVtx === undefined) throw new Error(`Coudl not find vertex with id ${oldVtxId}`);
@@ -100,7 +111,13 @@ export class GraphUtils {
     graphData.edgesByVertex[edge.targetVertexId].in.push(edgeId);
   }
 
-  public static validateEdge(graphData: AugmentedGraphData, sourceVtxId: string, sourcePortId: string, targetVtxId: string, targetPortId: string): boolean {
+  public static validateEdge(
+    graphData: AugmentedGraphData,
+    sourceVtxId: string,
+    sourcePortId: string,
+    targetVtxId: string,
+    targetPortId: string,
+  ): boolean {
     const sourceVertex = graphData.g.vertices[sourceVtxId];
     const targetVertex = graphData.g.vertices[targetVtxId];
     if (sourceVertex === undefined || targetVertex === undefined) return false;
@@ -116,7 +133,7 @@ export class GraphUtils {
     // check that there isn't an identical edge present
     const sourceOutEdges = graphData.edgesByVertex[sourceVtxId].out;
     const targetInEdges = graphData.edgesByVertex[targetVtxId].in;
-    const edgesFromSourceToTarget = sourceOutEdges.filter(k => targetInEdges.indexOf(k) !== -1);
+    const edgesFromSourceToTarget = sourceOutEdges.filter((edgeId) => targetInEdges.indexOf(edgeId) !== -1);
     for (const edgeId of edgesFromSourceToTarget) {
       const edge = graphData.g.edges[edgeId];
 

@@ -1,6 +1,9 @@
 import { EdgeWrapper } from "./edgeWrapper.js";
 import { VertexWrapper } from "./vertexWrapper.js";
-import { VertexData, EdgeData, ModelVersioningRequest, ModelInfoRequestType, ModelChangeRequest, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces.js";
+import {
+  VertexData, EdgeData, ModelVersioningRequest, ModelInfoRequestType, ModelChangeRequest, ModelInfoRequestMap,
+  ModelInfoResponseMap,
+} from "../../interfaces.js";
 import { EditIcon } from "./icons/editIcon.js";
 import { PortWrapper } from "./portWrapper.js";
 import { StageManager } from "./stageManager.js";
@@ -9,47 +12,47 @@ import { SelectionManager } from "./selectionManager.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 
 export type GraphManagerCommand = {
-  type: "removeEdge",
-  edgeKey: string,
-  edgeData: EdgeData,
+  type: "removeEdge";
+  edgeKey: string;
+  edgeData: EdgeData;
 } | {
-  type: "removeVertex",
-  vertexKey: string,
+  type: "removeVertex";
+  vertexKey: string;
 } | {
-  type: "addVertex",
-  vertexKey: string,
-  vertexData: VertexData,
+  type: "addVertex";
+  vertexKey: string;
+  vertexData: VertexData;
 } | {
-  type: "addEdge",
-  edgeKey: string,
-  edgeData: EdgeData,
+  type: "addEdge";
+  edgeKey: string;
+  edgeData: EdgeData;
 } | {
-  type: "updateVertex",
-  vertexKey: string,
-  vertexData: VertexData,
+  type: "updateVertex";
+  vertexKey: string;
+  vertexData: VertexData;
 };
 
 export class GraphManager {
-  private vertexWrappers: {
+  private readonly vertexWrappers: {
     [vertexKey: string]: VertexWrapper;
   } = {};
-  private ports: {
+  private readonly ports: {
     [vertexKey: string]: {
       [portKey: string]: PortWrapper;
-    }
+    };
   } = {};
-  private portEdges: {
+  private readonly portEdges: {
     [vertexKey: string]: {
       [portKey: string]: string[]; // edge ids
-    }
+    };
   } = {};
-  private edgeWrappers: {
+  private readonly edgeWrappers: {
     [edgeKey: string]: EdgeWrapper;
   } = {};
 
-  private stageManager: StageManager;
-  private selectionManager: SelectionManager;
-  private dragRegistry: DragRegistry;
+  private readonly stageManager: StageManager;
+  private readonly selectionManager: SelectionManager;
+  private readonly dragRegistry: DragRegistry;
 
   constructor(
     div: HTMLDivElement,
@@ -65,7 +68,7 @@ export class GraphManager {
       sendModelInfoRequest,
       this.stageManager.getRenderer(),
       this.stageManager.getBackgroundWrapper(),
-    )
+    );
     this.dragRegistry = new DragRegistry(
       sendModelChangeRequest,
       sendModelInfoRequest,
@@ -108,12 +111,25 @@ export class GraphManager {
   }
 
   private addVertex(vertexKey: string, vertexData: VertexData) {
-    if (this.vertexWrappers[vertexKey] !== undefined) throw new Error(`A vertex with the key ${vertexKey} is already present`);
+    if (this.vertexWrappers[vertexKey] !== undefined) {
+      throw new Error(`A vertex with the key ${vertexKey} is already present`);
+    }
 
     const vertexWrapper = new VertexWrapper(this.stageManager.getRenderer());
-    const editIcon = new EditIcon(this.stageManager.getRenderer())
+    const editIcon = new EditIcon(this.stageManager.getRenderer());
     vertexWrapper.addEditIcon(editIcon);
-    this.dragRegistry.registerEditIcon(editIcon, () => console.log("edit icon click"), () => {});
+
+    this.dragRegistry.registerEditIcon(
+      editIcon,
+      () => {
+        editIcon.toggleSelected(true);
+        console.log("edit icon click");
+      },
+      () => {
+        editIcon.toggleSelected(false);
+        // empty
+      },
+    );
 
     this.stageManager.addVertex(vertexWrapper);
     this.dragRegistry.registerVertex(vertexKey, vertexWrapper);
@@ -163,8 +179,10 @@ export class GraphManager {
     delete this.edgeWrappers[edgeKey];
     this.stageManager.removeEdge(edgeWrapper);
     this.dragRegistry.removeEdge(edgeKey, edgeWrapper);
-    this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].splice(this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].indexOf(edgeKey), 1);
-    this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].splice(this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].indexOf(edgeKey), 1);
+    const srcIdx = this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].indexOf(edgeKey);
+    this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].splice(srcIdx, 1);
+    const tgtIdx = this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].indexOf(edgeKey);
+    this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].splice(tgtIdx, 1);
   }
 
   private updateVertex(vertexKey: string, vertexData: VertexData) {
@@ -176,9 +194,9 @@ export class GraphManager {
     const beforePorts = Object.keys(this.ports[vertexKey]);
     const afterPorts = Object.keys(vertexData.ports);
 
-    const removedPortIds = beforePorts.filter(k => afterPorts.indexOf(k) === -1);
-    const addedPortIds = afterPorts.filter(k => beforePorts.indexOf(k) === -1);
-    const sharedPortIds = beforePorts.filter(k => afterPorts.indexOf(k) !== -1);
+    const removedPortIds = beforePorts.filter((k) => afterPorts.indexOf(k) === -1);
+    const addedPortIds = afterPorts.filter((k) => beforePorts.indexOf(k) === -1);
+    const sharedPortIds = beforePorts.filter((k) => afterPorts.indexOf(k) !== -1);
 
     for (const removedPortId of removedPortIds) {
       const port = this.ports[vertexKey][removedPortId];
@@ -198,7 +216,7 @@ export class GraphManager {
     }
     for (const sharedPortId of sharedPortIds) {
       const portData = vertexData.ports[sharedPortId];
-      const portWrapper = this.ports[vertexKey][sharedPortId];;
+      const portWrapper = this.ports[vertexKey][sharedPortId];
 
       vertexWrapper.positionPort(portWrapper, portData.position, portData.side);
     }

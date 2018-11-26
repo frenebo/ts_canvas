@@ -1,5 +1,6 @@
 import {
-  ModelInterface, ViewInterface, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, ModelVersioningRequest,
+  ModelInterface, ViewInterface, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
+  ModelVersioningRequest,
 } from "./interfaces.js";
 
 
@@ -24,7 +25,7 @@ export class Messenger {
           view.setLayerDataDict(this.model.getLayerDataDict());
         }
       }
-    })
+    });
   }
 
   public addView(view: ViewInterface): void {
@@ -52,6 +53,6 @@ export class Messenger {
     const that = this;
     return (req: ModelVersioningRequest) => {
       that.model.requestVersioningChange(req);
-    }
+    };
   }
 }

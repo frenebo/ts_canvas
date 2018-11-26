@@ -93,27 +93,12 @@ export class EditIcon {
   private sprite: PIXI.Sprite;
 
   constructor(
-    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     this.container = new PIXI.Container();
 
     this.container.interactive = true;
     this.container.buttonMode = true;
-
-    // const clickBegin = () => {
-    //   this.container.removeChild(this.sprite);
-    //   this.sprite = EditIcon.draw(true, renderer);
-    //   this.container.addChild(this.sprite);
-    // };
-    // const clickEnd = () => {
-    //   this.container.removeChild(this.sprite);
-    //   this.sprite = EditIcon.draw(false, renderer);
-    //   this.container.addChild(this.sprite);
-    //
-    //   for (const clickListener of this.clickListeners) {
-    //     clickListener();
-    //   }
-    // };
 
     this.sprite = EditIcon.draw(false, renderer);
     this.container.addChild(this.sprite);
@@ -122,6 +107,16 @@ export class EditIcon {
 
     this.width = this.container.width;
     this.height = this.container.height;
+  }
+
+  private isSelected = false;
+  public toggleSelected(selected: boolean) {
+    if (selected !== this.isSelected) {
+      this.container.removeChild(this.sprite);
+      this.sprite = EditIcon.draw(selected, this.renderer);
+      this.container.addChild(this.sprite);
+    }
+    this.isSelected = selected;
   }
 
   public getDisplayObject() {

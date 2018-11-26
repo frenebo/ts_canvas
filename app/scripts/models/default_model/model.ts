@@ -1,12 +1,17 @@
 import {
-  ModelInterface, GraphData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap, ModelVersioningRequest, LayerDataDict,
+  ModelInterface, GraphData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap,
+  ModelVersioningRequest, LayerDataDict,
 } from "../../interfaces.js";
 import { GraphUtils, AugmentedGraphData } from "./graphUtils.js";
 import { Diffable, DiffType, applyDiff, createDiff, undoDiff } from "../../diff.js";
 
-type ModelDataObj = {graph: AugmentedGraphData, layers: LayerDataDict};
+interface ModelDataObj {
+  graph: AugmentedGraphData;
+  layers: LayerDataDict;
+}
+
 export class DefaultModel implements ModelInterface {
-  private pastDiffs: Array<DiffType<ModelDataObj & Diffable>> = [];
+  private readonly pastDiffs: Array<DiffType<ModelDataObj & Diffable>> = [];
   private futureDiffs: Array<DiffType<ModelDataObj & Diffable>> = [];
   private readonly graphChangedListeners: Array<() => void> = [];
   private readonly layerDataDictChangedListeners: Array<() => void> = [];
@@ -95,7 +100,14 @@ export class DefaultModel implements ModelInterface {
     if (req.type === "moveVertex") {
       GraphUtils.moveVertex(this.modelData.graph, req.vertexId, req.x, req.y);
     } else if (req.type === "createEdge") {
-      GraphUtils.createEdge(this.modelData.graph, req.newEdgeId, req.sourceVertexId, req.sourcePortId, req.targetVertexId, req.targetPortId);
+      GraphUtils.createEdge(
+        this.modelData.graph,
+        req.newEdgeId,
+        req.sourceVertexId,
+        req.sourcePortId,
+        req.targetVertexId,
+        req.targetPortId,
+      );
     } else if (req.type === "cloneVertex") {
       GraphUtils.cloneVertex(this.modelData.graph, req.newVertexId, req.sourceVertexId, req.x, req.y);
     } else if (req.type === "deleteVertex") {
@@ -127,7 +139,7 @@ export class DefaultModel implements ModelInterface {
 
       this.modelData = newData;
     } else {
-
+      throw new Error("unimplemented");
     }
     for (const listener of this.graphChangedListeners) {
       listener();
