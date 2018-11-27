@@ -12,6 +12,7 @@ export class VertexDragHandler {
     };
     isCtrlClick: boolean;
     isDrag: boolean;
+    selectionUpdated: boolean;
     // dragData: {
     //   ghost: PIXI.Graphics;
     // } | null;
@@ -54,16 +55,17 @@ export class VertexDragHandler {
       },
       isCtrlClick: ctrlKeyDown,
       isDrag: false,
-      // dragData: null,
+      selectionUpdated: false,
     };
 
     if (!this.selectionManager.vertexIsSelected(this.vertexId) && !this.clickData.isCtrlClick) {
       this.selectionManager.clearSelection();
-
-      // this.selectionManager.selectVertex(this.vtxWrapper);
     }
 
-    this.selectionManager.selectVertex(this.vertexId);
+    if (!this.clickData.isCtrlClick || !this.selectionManager.vertexIsSelected(this.vertexId)) {
+      this.selectionManager.selectVertex(this.vertexId);
+      this.clickData.selectionUpdated = true;
+    }
   }
 
   private continueClick(event: PIXI.interaction.InteractionEvent): void {
@@ -76,7 +78,7 @@ export class VertexDragHandler {
 
 
     // If the current click doesn't count as a drag
-    if (!this.clickData.isDrag) {
+    if (!this.clickData.isDrag && this.selectionManager.vertexIsSelected(this.vertexId)) {
 
 
       if (dx*dx + dy*dy > VertexDragHandler.dragThreshold*VertexDragHandler.dragThreshold) {
@@ -102,8 +104,14 @@ export class VertexDragHandler {
 
     if (this.clickData.isDrag) {
       this.selectionManager.endSelectionDrag(dx, dy);
-    } else {
-      if (!this.clickData.isCtrlClick) {
+    } else if (!this.clickData.selectionUpdated) {
+      if (this.clickData.isCtrlClick) {
+        if (this.selectionManager.vertexIsSelected(this.vertexId)) {
+          this.selectionManager.deselectVertex(this.vertexId);
+        } else {
+          this.selectionManager.selectVertex(this.vertexId);
+        }
+      } else {
         this.selectionManager.clearSelection();
         this.selectionManager.selectVertex(this.vertexId);
       }

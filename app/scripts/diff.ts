@@ -7,7 +7,8 @@ type DiffableObject = DeepReadonly<{
 export type Diffable = number | string | boolean | DiffableObject;
 
 export type StringDiff = Array<{
-  start: number,
+  afterPos: number,
+  beforePos: number,
   insertLines?: string[],
   removeLines?: string[],
 }>;
@@ -38,18 +39,25 @@ export function createDiff<T extends Diffable>(beforeObj: T, afterObj: T): DiffT
 
   diffLoop:
   while (true) {
-    if (beforeIdx >= beforeLines.length) {
+    const reachedEndOfBefore = beforeIdx >= beforeLines.length;
+    const reachedEndOfAfter = afterIdx >= afterLines.length;
+    if (reachedEndOfAfter && !reachedEndOfBefore) {
       diff.push({
-        start: afterIdx,
+        beforePos: beforeIdx,
+        afterPos: afterLines.length -1,
+        removeLines: beforeLines.slice(beforeIdx),
+      });
+      break diffLoop;
+    }
+    if (!reachedEndOfAfter && reachedEndOfBefore) {
+      diff.push({
+        beforePos: beforeLines.length -1,
+        afterPos: afterIdx,
         insertLines: afterLines.slice(afterIdx),
       });
       break diffLoop;
     }
-    if (afterIdx >= afterLines.length) {
-      diff.push({
-        start: afterIdx,
-        removeLines: beforeLines.slice(beforeIdx),
-      });
+    if (reachedEndOfAfter && reachedEndOfBefore) {
       break diffLoop;
     }
 
@@ -74,7 +82,8 @@ export function createDiff<T extends Diffable>(beforeObj: T, afterObj: T): DiffT
       // if none of the remaining lines from before are used again
       if (addedAfterLines === null || removedBeforeLines === null) {
         diff.push({
-          start: afterIdx,
+          afterPos: afterIdx,
+          beforePos: beforeIdx,
           removeLines: beforeLines.slice(beforeIdx),
           insertLines: afterLines.slice(afterIdx),
         });
@@ -82,7 +91,8 @@ export function createDiff<T extends Diffable>(beforeObj: T, afterObj: T): DiffT
         break diffLoop;
       } else {
         const lineDiff: StringDiff[0] = {
-          start: afterIdx,
+          afterPos: afterIdx,
+          beforePos: beforeIdx,
         };
 
         if (removedBeforeLines !== 0) {
@@ -107,10 +117,10 @@ export function applyDiff<T extends Diffable>(beforeObj: T, diff: DiffType<T>): 
 
   for (const diffPart of diff) {
     if (diffPart.removeLines !== undefined) {
-      afterLines.splice(diffPart.start, diffPart.removeLines.length);
+      afterLines.splice(diffPart.afterPos, diffPart.removeLines.length);
     }
     if (diffPart.insertLines !== undefined) {
-      afterLines.splice(diffPart.start, 0, ...diffPart.insertLines);
+      afterLines.splice(diffPart.afterPos, 0, ...diffPart.insertLines);
     }
   }
 
@@ -122,10 +132,10 @@ export function undoDiff<T extends Diffable>(afterObj: T, diff: DiffType<T>): T 
 
   for (const diffPart of diff) {
     if (diffPart.insertLines !== undefined) {
-      beforeLines.splice(diffPart.start, diffPart.insertLines.length);
+      beforeLines.splice(diffPart.beforePos, diffPart.insertLines.length);
     }
     if (diffPart.removeLines !== undefined) {
-      beforeLines.splice(diffPart.start, 0, ...diffPart.removeLines)
+      beforeLines.splice(diffPart.beforePos, 0, ...diffPart.removeLines)
     }
   }
 

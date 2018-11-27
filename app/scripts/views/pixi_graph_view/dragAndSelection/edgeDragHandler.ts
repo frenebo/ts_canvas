@@ -18,6 +18,7 @@ export class EdgeDragHandler {
         y: number;
       };
       isDrag: boolean;
+      selectionUpdated: boolean;
     } | null = null;
 
     listeners.onDragStart((event) => {
@@ -32,12 +33,17 @@ export class EdgeDragHandler {
           y: mouseLocalY,
         },
         isDrag: false,
+        selectionUpdated: false,
       };
 
       if (!selectionManager.edgeIsSelected(id) && !clickData.isCtrlClick) {
         selectionManager.clearSelection();
       }
-      selectionManager.selectEdge(id);
+
+      if (!clickData.isCtrlClick || !selectionManager.edgeIsSelected(id)) {
+        selectionManager.selectEdge(id);
+        clickData.selectionUpdated = true;
+      }
     });
     listeners.onDragMove((event) => {
       if (clickData === null) throw new Error("no click in progress");
@@ -50,9 +56,7 @@ export class EdgeDragHandler {
 
 
       // If the current click doesn't count as a drag
-      if (!clickData.isDrag) {
-
-
+      if (!clickData.isDrag && selectionManager.edgeIsSelected(id)) {
         if (dx*dx + dy*dy > EdgeDragHandler.dragThreshold*EdgeDragHandler.dragThreshold) {
           // begin drag
           clickData.isDrag = true;
@@ -75,8 +79,14 @@ export class EdgeDragHandler {
 
       if (clickData.isDrag) {
         selectionManager.endSelectionDrag(dx, dy);
-      } else {
-        if (!clickData.isCtrlClick) {
+      } else if (!clickData.selectionUpdated) {
+        if (clickData.isCtrlClick) {
+          if (selectionManager.edgeIsSelected(id)) {
+            selectionManager.deselectEdge(id);
+          } else {
+            selectionManager.selectEdge(id);
+          }
+        } else {
           selectionManager.clearSelection();
           selectionManager.selectEdge(id);
         }
