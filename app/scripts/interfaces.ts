@@ -47,9 +47,13 @@ export interface ViewInterface {
   setLayerDataDict?(layerDataDict: LayerDataDict): void;
 }
 
+export type DeepReadonly<T extends {}> = Readonly<{
+  [P in keyof T]: T extends {} ? DeepReadonly<T[P]> : T[P];
+}>;
+
 export interface ModelInterface {
-  getGraphData(): GraphData;
-  getLayerDataDict(): LayerDataDict;
+  getGraphData(): DeepReadonly<GraphData>;
+  getLayerDataDict(): DeepReadonly<LayerDataDict>;
   addGraphChangedListener(listener: () => void): void;
   addLayerDataDictChangedListener(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): void;

@@ -12,18 +12,27 @@ export interface AugmentedGraphData {
 
 export class GraphUtils {
   public static edgesBetweenVertices(graphData: AugmentedGraphData, vtxIds: string[]) {
-    const edgeIds: {[key: string]: EdgeData} = {};
-    for (const edgeId in graphData.g.edges) {
-      const edge = graphData.g.edges[edgeId];
-      if (
-        vtxIds.indexOf(edge.sourceVertexId) !== -1 &&
-        vtxIds.indexOf(edge.targetVertexId) !== -1
-      ) {
-        edgeIds[edgeId] = JSON.parse(JSON.stringify(edge));
+    const vtxOutputEdges = new Set<string>();
+    const vtxInputEdges = new Set<string>();
+
+    for (const vtxId of vtxIds) {
+      for (const outEdgeId of graphData.edgesByVertex[vtxId].out) {
+        vtxOutputEdges.add(outEdgeId);
+      }
+      for (const inEdgeId of graphData.edgesByVertex[vtxId].in) {
+        vtxInputEdges.add(inEdgeId);
       }
     }
 
-    return edgeIds;
+    const edgesBetween: {[key: string]: EdgeData} = {};
+
+    for (const edgeId of vtxOutputEdges) {
+      if (vtxInputEdges.has(edgeId)) {
+        edgesBetween[edgeId] = graphData.g.edges[edgeId];
+      }
+    }
+
+    return edgesBetween;
   }
 
   public static moveVertex(graphData: AugmentedGraphData, vtxId: string, x: number, y: number): void {

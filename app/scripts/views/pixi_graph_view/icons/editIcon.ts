@@ -1,4 +1,3 @@
-import { DragRegistry } from "../dragAndSelection/dragRegistry";
 
 export class EditIcon {
   private static readonly texturePadding = 5;
@@ -8,8 +7,6 @@ export class EditIcon {
     [35, 0],
     [50, 15],
     [15, 50],
-    [0, 50],
-    [0, 35],
   ];
   private static readonly eraserPoints = [
     [25, 10],
@@ -36,11 +33,14 @@ export class EditIcon {
     graphics.lineColor = 0x000000;
     graphics.lineWidth = 5;
 
-    function graphPoints(pts: number[][]) {
+    function graphPoints(origPts: number[][], loop=false) {
       graphics.moveTo(
-        pts[0][0] + EditIcon.texturePadding,
-        pts[0][1] + EditIcon.texturePadding,
+        origPts[0][0] + EditIcon.texturePadding,
+        origPts[0][1] + EditIcon.texturePadding,
       );
+
+      // if it's a loop, go over the first leg of the polygon again
+      const pts = loop ? origPts.concat(origPts.slice(origPts.length - 2)) : origPts;
 
       for (const pt of pts.slice(1)) {
         graphics.lineTo(
@@ -50,7 +50,7 @@ export class EditIcon {
       }
     }
 
-    graphPoints(EditIcon.outlinePoints);
+    graphPoints(EditIcon.outlinePoints, true);
     graphPoints(EditIcon.eraserPoints);
 
     const texture = renderer.generateTexture(
@@ -74,14 +74,11 @@ export class EditIcon {
   }
 
   private static getHitArea(): PIXI.Polygon {
-    const points = [
-      new PIXI.Point(0, 50),
-      new PIXI.Point(0, 35),
-      new PIXI.Point(35, 0),
-      new PIXI.Point(50, 15),
-      new PIXI.Point(15, 50),
-      new PIXI.Point(0, 50),
-    ].map((pt) => new PIXI.Point(pt.x + EditIcon.texturePadding, pt.y + EditIcon.texturePadding));
+    const outlineFirstPoint = EditIcon.outlinePoints[EditIcon.outlinePoints.length - 1];
+    const outlinePoints = EditIcon.outlinePoints.concat([outlineFirstPoint]);
+    const points = outlinePoints.map(([x, y]) => {
+      return new PIXI.Point(x + EditIcon.texturePadding, y + EditIcon.texturePadding);
+    });
 
     return new PIXI.Polygon(...points);
   }

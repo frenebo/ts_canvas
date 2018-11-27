@@ -1,6 +1,6 @@
 import {
   ModelInterface, GraphData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap,
-  ModelVersioningRequest, LayerDataDict,
+  ModelVersioningRequest, LayerDataDict, DeepReadonly,
 } from "../../interfaces.js";
 import { GraphUtils, AugmentedGraphData } from "./graphUtils.js";
 import { Diffable, DiffType, applyDiff, createDiff, undoDiff } from "../../diff.js";
@@ -63,12 +63,12 @@ export class DefaultModel implements ModelInterface {
     }
   }
 
-  public getGraphData(): GraphData {
-    return JSON.parse(JSON.stringify(this.modelData.graph.g));
+  public getGraphData(): DeepReadonly<GraphData> {
+    return this.modelData.graph.g;
   }
 
-  public getLayerDataDict(): LayerDataDict {
-    return JSON.parse(JSON.stringify(this.modelData.layers));
+  public getLayerDataDict(): DeepReadonly<LayerDataDict> {
+    return this.modelData.layers;
   }
 
   public addGraphChangedListener(listener: () => void): void {
