@@ -1,43 +1,170 @@
+import { DeepReadonly } from "./interfaces";
 
-interface DiffableObject {
+type DiffableObject = DeepReadonly<{
   [key: string]: Diffable;
-}
+}>;
 
 export type Diffable = number | string | boolean | DiffableObject;
 
-interface SimpleDiffRecord<T extends Diffable> {
+export type StringDiff = Array<{
+  start: number,
+  insertLines?: string[],
+  removeLines?: string[],
+}>;
+
+createDiff(
+`hello
+something else
+hello again
+`,
+`hello
+hello again`);
+
+export type DiffType<T extends Diffable> = StringDiff;
+
+function makeIntoLines(obj: Diffable): string[] {
+  const text = JSON.stringify(obj, null, " ");
+  return text.split("\n");
+}
+
+export function createDiff<T extends Diffable>(beforeObj: T, afterObj: T): DiffType<T> {
+  const diff: StringDiff = [];
+
+  const beforeLines = makeIntoLines(beforeObj);
+  const afterLines = makeIntoLines(afterObj);
+
+  let beforeIdx = 0;
+  let afterIdx = 0;
+
+  diffLoop:
+  while (true) {
+    if (beforeIdx >= beforeLines.length) {
+      diff.push({
+        start: afterIdx,
+        insertLines: afterLines.slice(afterIdx),
+      });
+      break diffLoop;
+    }
+    if (afterIdx >= afterLines.length) {
+      diff.push({
+        start: afterIdx,
+        removeLines: beforeLines.slice(beforeIdx),
+      });
+      break diffLoop;
+    }
+
+    // skip past lines that are the same as each other
+    if (beforeLines[beforeIdx] === afterLines[afterIdx]) {
+      beforeIdx++;
+      afterIdx++;
+    } else {
+      let addedAfterLines: number | null = null;
+      let removedBeforeLines: number | null = null;
+
+      for (let checkBeforeLine = beforeIdx; checkBeforeLine < beforeLines.length; checkBeforeLine++) {
+        let lineIdxInRemaining = afterLines.slice(afterIdx).indexOf(beforeLines[checkBeforeLine]);
+
+        if (lineIdxInRemaining !== -1) {
+          addedAfterLines = lineIdxInRemaining;
+          removedBeforeLines = checkBeforeLine - beforeIdx;
+          break;
+        }
+      }
+
+      // if none of the remaining lines from before are used again
+      if (addedAfterLines === null || removedBeforeLines === null) {
+        diff.push({
+          start: afterIdx,
+          removeLines: beforeLines.slice(beforeIdx),
+          insertLines: afterLines.slice(afterIdx),
+        });
+
+        break diffLoop;
+      } else {
+        const lineDiff: StringDiff[0] = {
+          start: afterIdx,
+        };
+
+        if (removedBeforeLines !== 0) {
+          lineDiff.removeLines = beforeLines.slice(beforeIdx, beforeIdx + removedBeforeLines);
+        }
+        if (addedAfterLines !== 0) {
+          lineDiff.insertLines = afterLines.slice(afterIdx, afterIdx + addedAfterLines);
+        }
+        diff.push(lineDiff);
+
+        beforeIdx += removedBeforeLines;
+        afterIdx += addedAfterLines;
+      }
+    }
+  }
+
+  return diff;
+}
+
+export function applyDiff<T extends Diffable>(beforeObj: T, diff: DiffType<T>): T {
+  const afterLines = makeIntoLines(beforeObj);
+
+  for (const diffPart of diff) {
+    if (diffPart.removeLines !== undefined) {
+      afterLines.splice(diffPart.start, diffPart.removeLines.length);
+    }
+    if (diffPart.insertLines !== undefined) {
+      afterLines.splice(diffPart.start, 0, ...diffPart.insertLines);
+    }
+  }
+
+  return JSON.parse(afterLines.join("\n"));
+}
+
+export function undoDiff<T extends Diffable>(afterObj: T, diff: DiffType<T>): T {
+  const beforeLines = makeIntoLines(afterObj);
+
+  for (const diffPart of diff) {
+    if (diffPart.insertLines !== undefined) {
+      beforeLines.splice(diffPart.start, diffPart.insertLines.length);
+    }
+    if (diffPart.removeLines !== undefined) {
+      beforeLines.splice(diffPart.start, 0, ...diffPart.removeLines)
+    }
+  }
+
+  return JSON.parse(beforeLines.join("\n"));
+}
+
+interface OldSimpleDiffRecord<T extends Diffable> {
   before: T;
   after: T;
 }
 
-interface ObjectDiffRecord<T extends DiffableObject> {
-  added?: {
-    [key in keyof T]?: T[key];
-  };
-  removed?: {
-    [key in keyof T]?: T[key];
-  };
-  changed?: {
-    [key in keyof T]?: T[key] extends DiffableObject ? ObjectDiffRecord<T[key]> : SimpleDiffRecord<T[key]>;
-  };
+interface OldObjectDiffRecord<T extends DiffableObject> {
+  added?: Partial<{
+    [key in keyof T]: T[key];
+  }>;
+  removed?: Partial<{
+    [key in keyof T]: T[key];
+  }>;
+  changed?: Partial<{
+    [key in keyof T]: T[key] extends DiffableObject ? OldObjectDiffRecord<T[key]> : OldSimpleDiffRecord<T[key]>;
+  }>;
 }
 
-export function undoDiff<T extends Diffable>(
+export function oldUndoDiff<T extends Diffable>(
   after: T,
-  diff: null | (T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>),
+  diff: null | (T extends DiffableObject ? OldObjectDiffRecord<T> : OldSimpleDiffRecord<T>),
 ): T {
   if (diff === null) return JSON.parse(JSON.stringify(after));
 
-  if ((diff as SimpleDiffRecord<Diffable>).after !== undefined) {
-    return JSON.parse(JSON.stringify((diff as SimpleDiffRecord<Diffable>).before)) as T;
+  if ((diff as any).after !== undefined) {
+    return JSON.parse(JSON.stringify((diff as any).before)) as T;
   } else {
-    return undoObjectDiff(after as DiffableObject, diff as ObjectDiffRecord<DiffableObject>) as T;
+    return oldUndoObjectDiff(after as DiffableObject, diff as OldObjectDiffRecord<DiffableObject>) as T;
   }
 }
 
-function undoObjectDiff<T extends DiffableObject>(
-  after: Readonly<T>,
-  diff: ObjectDiffRecord<T>,
+function oldUndoObjectDiff<T extends DiffableObject>(
+  after: T,
+  diff: OldObjectDiffRecord<T>,
 ): T {
   const before: T = JSON.parse(JSON.stringify(after));
   if (diff.added !== undefined) for (const addedKey in diff.added) {
@@ -47,30 +174,30 @@ function undoObjectDiff<T extends DiffableObject>(
     before[removedKey] = JSON.parse(JSON.stringify(diff.removed[removedKey]));
   }
   if (diff.changed !== undefined) for (const changedKey in diff.changed) {
-    const attrDiff = diff.changed[changedKey];
+    const attrDiff = diff.changed[changedKey]!;
 
-    before[changedKey] = undoDiff(before[changedKey], attrDiff!);
+    before[changedKey] = oldUndoDiff(before[changedKey], attrDiff!);
   }
 
   return before;
 }
 
-export function applyDiff<T extends Diffable>(
+export function oldApplyDiff<T extends Diffable>(
   before: T,
-  diff: null | (T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>),
+  diff: null | (T extends DiffableObject ? OldObjectDiffRecord<T> : OldSimpleDiffRecord<T>),
 ): T {
   if (diff === null) return JSON.parse(JSON.stringify(before));
 
-  if ((diff as SimpleDiffRecord<Diffable>).after !== undefined) {
-    return JSON.parse(JSON.stringify((diff as SimpleDiffRecord<Diffable>).after)) as T;
+  if ((diff as any).after !== undefined) {
+    return JSON.parse(JSON.stringify((diff as any).after)) as T;
   } else {
-    return applyObjectDiff(before as DiffableObject, diff as ObjectDiffRecord<DiffableObject>) as T;
+    return oldApplyObjectDiff(before as DiffableObject, diff as OldObjectDiffRecord<DiffableObject>) as T;
   }
 }
 
-function applyObjectDiff<T extends DiffableObject>(
+function oldApplyObjectDiff<T extends DiffableObject>(
   before: T,
-  diff: ObjectDiffRecord<T>,
+  diff: OldObjectDiffRecord<T>,
 ): T {
   const after: T = JSON.parse(JSON.stringify(before));
   if (diff.added !== undefined) for (const addedKey in diff.added) {
@@ -82,25 +209,25 @@ function applyObjectDiff<T extends DiffableObject>(
   if (diff.changed !== undefined) for (const changedKey in diff.changed) {
     const attrDiff = diff.changed[changedKey];
 
-    after[changedKey] = applyDiff(before[changedKey], attrDiff!);
+    after[changedKey] = oldApplyDiff(before[changedKey], attrDiff!);
   }
 
   return after;
 }
 
-export type DiffType<T extends Diffable> =
-  null | (T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>);
+export type OldDiffType<T extends Diffable> =
+  null | (T extends DiffableObject ? OldObjectDiffRecord<T> : OldSimpleDiffRecord<T>);
 
-export function createDiff<T extends Diffable>(
+export function oldCreateDiff<T extends Diffable>(
   before: T,
   after: T,
-): DiffType<T> {
+): OldDiffType<T> {
   // @TODO watch out for null? typeof null === "object" evaluates to true
   if (typeof before === "object" && typeof after === "object") {
-    return createObjectDiff(
+    return oldCreateObjectDiff(
       before as DiffableObject,
       after as DiffableObject,
-    ) as T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>;
+    ) as T extends DiffableObject ? OldObjectDiffRecord<T> : OldSimpleDiffRecord<T>;
   } else {
     const beforeStr = JSON.stringify(before);
     const afterStr = JSON.stringify(after);
@@ -110,16 +237,16 @@ export function createDiff<T extends Diffable>(
     return {
       before: JSON.parse(beforeStr),
       after: JSON.parse(afterStr),
-    } as T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>;
+    } as T extends DiffableObject ? OldObjectDiffRecord<T> : OldSimpleDiffRecord<T>;
   }
 }
 
-function createObjectDiff<T extends DiffableObject>(
+function oldCreateObjectDiff<T extends DiffableObject>(
   before: T,
   after: T,
-): ObjectDiffRecord<T> | null {
+): OldObjectDiffRecord<T> | null {
   let areIdentical = true;
-  const objectDiff = {} as ObjectDiffRecord<T>;
+  const objectDiff = {} as OldObjectDiffRecord<T>;
 
   const beforeKeys = Object.keys(before);
   const afterKeys = Object.keys(after);
@@ -139,14 +266,14 @@ function createObjectDiff<T extends DiffableObject>(
     areIdentical = false;
   }
   for (const sharedKey of sharedKeys) {
-    const diff = createDiff(before[sharedKey], after[sharedKey]);
+    const diff = oldCreateDiff(before[sharedKey], after[sharedKey]);
     if (diff !== null) {
       if (objectDiff.changed === undefined) objectDiff.changed = {};
 
       objectDiff.changed[sharedKey] =
         diff as T[typeof sharedKey] extends DiffableObject ?
-          ObjectDiffRecord<T[typeof sharedKey]> :
-          SimpleDiffRecord<T[typeof sharedKey]>;
+          OldObjectDiffRecord<T[typeof sharedKey]> :
+          OldSimpleDiffRecord<T[typeof sharedKey]>;
 
       areIdentical = false;
     }

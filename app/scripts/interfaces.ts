@@ -48,7 +48,7 @@ export interface ViewInterface {
 }
 
 export type DeepReadonly<T extends {}> = Readonly<{
-  [P in keyof T]: T extends {} ? DeepReadonly<T[P]> : T[P];
+  [P in keyof T]: T[P] extends {} ? DeepReadonly<T[P]> : T[P];
 }>;
 
 export interface ModelInterface {
