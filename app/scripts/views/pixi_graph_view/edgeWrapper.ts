@@ -61,6 +61,14 @@ export class EdgeWrapper {
     return data.getLocalPosition(this.container);
   }
 
+  public localBounds(): PIXI.Rectangle {
+    return this.container.getLocalBounds();
+  }
+
+  public setVisible(visible: boolean): void {
+    this.container.visible = visible;
+  }
+
   public localX(): number {
     return this.container.position.x;
   }

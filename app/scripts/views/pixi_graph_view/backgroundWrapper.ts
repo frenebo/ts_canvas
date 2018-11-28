@@ -5,6 +5,8 @@ import { EdgeWrapper } from "./edgeWrapper.js";
 export class BackgroundWrapper {
   private readonly sprite: PIXI.extras.TilingSprite;
   private readonly childContainer: PIXI.Container;
+  private readonly positionOrZoomChangeListeners: Array<() => void> = [];
+  private scale: number = 1;
 
   constructor(
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
@@ -25,7 +27,7 @@ export class BackgroundWrapper {
       const mouseAbsoluteX = mouseGlobalPos.x - that.childContainer.position.x;
       const mouseAbsoluteY = mouseGlobalPos.y - that.childContainer.position.y;
 
-      that.zoom(scrollFactor);
+      that.setScale(scrollFactor);
 
       that.setPosition(
         mouseGlobalPos.x - mouseAbsoluteX*scrollFactor,
@@ -50,7 +52,6 @@ export class BackgroundWrapper {
     this.childContainer.removeChild(obj);
   }
 
-  // @TODO make more general interface for adding/removing children
   public addVertex(vtxWrapper: VertexWrapper): void {
     vtxWrapper.addTo(this.childContainer);
   }
@@ -83,14 +84,30 @@ export class BackgroundWrapper {
     return this.sprite.tilePosition.y;
   }
 
+  public onPositionOrZoomChanged(listener: () => void) {
+    this.positionOrZoomChangeListeners.push(listener);
+  }
+
   public setPosition(x: number, y: number): void {
     this.sprite.tilePosition.set(x, y);
     this.childContainer.position.set(x, y);
+
+    for (const listener of this.positionOrZoomChangeListeners) {
+      listener();
+    }
   }
 
-  private zoom(factor: number): void {
-    const previousScale = this.sprite.tileScale.x;
-    this.sprite.tileScale.set(previousScale*factor);
-    this.childContainer.scale.set(previousScale*factor);
+  public getScale(): number {
+    return this.scale;
+  }
+
+  private setScale(factor: number): void {
+    this.scale = this.sprite.tileScale.x*factor;
+    this.sprite.tileScale.set(this.scale);
+    this.childContainer.scale.set(this.scale);
+
+    for (const listener of this.positionOrZoomChangeListeners) {
+      listener();
+    }
   }
 }

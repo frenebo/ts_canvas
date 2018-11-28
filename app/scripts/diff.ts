@@ -232,8 +232,7 @@ export function oldCreateDiff<T extends Diffable>(
   before: T,
   after: T,
 ): OldDiffType<T> {
-  // @TODO watch out for null? typeof null === "object" evaluates to true
-  if (typeof before === "object" && typeof after === "object") {
+  if (typeof before === "object" && typeof after === "object" && before !== null && after !== null) {
     return oldCreateObjectDiff(
       before as DiffableObject,
       after as DiffableObject,

@@ -120,8 +120,8 @@ export class SelectionManager {
       if (
         vertexWrapper.localX() >= leftX &&
         vertexWrapper.localY() >= topY &&
-        vertexWrapper.localX() + vertexWrapper.getWidth() <= leftX + w &&
-        vertexWrapper.localY() + vertexWrapper.getHeight() <= topY + h
+        vertexWrapper.localX() + vertexWrapper.getBackgroundWidth() <= leftX + w &&
+        vertexWrapper.localY() + vertexWrapper.getBackgroundHeight() <= topY + h
       ) {
         this.selectVertex(vertexId);
       }

@@ -97,6 +97,10 @@ export class VertexWrapper {
     // this.positionChildren();
   }
 
+  public setVisible(visible: boolean): void {
+    this.container.visible = visible;
+  }
+
   public addEditIcon(editIcon: EditIcon): void {
     this.editIcon = editIcon;
     this.editIcon.addTo(this.container);
@@ -199,6 +203,10 @@ export class VertexWrapper {
     }
   }
 
+  public localBounds(): PIXI.Rectangle {
+    return this.container.getLocalBounds();
+  }
+
   public localX(): number {
     return this.container.position.x;
   }
@@ -207,12 +215,12 @@ export class VertexWrapper {
     return this.container.position.y;
   }
 
-  public getWidth(): number {
-    return this.width;
+  public getBackgroundWidth(): number {
+    return this.background.width;
   }
 
-  public getHeight(): number {
-    return this.height;
+  public getBackgroundHeight(): number {
+    return this.background.height;
   }
 
   public getDataRelativeLoc(data: PIXI.interaction.InteractionData): PIXI.Point {

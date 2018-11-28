@@ -10,6 +10,7 @@ import { StageManager } from "./stageManager.js";
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
+import { CullingManager } from "./cullingManager.js";
 
 export type GraphManagerCommand = {
   type: "removeEdge";
@@ -53,6 +54,7 @@ export class GraphManager {
   private readonly stageManager: StageManager;
   private readonly selectionManager: SelectionManager;
   private readonly dragRegistry: DragRegistry;
+  private readonly cullingManager: CullingManager;
 
   constructor(
     div: HTMLDivElement,
@@ -86,6 +88,11 @@ export class GraphManager {
       this.selectionManager,
       sendModelChangeRequest,
       sendModelVersioningRequest,
+    );
+
+    this.cullingManager = new CullingManager(
+      this.stageManager.getBackgroundWrapper(),
+      this.stageManager.getRenderer(),
     );
   }
 
@@ -133,6 +140,7 @@ export class GraphManager {
 
     this.stageManager.addVertex(vertexWrapper);
     this.dragRegistry.registerVertex(vertexKey, vertexWrapper);
+    this.cullingManager.registerVertex(vertexKey, vertexWrapper);
 
     this.vertexWrappers[vertexKey] = vertexWrapper;
     this.ports[vertexKey] = {};
@@ -158,6 +166,7 @@ export class GraphManager {
 
     this.stageManager.addEdge(edgeWrapper);
     this.dragRegistry.registerEdge(edgeKey, edgeWrapper);
+    this.cullingManager.registerEdge(edgeKey, edgeWrapper);
   }
 
   private removeVertex(vertexKey: string) {
@@ -169,6 +178,7 @@ export class GraphManager {
 
     this.stageManager.removeVertex(vertexWrapper);
     this.dragRegistry.removeVertex(vertexKey, vertexWrapper);
+    this.cullingManager.removeVertex(vertexKey, vertexWrapper);
   }
 
   private removeEdge(edgeKey: string, edgeData: EdgeData) {
@@ -179,6 +189,8 @@ export class GraphManager {
     delete this.edgeWrappers[edgeKey];
     this.stageManager.removeEdge(edgeWrapper);
     this.dragRegistry.removeEdge(edgeKey, edgeWrapper);
+    this.cullingManager.removeEdge(edgeKey, edgeWrapper);
+
     const srcIdx = this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].indexOf(edgeKey);
     this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].splice(srcIdx, 1);
     const tgtIdx = this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].indexOf(edgeKey);
