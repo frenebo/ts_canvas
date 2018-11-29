@@ -59,7 +59,6 @@ export class PixiView implements ViewInterface {
         edgeKey: removedEdgeKey,
         edgeData: this.data.edges[removedEdgeKey],
       });
-      // this.graphManager.removeEdge(removedEdgeKey, this.data.edges[removedEdgeKey]);
     }
 
     for (const removedVertexKey of removedVertexKeys) {
@@ -67,7 +66,6 @@ export class PixiView implements ViewInterface {
         type: "removeVertex",
         vertexKey: removedVertexKey,
       });
-      // this.graphManager.removeVertex(removedVertexKey);
     }
 
     for (const addedVertexKey of addedVertexKeys) {
@@ -76,18 +74,17 @@ export class PixiView implements ViewInterface {
         vertexKey: addedVertexKey,
         vertexData: newData.vertices[addedVertexKey],
       });
-      // this.graphManager.addVertex(addedVertexKey, newData.vertices[addedVertexKey]);
     }
 
     for (const sharedVertexKey of sharedVertexKeys) {
-      if (createDiff(this.data.vertices[sharedVertexKey] as any, newData.vertices[sharedVertexKey] as any).length !== 0) {
+      // may have false positive, but not false negative
+      if (JSON.stringify(this.data.vertices[sharedVertexKey]) !== JSON.stringify(newData.vertices[sharedVertexKey])) {
         graphManagerCommands.push({
           type: "updateVertex",
           vertexKey: sharedVertexKey,
           vertexData: newData.vertices[sharedVertexKey],
         });
       }
-      // this.graphManager.updateVertex(sharedVertexKey, newData.vertices[sharedVertexKey]);
     }
 
     // add back an edge if its data changed
@@ -97,7 +94,6 @@ export class PixiView implements ViewInterface {
         edgeKey: addedEdgeKey,
         edgeData: newData.edges[addedEdgeKey],
       });
-      // this.graphManager.addEdge(addedEdgeKey, newData.edges[addedEdgeKey]);
     }
 
     // all changes are done at once inside here so graphManager can wait until all changes are made to do expensive

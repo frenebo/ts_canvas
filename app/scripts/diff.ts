@@ -37,7 +37,6 @@ export function createDiff<T extends Diffable>(beforeObj: T, afterObj: T): DiffT
   let beforeIdx = 0;
   let afterIdx = 0;
 
-  diffLoop:
   while (true) {
     const reachedEndOfBefore = beforeIdx >= beforeLines.length;
     const reachedEndOfAfter = afterIdx >= afterLines.length;
@@ -47,7 +46,7 @@ export function createDiff<T extends Diffable>(beforeObj: T, afterObj: T): DiffT
         afterPos: afterLines.length -1,
         removeLines: beforeLines.slice(beforeIdx),
       });
-      break diffLoop;
+      break;
     }
     if (!reachedEndOfAfter && reachedEndOfBefore) {
       diff.push({
@@ -55,10 +54,10 @@ export function createDiff<T extends Diffable>(beforeObj: T, afterObj: T): DiffT
         afterPos: afterIdx,
         insertLines: afterLines.slice(afterIdx),
       });
-      break diffLoop;
+      break;
     }
     if (reachedEndOfAfter && reachedEndOfBefore) {
-      break diffLoop;
+      break;
     }
 
     // skip past lines that are the same as each other
@@ -88,7 +87,7 @@ export function createDiff<T extends Diffable>(beforeObj: T, afterObj: T): DiffT
           insertLines: afterLines.slice(afterIdx),
         });
 
-        break diffLoop;
+        break;
       } else {
         const lineDiff: StringDiff[0] = {
           afterPos: afterIdx,
@@ -109,6 +108,7 @@ export function createDiff<T extends Diffable>(beforeObj: T, afterObj: T): DiffT
     }
   }
 
+  console.log(diff.length);
   return diff;
 }
 
