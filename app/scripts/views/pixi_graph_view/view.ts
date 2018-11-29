@@ -3,6 +3,7 @@ import {
   ModelVersioningRequest,
 } from "../../interfaces.js";
 import { GraphManager, GraphManagerCommand } from "./graphManager.js";
+import { createDiff } from "../../diff.js";
 // import { PixiAdapter } from "./pixiAdapter.js";
 
 export class PixiView implements ViewInterface {
@@ -79,11 +80,13 @@ export class PixiView implements ViewInterface {
     }
 
     for (const sharedVertexKey of sharedVertexKeys) {
-      graphManagerCommands.push({
-        type: "updateVertex",
-        vertexKey: sharedVertexKey,
-        vertexData: newData.vertices[sharedVertexKey],
-      });
+      if (createDiff(this.data.vertices[sharedVertexKey] as any, newData.vertices[sharedVertexKey] as any).length !== 0) {
+        graphManagerCommands.push({
+          type: "updateVertex",
+          vertexKey: sharedVertexKey,
+          vertexData: newData.vertices[sharedVertexKey],
+        });
+      }
       // this.graphManager.updateVertex(sharedVertexKey, newData.vertices[sharedVertexKey]);
     }
 

@@ -138,13 +138,13 @@ export class GraphManager {
       },
     );
 
-    this.stageManager.addVertex(vertexWrapper);
-    this.dragRegistry.registerVertex(vertexKey, vertexWrapper);
-    this.cullingManager.registerVertex(vertexKey, vertexWrapper);
-
     this.vertexWrappers[vertexKey] = vertexWrapper;
     this.ports[vertexKey] = {};
     this.portEdges[vertexKey] = {};
+
+    this.stageManager.addVertex(vertexWrapper);
+    this.dragRegistry.registerVertex(vertexKey, vertexWrapper);
+    this.cullingManager.registerVertex(vertexKey, vertexWrapper);
 
     this.updateVertex(vertexKey, vertexData);
   }
@@ -178,7 +178,7 @@ export class GraphManager {
 
     this.stageManager.removeVertex(vertexWrapper);
     this.dragRegistry.removeVertex(vertexKey, vertexWrapper);
-    this.cullingManager.removeVertex(vertexKey, vertexWrapper);
+    this.cullingManager.removeVertex(vertexKey);
   }
 
   private removeEdge(edgeKey: string, edgeData: EdgeData) {
@@ -232,5 +232,7 @@ export class GraphManager {
 
       vertexWrapper.positionPort(portWrapper, portData.position, portData.side);
     }
+
+    this.cullingManager.updateVertex(vertexKey);
   }
 }
