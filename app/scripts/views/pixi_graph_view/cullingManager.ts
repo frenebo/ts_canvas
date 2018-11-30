@@ -97,6 +97,7 @@ class PositionTracker {
       tr: { x: right, y: top },
       br: { x: right, y: bottom },
     };
+    // @TODO add tiles to speed things up
 
     this.objCorners[key] = corners;
   }

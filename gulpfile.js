@@ -39,4 +39,4 @@ gulp.task("tslint", function() {
             reportLimit: 0,
             summarizeFailureOutput: true
         }));;
-})
+});
