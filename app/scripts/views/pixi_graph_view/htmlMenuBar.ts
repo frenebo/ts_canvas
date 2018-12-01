@@ -1,4 +1,6 @@
 import { ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest, ModelInfoResponseMap } from "../../interfaces";
+import { KeyboardHandler } from "./keyboardHandler";
+import { SelectionManager } from "./selectionManager";
 
 export class HtmlMenuBar {
   private static barBackground = "#44596e";
@@ -13,6 +15,8 @@ export class HtmlMenuBar {
     private readonly div: HTMLDivElement,
     width: number,
     private readonly height: number,
+    keyboardHandler: KeyboardHandler,
+    selectionManager: SelectionManager,
     private readonly sendModelChangeRequest: (req: ModelChangeRequest) => void,
     private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
@@ -41,12 +45,46 @@ export class HtmlMenuBar {
     });
 
     this.addMenuItem("File", [
-      ["Save", () => {}],
-      ["Open", () => {}],
+      {
+        text: "Save",
+        tooltip: keyboardHandler.saveShortcutString(),
+        onclick: () => {},
+      },
+      {
+        text: "Open",
+        tooltip: keyboardHandler.openShortcutString(),
+        onclick: () => {},
+      },
     ]);
     this.addMenuItem("Edit", [
-      ["Undo", () => { sendModelVersioningRequest({type: "undo"}); }],
-      ["Redo", () => { sendModelVersioningRequest({type: "redo"}); }],
+      {
+        text: "Undo",
+        tooltip: keyboardHandler.undoShortcutString(),
+        onclick: () => {
+          sendModelVersioningRequest({type: "undo"});
+        }
+      },
+      {
+        text: "Redo",
+        tooltip: keyboardHandler.redoShortcutString(),
+        onclick: () => {
+          sendModelVersioningRequest({type: "redo"});
+        }
+      },
+      {
+        text: "Select All",
+        tooltip: keyboardHandler.selectAllShortcutString(),
+        onclick: () => {
+          selectionManager.selectAll();
+        },
+      },
+      {
+        text: "Delete Selection",
+        tooltip: keyboardHandler.deleteSelectionShortcutString(),
+        onclick: () => {
+          selectionManager.deleteSelection();
+        },
+      },
     ]);
 
     this.closeMenus();
@@ -60,7 +98,7 @@ export class HtmlMenuBar {
     }
   }
 
-  private addMenuItem(title: string, subItems: Array<[string, () => void]>): void {
+  private addMenuItem(title: string, subItems: Array<{text: string, tooltip?: string, onclick: () => void}>): void {
     const list = document.createElement("ul");
     this.lists.push(list);
     list.style.padding = "0";
@@ -81,11 +119,11 @@ export class HtmlMenuBar {
     this.menuItemSetup(titleItem, title, "center");
 
     let subButtons: HTMLButtonElement[] = [];
-    for (const [subItemText, onclick] of subItems) {
+    for (const {text, tooltip, onclick} of subItems) {
       const subItem = document.createElement("button");
       list.appendChild(subItem);
       subButtons.push(subItem);
-      this.menuItemSetup(subItem, subItemText, "left");
+      this.menuItemSetup(subItem, text, "left", tooltip);
       subItem.addEventListener("click", (ev) => {
         onclick();
       });
@@ -93,7 +131,7 @@ export class HtmlMenuBar {
 
     const maxSubItemWidth = Math.max(...subButtons.map((button) => button.clientWidth));
     for (const subItem of subButtons) {
-      subItem.style.width = `${maxSubItemWidth}px`;
+      subItem.style.minWidth = `${maxSubItemWidth}px`;
     }
 
     titleItem.addEventListener("mousedown", (ev) => {
@@ -110,8 +148,9 @@ export class HtmlMenuBar {
     });
   }
 
-  private menuItemSetup(el: HTMLElement, text: string, align: "left" | "center"): void {
+  private menuItemSetup(el: HTMLElement, text: string, align: "left" | "center", tooltip?: string): void {
     const bottomBorderHeight = 5;
+    if (typeof tooltip === "string") el.title = tooltip;
     // el.style.verticalAlign = "top";
     el.style.border = "none";
     el.style.borderBottom = `${bottomBorderHeight}px solid #2c3e50`;
@@ -123,7 +162,8 @@ export class HtmlMenuBar {
     el.style.fontFamily = "Arial";
     el.style.textAlign = align;
     el.style.textDecoration = "none";
-    el.setAttribute("href", "#");
+    el.style.whiteSpace = "nowrap";
+    // el.setAttribute("href", "#");
     el.style.cursor = "pointer";
 
     el.textContent = text;

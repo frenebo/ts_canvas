@@ -4,6 +4,7 @@ import {
 } from "../../interfaces.js";
 import { GraphManager, GraphManagerCommand } from "./graphManager.js";
 import { HtmlMenuBar } from "./htmlMenuBar.js";
+import { KeyboardHandler } from "./keyboardHandler.js";
 
 export class PixiView implements ViewInterface {
   private data: GraphData = {vertices: {}, edges: {}};
@@ -30,19 +31,30 @@ export class PixiView implements ViewInterface {
     graphDiv.style.position = "absolute";
     div.appendChild(graphDiv);
 
-    new HtmlMenuBar(
-      menuBarDiv,
-      width,
-      menuBarHeight,
-      sendModelChangeRequest,
-      sendModelInfoRequest,
-      sendModelVersioningRequest,
-    );
+
 
     this.graphManager = new GraphManager(
       graphDiv,
       width,
       graphHeight,
+      sendModelChangeRequest,
+      sendModelInfoRequest,
+      sendModelVersioningRequest,
+    );
+
+    const keyboardHandler = new KeyboardHandler(
+      div,
+      this.graphManager.getSelectionManager(),
+      sendModelChangeRequest,
+      sendModelVersioningRequest,
+    );
+
+    new HtmlMenuBar(
+      menuBarDiv,
+      width,
+      menuBarHeight,
+      keyboardHandler,
+      this.graphManager.getSelectionManager(),
       sendModelChangeRequest,
       sendModelInfoRequest,
       sendModelVersioningRequest,

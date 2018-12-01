@@ -9,7 +9,6 @@ import { PortWrapper } from "./portWrapper.js";
 import { StageManager } from "./stageManager.js";
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
-import { KeyboardHandler } from "./keyboardHandler.js";
 import { CullingManager } from "./cullingManager.js";
 
 export type GraphManagerCommand = {
@@ -85,17 +84,14 @@ export class GraphManager {
       this.stageManager.getRenderer(),
     );
 
-    new KeyboardHandler(
-      this.stageManager.getRenderer(),
-      this.selectionManager,
-      sendModelChangeRequest,
-      sendModelVersioningRequest,
-    );
-
     this.cullingManager = new CullingManager(
       this.stageManager.getBackgroundWrapper(),
       this.stageManager.getRenderer(),
     );
+  }
+
+  public getSelectionManager() {
+    return this.selectionManager;
   }
 
   public applyCommands(commands: GraphManagerCommand[]): void {
