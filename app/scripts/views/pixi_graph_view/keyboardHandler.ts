@@ -18,23 +18,33 @@ export class KeyboardHandler {
     document.addEventListener("keydown", (ev) => {
       if (!mouseIsOverCanvas) return;
 
-      if (ev.key === "Delete") selectionManager.deleteSelection();
-      if (ev.key === "Escape") selectionManager.clearSelection();
-      if (ev.key === "z" && ev.ctrlKey && !ev.shiftKey) {
+      let isViewKey = true;
+      if (ev.key === "Delete") {
+        selectionManager.deleteSelection();
+      } else if (ev.key === "Escape") {
+        selectionManager.clearSelection();
+      } else if (ev.key === "z" && ev.ctrlKey && !ev.shiftKey) {
         sendModelVersioningRequest({
           type: "undo",
         });
-      }
-      if (
+      } else if (
         (ev.key === "Z" && ev.ctrlKey) || // capital Z for shift
         (ev.key === "y" && ev.ctrlKey)
       ) {
         sendModelVersioningRequest({
           type: "redo",
         });
+      } else if (ev.key === "a" && ev.ctrlKey) {
+        selectionManager.selectAll();
+      } else if (ev.key === "g" && ev.shiftKey) {
+        console.log("TODO: group");
+      } else {
+        isViewKey = false;
       }
-      if (ev.key === "a" && ev.ctrlKey) selectionManager.selectAll();
-      if (ev.key === "g" && ev.shiftKey) console.log("TODO: group");
+
+      if (isViewKey) {
+        ev.preventDefault();
+      }
     });
   }
 }

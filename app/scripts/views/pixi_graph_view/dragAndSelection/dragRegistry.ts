@@ -3,7 +3,6 @@ import { BackgroundDragHandler } from "./backgroundDragHandler.js";
 import { EdgeWrapper } from "../edgeWrapper.js";
 import { VertexWrapper } from "../vertexWrapper.js";
 import { VertexDragHandler } from "./vertexDragHandler.js";
-import { MenuBar } from "../menuBar.js";
 import { PortWrapper } from "../portWrapper.js";
 import {
   ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest,
@@ -95,10 +94,6 @@ export class DragRegistry {
 
       if (this.getEdgeWrappers()[id] === undefined) return id;
     }
-  }
-
-  public registerMenuBar(menuBar: MenuBar): void {
-    this.registerDisplayObject(menuBar.getDisplayObject());
   }
 
   private registerBackground(background: BackgroundWrapper): void {

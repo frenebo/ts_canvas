@@ -1,6 +1,6 @@
 import { ViewInterface, LayerDataDict } from "../../interfaces";
 
-export class LayerEditView implements ViewInterface {
+export class DefaultLayerEditView implements ViewInterface {
   constructor(div: HTMLDivElement) {
     // unimplemented
   }

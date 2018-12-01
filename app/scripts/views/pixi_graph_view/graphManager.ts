@@ -58,11 +58,13 @@ export class GraphManager {
 
   constructor(
     div: HTMLDivElement,
+    width: number,
+    height: number,
     sendModelChangeRequest: (req: ModelChangeRequest) => void,
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
-    this.stageManager = new StageManager(div);
+    this.stageManager = new StageManager(div, width, height);
     this.selectionManager = new SelectionManager(
       () => this.vertexWrappers,
       () => this.edgeWrappers,

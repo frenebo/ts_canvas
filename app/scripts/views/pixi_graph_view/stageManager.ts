@@ -6,8 +6,8 @@ export class StageManager {
   private readonly app: PIXI.Application;
   private readonly background: BackgroundWrapper;
 
-  constructor(div: HTMLDivElement) {
-    this.app = new PIXI.Application(800, 600);
+  constructor(div: HTMLDivElement, width: number, height: number) {
+    this.app = new PIXI.Application(width, height);
     div.appendChild(this.app.view);
 
     this.app.ticker.start(); // To continually refresh view

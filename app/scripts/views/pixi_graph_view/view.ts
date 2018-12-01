@@ -3,8 +3,7 @@ import {
   ModelVersioningRequest,
 } from "../../interfaces.js";
 import { GraphManager, GraphManagerCommand } from "./graphManager.js";
-import { createDiff } from "../../diff.js";
-// import { PixiAdapter } from "./pixiAdapter.js";
+import { HtmlMenuBar } from "./htmlMenuBar.js";
 
 export class PixiView implements ViewInterface {
   private data: GraphData = {vertices: {}, edges: {}};
@@ -16,8 +15,34 @@ export class PixiView implements ViewInterface {
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
+    const width = 800;
+    const menuBarHeight = 35;
+    const graphHeight = 500;
+
+    div.style.width = `${width}px`;
+    div.style.height = `${menuBarHeight + graphHeight}px`;
+
+    const menuBarDiv = document.createElement("div");
+    menuBarDiv.style.position = "relative";
+    div.appendChild(menuBarDiv)
+
+    const graphDiv = document.createElement("div");
+    graphDiv.style.position = "absolute";
+    div.appendChild(graphDiv);
+
+    new HtmlMenuBar(
+      menuBarDiv,
+      width,
+      menuBarHeight,
+      sendModelChangeRequest,
+      sendModelInfoRequest,
+      sendModelVersioningRequest,
+    );
+
     this.graphManager = new GraphManager(
-      div,
+      graphDiv,
+      width,
+      graphHeight,
       sendModelChangeRequest,
       sendModelInfoRequest,
       sendModelVersioningRequest,
