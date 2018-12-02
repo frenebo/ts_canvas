@@ -4,6 +4,7 @@ import {
 } from "../../interfaces.js";
 import { GraphUtils, AugmentedGraphData } from "./graphUtils.js";
 import { Diffable, DiffType, applyDiff, createDiff, undoDiff } from "../../diff.js";
+import { SaveUtils } from "./saveUtils.js";
 
 interface ModelDataObj {
   graph: AugmentedGraphData;
@@ -16,6 +17,7 @@ export class DefaultModel implements ModelInterface {
   private readonly graphChangedListeners: Array<() => void> = [];
   private readonly layerDataDictChangedListeners: Array<() => void> = [];
 
+  private openFileName: string | null = null;
   private modelData: ModelDataObj = {graph: {g: {vertices: {}, edges: {}}, edgesByVertex: {}}, layers: {}};
 
   constructor() {
@@ -138,6 +140,8 @@ export class DefaultModel implements ModelInterface {
       this.pastDiffs.push(redoDiff);
 
       this.modelData = newData;
+    } else if (req.type === "saveFile") {
+      console.log("unimplemented save in open file");
     } else {
       throw new Error("unimplemented");
     }
@@ -166,6 +170,16 @@ export class DefaultModel implements ModelInterface {
       );
       const response: ModelInfoResponseMap["edgesBetweenVertices"] = {
         edges: edgesBetweenVertices,
+      };
+      return response;
+    } else if (req.type === "fileIsOpen") {
+      const response: ModelInfoResponseMap["fileIsOpen"] =
+        this.openFileName == null ? {fileIsOpen: false} : {fileIsOpen: true, fileName: this.openFileName}
+
+      return response;
+    } else if (req.type === "savedFileNames") {
+      const response: ModelInfoResponseMap["savedFileNames"] = {
+        fileNames: SaveUtils.savedFileNames(),
       };
       return response;
     } else {

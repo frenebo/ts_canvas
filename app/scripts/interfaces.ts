@@ -91,6 +91,9 @@ export type ModelVersioningRequest = {
   type: "undo";
 } | {
   type: "redo";
+} | {
+  type: "saveFile";
+  fileName: string;
 };
 
 export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoResponseMap;
@@ -107,6 +110,12 @@ export interface ModelInfoRequestMap {
     type: "edgesBetweenVertices";
     vertexIds: string[];
   };
+  "fileIsOpen": {
+    type: "fileIsOpen";
+  };
+  "savedFileNames": {
+    type: "savedFileNames";
+  };
 }
 
 export interface ModelInfoResponseMap {
@@ -117,5 +126,14 @@ export interface ModelInfoResponseMap {
     edges: {
       [key: string]: EdgeData;
     };
+  };
+  "fileIsOpen": {
+    fileIsOpen: false;
+  } | {
+    fileIsOpen: true;
+    fileName: string;
+  };
+  "savedFileNames": {
+    fileNames: string[];
   };
 }

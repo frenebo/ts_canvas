@@ -1,5 +1,6 @@
 import { SelectionManager } from "./selectionManager";
 import { ModelChangeRequest, ModelVersioningRequest } from "../../interfaces";
+import { FileMenu } from "./fileMenu";
 
 interface ShortcutDescription {
   eventKeyName: string, // must be lowercase!
@@ -78,6 +79,7 @@ export class KeyboardHandler {
 
   constructor(
     div: HTMLDivElement,
+    fileMenu: FileMenu,
     selectionManager: SelectionManager,
     sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
@@ -88,12 +90,7 @@ export class KeyboardHandler {
         divSelected = div.contains(ev.target);
       }
     });
-    // div.addEventListener("mousemove", () => {
-    //   divSelected = true;
-    // });
-    // div.addEventListener("mouseout", () => {
-    //   divSelected = false;
-    // });
+
     document.addEventListener("keydown", (ev) => {
       if (!divSelected) return;
 
@@ -123,9 +120,9 @@ export class KeyboardHandler {
         } else if (match === "selectAll") {
           selectionManager.selectAll();
         } else if (match === "save") {
-          console.log("save unimplemented");
+          fileMenu.saveDialog();
         } else if (match === "open") {
-          console.log("open unimplemented");
+          fileMenu.openDialog();
         }
       }
     });

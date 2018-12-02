@@ -1,6 +1,7 @@
 import { ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest, ModelInfoResponseMap } from "../../interfaces";
 import { KeyboardHandler } from "./keyboardHandler";
 import { SelectionManager } from "./selectionManager";
+import { FileMenu } from "./fileMenu";
 
 export class HtmlMenuBar {
   private static barBackground = "#44596e";
@@ -15,11 +16,12 @@ export class HtmlMenuBar {
     private readonly div: HTMLDivElement,
     width: number,
     private readonly height: number,
+    fileMenu: FileMenu,
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
-    private readonly sendModelChangeRequest: (req: ModelChangeRequest) => void,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
-    private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
+    sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
     div.style.width = `${width}px`;
     div.style.backgroundColor = HtmlMenuBar.barBackground;
@@ -48,12 +50,16 @@ export class HtmlMenuBar {
       {
         text: "Save",
         tooltip: keyboardHandler.saveShortcutString(),
-        onclick: () => {},
+        onclick: () => {
+          fileMenu.saveDialog();
+        },
       },
       {
         text: "Open",
         tooltip: keyboardHandler.openShortcutString(),
-        onclick: () => {},
+        onclick: () => {
+          fileMenu.openDialog();
+        },
       },
     ]);
     this.addMenuItem("Edit", [
