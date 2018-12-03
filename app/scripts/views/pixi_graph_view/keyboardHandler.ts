@@ -1,15 +1,20 @@
 import { SelectionManager } from "./selectionManager.js";
-import { ModelChangeRequest, ModelVersioningRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces.js";
+import {
+  ModelChangeRequest, ModelVersioningRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
+} from "../../interfaces.js";
 import { Dialogs } from "./dialogs.js";
 
 interface ShortcutDescription {
-  eventKeyName: string, // must be lowercase!
-  ctrlMeta?: boolean,
-  shift?: boolean
+  eventKeyName: string; // must be lowercase!
+  ctrlMeta?: boolean;
+  shift?: boolean;
 }
 
 export class KeyboardHandler {
-  private static matchShortcuts<T extends string>(ev: KeyboardEvent, shortcuts: {[key in T]: ShortcutDescription[]}): T[] {
+  private static matchShortcuts<T extends string>(
+    ev: KeyboardEvent,
+    shortcuts: {[key in T]: ShortcutDescription[]},
+  ): T[] {
     const matches: T[] = [];
 
     for (const shortcutKey in shortcuts) {
@@ -35,8 +40,8 @@ export class KeyboardHandler {
 
     for (const shortcut of shortcuts) {
       let description = "";
-      if (shortcut.ctrlMeta) description += "Ctrl-";
-      if (shortcut.shift) {
+      if (shortcut.ctrlMeta === true) description += "Ctrl-";
+      if (shortcut.shift === true) {
         description += "Shift-";
       }
 
@@ -47,12 +52,12 @@ export class KeyboardHandler {
     return descriptions.join(" or ");
   }
 
-  private undoShortcuts: ShortcutDescription[] = [{
+  private readonly undoShortcuts: ShortcutDescription[] = [{
     eventKeyName: "z",
     ctrlMeta: true,
     shift: false,
   }];
-  private redoShortcuts: ShortcutDescription[] = [
+  private readonly redoShortcuts: ShortcutDescription[] = [
     {
       eventKeyName: "z",
       ctrlMeta: true,
@@ -63,25 +68,27 @@ export class KeyboardHandler {
       ctrlMeta: true,
     },
   ];
-  private selectAllShortcuts: ShortcutDescription[] = [{
+  private readonly selectAllShortcuts: ShortcutDescription[] = [{
     eventKeyName: "a",
     ctrlMeta: true,
   }];
-  private saveShortcuts: ShortcutDescription[] = [{
+  private readonly saveShortcuts: ShortcutDescription[] = [{
     eventKeyName: "s",
     ctrlMeta: true,
     shift: false,
   }];
-  private saveAsShortcuts: ShortcutDescription[] = [{
+  private readonly saveAsShortcuts: ShortcutDescription[] = [{
     eventKeyName: "s",
     ctrlMeta: true,
     shift: true,
   }];
-  private openShortcuts: ShortcutDescription[] = [{
+  private readonly openShortcuts: ShortcutDescription[] = [{
     eventKeyName: "o",
     ctrlMeta: true,
   }];
-  private deleteSelectionShortcuts: ShortcutDescription[] = [{ eventKeyName: "delete" }];
+  private readonly deleteSelectionShortcuts: ShortcutDescription[] = [{
+    eventKeyName: "delete",
+  }];
 
   constructor(
     div: HTMLDivElement,

@@ -20,7 +20,7 @@ class PositionTracker {
 
     let insertPos: number;
     while (true) {
-      const middle = (l + r) >> 1;
+      const middle = Math.floor(l + r);
       const comp = comparator(arr[middle]);
       if (comp > 0) {
         if (comparator(arr[middle + 1]) < 0) {
@@ -78,7 +78,7 @@ class PositionTracker {
     return null;
   }
 
-  private objCorners: {[key: string]: {[key in "tl" | "bl" | "tr" |"br"]: {x: number, y: number}}} = {};
+  private readonly objCorners: {[key: string]: {[key in "tl" | "bl" | "tr" |"br"]: {x: number; y: number}}} = {};
 
   constructor() {
     // empty
@@ -130,10 +130,18 @@ class PositionTracker {
   }
 
   public filterVerticesInBox(boxLeft: number, boxRight: number, boxTop: number, boxBottom: number): Set<string> {
-    return new Set(Object.keys(this.objCorners).filter(k => this.doesObjectOverlayBox(k, boxLeft, boxRight, boxTop, boxBottom)));
+    return new Set(Object.keys(this.objCorners).filter((k) => {
+      return this.doesObjectOverlayBox(k, boxLeft, boxRight, boxTop, boxBottom);
+    }));
   }
 
-  public doesObjectOverlayBox(objKey: string, boxLeft: number, boxRight: number, boxTop: number, boxBottom: number): boolean {
+  public doesObjectOverlayBox(
+    objKey: string,
+    boxLeft: number,
+    boxRight: number,
+    boxTop: number,
+    boxBottom: number,
+  ): boolean {
     const objLeft = this.objCorners[objKey].tl.x;
     const objTop = this.objCorners[objKey].tl.y;
     const objRight = this.objCorners[objKey].br.x;
@@ -154,9 +162,9 @@ class PositionTracker {
 }
 
 export class CullingManager {
-  private vertexWrappers: {[key: string]: VertexWrapper} = {};
-  private edgeWrappers: {[key: string]: EdgeWrapper} = {};
-  private posTracker: PositionTracker;
+  private readonly vertexWrappers: {[key: string]: VertexWrapper} = {};
+  private readonly edgeWrappers: {[key: string]: EdgeWrapper} = {};
+  private readonly posTracker: PositionTracker;
 
   constructor(
     private readonly backgroundWrapper: BackgroundWrapper,

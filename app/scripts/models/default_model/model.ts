@@ -165,7 +165,7 @@ export class DefaultModel implements ModelInterface {
       return response;
     } else if (req.type === "fileIsOpen") {
       const response: ModelInfoResponseMap["fileIsOpen"] =
-        this.openFileName == null ? {fileIsOpen: false} : {fileIsOpen: true, fileName: this.openFileName}
+        this.openFileName === null ? {fileIsOpen: false} : {fileIsOpen: true, fileName: this.openFileName};
 
       return response;
     } else if (req.type === "savedFileNames") {

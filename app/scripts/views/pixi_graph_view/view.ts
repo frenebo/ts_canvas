@@ -26,13 +26,11 @@ export class PixiView implements ViewInterface {
 
     const menuBarDiv = document.createElement("div");
     menuBarDiv.style.position = "relative";
-    div.appendChild(menuBarDiv)
+    div.appendChild(menuBarDiv);
 
     const graphDiv = document.createElement("div");
     graphDiv.style.position = "absolute";
     div.appendChild(graphDiv);
-
-
 
     this.graphManager = new GraphManager(
       graphDiv,

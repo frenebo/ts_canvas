@@ -6,6 +6,6 @@ export class DefaultLayerEditView implements ViewInterface {
   }
 
   public setLayerDataDict(layerDataDict: LayerDataDict): void {
-
+    // unimplemented
   }
 }

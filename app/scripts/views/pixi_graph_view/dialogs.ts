@@ -1,6 +1,6 @@
-import { ModelInfoRequestType, ModelVersioningRequest, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces";
-
-// @TODO make extendable dialog class?
+import {
+  ModelInfoRequestType, ModelVersioningRequest, ModelInfoRequestMap, ModelInfoResponseMap,
+} from "../../interfaces";
 
 class Dialog {
   protected static createTitle(titleText: string) {
@@ -82,7 +82,7 @@ class OpenDialog extends Dialog {
     for (const fileName of fileNames) {
       const fileRow = document.createElement("div");
       openFilesDiv.appendChild(fileRow);
-      fileRow.style.borderTop = "2px solid black"
+      fileRow.style.borderTop = "2px solid black";
 
       const fileLabel = document.createElement("div");
       fileRow.appendChild(fileLabel);
@@ -94,8 +94,12 @@ class OpenDialog extends Dialog {
       fileLabel.style.display = "inline-block";
       fileLabel.style.cursor = "pointer";
 
-      fileLabel.addEventListener("mouseover", () => {fileLabel.style.color = "blue"});
-      fileLabel.addEventListener("mouseout", () => {fileLabel.style.color = "black"});
+      fileLabel.addEventListener("mouseover", () => {
+        fileLabel.style.color = "blue";
+      });
+      fileLabel.addEventListener("mouseout", () => {
+        fileLabel.style.color = "black";
+      });
 
       fileLabel.addEventListener("click", () => {
         openFunc(fileName);
@@ -173,7 +177,8 @@ export class Dialogs {
 
   constructor(
     private readonly div: HTMLDivElement,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
+    private readonly sendModelInfoRequest:
+      <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
     const that = this;
@@ -199,7 +204,9 @@ export class Dialogs {
       this.div,
       this.div.clientWidth/2,
       this.div.clientHeight/2,
-      (fileName: string) => { this.sendModelVersioningRequest({ type: "saveFile", fileName: fileName })},
+      (fileName: string) => {
+        this.sendModelVersioningRequest({ type: "saveFile", fileName: fileName });
+      },
     );
 
     this.currentDialog = dialog;

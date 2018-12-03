@@ -1,16 +1,18 @@
-import { ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest, ModelInfoResponseMap } from "../../interfaces.js";
+import {
+  ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest, ModelInfoResponseMap,
+} from "../../interfaces.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { SelectionManager } from "./selectionManager.js";
 import { Dialogs } from "./dialogs.js";
 
 export class HtmlMenuBar {
-  private static barBackground = "#44596e";
-  private static menuItemDefaultBackground = "#34495e";
-  private static menuItemMouseoverBackground = "#999999";
-  private static itemHeight = 40;
-  private static itemMinWidth = 70;
+  private static readonly barBackground = "#44596e";
+  private static readonly menuItemDefaultBackground = "#34495e";
+  private static readonly menuItemMouseoverBackground = "#999999";
+  private static readonly itemHeight = 40;
+  private static readonly itemMinWidth = 70;
 
-  private lists: HTMLUListElement[] = [];
+  private readonly lists: HTMLUListElement[] = [];
 
   constructor(
     private readonly div: HTMLDivElement,
@@ -65,7 +67,7 @@ export class HtmlMenuBar {
         tooltip: keyboardHandler.saveAsShortcutString(),
         onclick: () => {
           fileMenu.saveAsDialog();
-        }
+        },
       },
       {
         text: "Open",
@@ -81,14 +83,14 @@ export class HtmlMenuBar {
         tooltip: keyboardHandler.undoShortcutString(),
         onclick: () => {
           sendModelVersioningRequest({type: "undo"});
-        }
+        },
       },
       {
         text: "Redo",
         tooltip: keyboardHandler.redoShortcutString(),
         onclick: () => {
           sendModelVersioningRequest({type: "redo"});
-        }
+        },
       },
       {
         text: "Select All",
@@ -117,7 +119,14 @@ export class HtmlMenuBar {
     }
   }
 
-  private addMenuList(title: string, subItems: Array<{text: string, tooltip?: string, onclick: () => void}>): void {
+  private addMenuList(
+    title: string,
+    subItems: Array<{
+      text: string;
+      tooltip?: string;
+      onclick(): void;
+    }>,
+  ): void {
     const list = document.createElement("ul");
     this.lists.push(list);
     list.style.padding = "0";
@@ -129,7 +138,7 @@ export class HtmlMenuBar {
     list.style.display = "inline-block";
     list.style.verticalAlign = "top";
     list.style.overflow = "hidden";
-    list.style.height = `${HtmlMenuBar.itemHeight}px`
+    list.style.height = `${HtmlMenuBar.itemHeight}px`;
     list.style.width = `${HtmlMenuBar.itemMinWidth}px`;
     this.div.appendChild(list);
 
@@ -137,7 +146,7 @@ export class HtmlMenuBar {
     list.appendChild(titleItem);
     this.menuItemSetup(titleItem, title, "center");
 
-    let subButtons: HTMLButtonElement[] = [];
+    const subButtons: HTMLButtonElement[] = [];
     for (const {text, tooltip, onclick} of subItems) {
       const subItem = document.createElement("button");
       list.appendChild(subItem);
@@ -163,8 +172,9 @@ export class HtmlMenuBar {
     const that = this;
     titleItem.addEventListener("mouseover", () => {
       let aListIsOpen = false;
-      for (const list of that.lists) {
-        if (list.style.overflow !== "hidden") aListIsOpen = true;
+
+      for (const otherList of that.lists.filter((l) => l !== list)) {
+        if (otherList.style.overflow !== "hidden") aListIsOpen = true;
       }
 
       if (aListIsOpen) {

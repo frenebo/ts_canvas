@@ -29,8 +29,8 @@ export function undoDiff<T extends Diffable>(
 ): T {
   if (diff === null) return JSON.parse(JSON.stringify(after));
 
-  if ((diff as any).after !== undefined) {
-    return JSON.parse(JSON.stringify((diff as any).before)) as T;
+  if ((diff as {after: unknown}).after !== undefined) {
+    return JSON.parse(JSON.stringify((diff as {before: unknown}).before)) as T;
   } else {
     return undoObjectDiff(after as DiffableObject, diff as ObjectDiffRecord<DiffableObject>) as T;
   }
@@ -62,8 +62,8 @@ export function applyDiff<T extends Diffable>(
 ): T {
   if (diff === null) return JSON.parse(JSON.stringify(before));
 
-  if ((diff as any).after !== undefined) {
-    return JSON.parse(JSON.stringify((diff as any).after)) as T;
+  if ((diff as {after: unknown}).after !== undefined) {
+    return JSON.parse(JSON.stringify((diff as {after: unknown}).after)) as T;
   } else {
     return applyObjectDiff(before as DiffableObject, diff as ObjectDiffRecord<DiffableObject>) as T;
   }
