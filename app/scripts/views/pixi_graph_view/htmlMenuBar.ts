@@ -7,8 +7,8 @@ export class HtmlMenuBar {
   private static barBackground = "#44596e";
   private static menuItemDefaultBackground = "#34495e";
   private static menuItemMouseoverBackground = "#999999";
-  private static itemHeight = 30;
-  private static itemMinWidth = 50;
+  private static itemHeight = 40;
+  private static itemMinWidth = 70;
 
   private lists: HTMLUListElement[] = [];
 
@@ -120,9 +120,9 @@ export class HtmlMenuBar {
     const list = document.createElement("ul");
     this.lists.push(list);
     list.style.padding = "0";
-    list.style.marginLeft = "4px";
-    list.style.marginBottom = "2px";
-    list.style.marginTop = "2px";
+    list.style.marginLeft = "6px";
+    list.style.marginBottom = "0px";
+    list.style.marginTop = "5px";
     list.style.marginRight = "0px";
     list.style.listStyle = "none";
     list.style.display = "inline-block";
@@ -185,6 +185,7 @@ export class HtmlMenuBar {
     el.style.cursor = "pointer";
 
     el.textContent = text;
+    el.style.fontSize = "20px";
 
     el.style.color = "white";
     el.style.backgroundColor = HtmlMenuBar.menuItemDefaultBackground;
