@@ -13,6 +13,7 @@ export class HtmlMenuBar {
   private static readonly itemMinWidth = 70;
 
   private readonly lists: HTMLUListElement[] = [];
+  private readonly fileUpToDateLabel: HTMLDivElement;
 
   constructor(
     private readonly div: HTMLDivElement,
@@ -40,12 +41,12 @@ export class HtmlMenuBar {
           if (list.contains(ev.target)) listToLeaveOpen = list;
         }
       }
-      that.closeMenus(listToLeaveOpen);
+      that.collapseMenus(listToLeaveOpen);
     });
 
     document.addEventListener("keydown", (ev) => {
       if (ev.key === "Escape") {
-        that.closeMenus();
+        that.collapseMenus();
       }
     });
 
@@ -108,10 +109,27 @@ export class HtmlMenuBar {
       },
     ]);
 
-    this.closeMenus();
+    this.fileUpToDateLabel = document.createElement("div");
+    this.div.appendChild(this.fileUpToDateLabel);
+    this.fileUpToDateLabel.style.display = "inline-block";
+    this.fileUpToDateLabel.style.height = `${height}px`;
+    this.fileUpToDateLabel.style.lineHeight = `${height}px`;
+    this.fileUpToDateLabel.style.paddingLeft = "20px";
+    this.fileUpToDateLabel.style.color = "white";
+    this.fileUpToDateLabel.style.fontWeight = "bold";
+    // make text non-selectable
+    this.fileUpToDateLabel.style.userSelect = "none";
+    this.fileUpToDateLabel.style.webkitUserSelect = "none";
+
+    this.setUnsavedChanges(false);
+    this.collapseMenus();
   }
 
-  private closeMenus(listToLeaveOpen?: HTMLUListElement): void {
+  public setUnsavedChanges(unsavedChanges: boolean): void {
+    this.fileUpToDateLabel.textContent = unsavedChanges ? "Unsaved changes" : "";
+  }
+
+  private collapseMenus(listToLeaveOpen?: HTMLUListElement): void {
     for (const list of this.lists) {
       if (list !== listToLeaveOpen) {
         list.style.overflow = "hidden";
@@ -178,7 +196,7 @@ export class HtmlMenuBar {
       }
 
       if (aListIsOpen) {
-        that.closeMenus(); // close other litss
+        that.collapseMenus(); // close other litss
         list.style.overflow = null; // open this list
       }
     });

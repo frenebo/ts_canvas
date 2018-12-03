@@ -10,11 +10,12 @@ import { Dialogs } from "./dialogs.js";
 export class PixiView implements ViewInterface {
   private data: GraphData = {vertices: {}, edges: {}};
   private readonly graphManager: GraphManager;
+  private readonly menuBar: HtmlMenuBar;
 
   constructor(
     div: HTMLDivElement,
     sendModelChangeRequest: (req: ModelChangeRequest) => void,
-    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
+    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
     const width = 1200;
@@ -56,7 +57,7 @@ export class PixiView implements ViewInterface {
       sendModelVersioningRequest,
     );
 
-    new HtmlMenuBar(
+    this.menuBar = new HtmlMenuBar(
       menuBarDiv,
       width,
       menuBarHeight,
@@ -146,5 +147,8 @@ export class PixiView implements ViewInterface {
     this.graphManager.applyCommands(graphManagerCommands);
 
     this.data = JSON.parse(JSON.stringify(newData));
+    const fileData = this.sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
+    const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
+    this.menuBar.setUnsavedChanges(unsavedChanges)
   }
 }

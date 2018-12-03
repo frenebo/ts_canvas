@@ -1,25 +1,26 @@
 import { GraphData, EdgeData, VertexData } from "../../interfaces.js";
 
-export interface AugmentedGraphData {
-  g: GraphData;
-  edgesByVertex: {
-    [key: string]: {
-      in: string[];
-      out: string[];
-    };
+export interface EdgesByVertex {
+  [key: string]: {
+    in: string[];
+    out: string[];
   };
 }
 
 export class GraphUtils {
-  public static edgesBetweenVertices(graphData: AugmentedGraphData, vtxIds: string[]) {
+  public static edgesBetweenVertices(
+    graphData: GraphData,
+    edgesByVertex: EdgesByVertex,
+    vtxIds: string[],
+  ) {
     const vtxOutputEdges = new Set<string>();
     const vtxInputEdges = new Set<string>();
 
     for (const vtxId of vtxIds) {
-      for (const outEdgeId of graphData.edgesByVertex[vtxId].out) {
+      for (const outEdgeId of edgesByVertex[vtxId].out) {
         vtxOutputEdges.add(outEdgeId);
       }
-      for (const inEdgeId of graphData.edgesByVertex[vtxId].in) {
+      for (const inEdgeId of edgesByVertex[vtxId].in) {
         vtxInputEdges.add(inEdgeId);
       }
     }
@@ -28,85 +29,114 @@ export class GraphUtils {
 
     for (const edgeId of vtxOutputEdges) {
       if (vtxInputEdges.has(edgeId)) {
-        edgesBetween[edgeId] = graphData.g.edges[edgeId];
+        edgesBetween[edgeId] = graphData.edges[edgeId];
       }
     }
 
     return edgesBetween;
   }
 
-  public static moveVertex(graphData: AugmentedGraphData, vtxId: string, x: number, y: number): void {
-    const vtx = graphData.g.vertices[vtxId];
+  public static moveVertex(
+    graphData: GraphData,
+    edgesByVertex: EdgesByVertex,
+    vtxId: string,
+    x: number,
+    y: number,
+  ): void {
+    const vtx = graphData.vertices[vtxId];
     if (vtx === undefined) throw new Error(`Could not find vertex with id ${vtxId}`);
 
     vtx.geo.x = x;
     vtx.geo.y = y;
   }
 
-  public static deleteVertex(graphData: AugmentedGraphData, vertexId: string): void {
-    if (graphData.g.vertices[vertexId] === undefined) return;
+  public static deleteVertex(
+    graphData: GraphData,
+    edgesByVertex: EdgesByVertex,
+    vertexId: string,
+  ): void {
+    if (graphData.vertices[vertexId] === undefined) return;
 
     const connectedEdges: string[] = [];
-    for (const edgeId in graphData.g.edges) {
+    for (const edgeId in graphData.edges) {
       if (
-        graphData.g.edges[edgeId].sourceVertexId === vertexId ||
-        graphData.g.edges[edgeId].targetVertexId === vertexId
+        graphData.edges[edgeId].sourceVertexId === vertexId ||
+        graphData.edges[edgeId].targetVertexId === vertexId
       ) {
         connectedEdges.push(edgeId);
       }
     }
     for (const connectedEdge of connectedEdges) {
-      this.deleteEdge(graphData, connectedEdge);
+      this.deleteEdge(graphData, edgesByVertex, connectedEdge);
     }
 
-    delete graphData.g.vertices[vertexId];
-    delete graphData.edgesByVertex[vertexId];
+    delete graphData.vertices[vertexId];
+    delete edgesByVertex[vertexId];
   }
 
-  public static deleteEdge(graphData: AugmentedGraphData, edgeId: string): void {
-    if (graphData.g.edges[edgeId] === undefined) return;
+  public static deleteEdge(
+    graphData: GraphData,
+    edgesByVertex: EdgesByVertex,
+    edgeId: string,
+  ): void {
+    if (graphData.edges[edgeId] === undefined) return;
 
-    const edge = graphData.g.edges[edgeId];
-    const inIdx = graphData.edgesByVertex[edge.sourceVertexId].out.indexOf(edgeId);
-    graphData.edgesByVertex[edge.sourceVertexId].out.splice(inIdx, 1);
-    const outIdx = graphData.edgesByVertex[edge.targetVertexId].in.indexOf(edgeId);
-    graphData.edgesByVertex[edge.targetVertexId].in.splice(outIdx, 1);
+    const edge = graphData.edges[edgeId];
+    const inIdx = edgesByVertex[edge.sourceVertexId].out.indexOf(edgeId);
+    edgesByVertex[edge.sourceVertexId].out.splice(inIdx, 1);
+    const outIdx = edgesByVertex[edge.targetVertexId].in.indexOf(edgeId);
+    edgesByVertex[edge.targetVertexId].in.splice(outIdx, 1);
 
-    delete graphData.g.edges[edgeId];
+    delete graphData.edges[edgeId];
   }
 
   public static cloneVertex(
-    graphData: AugmentedGraphData,
+    graphData: GraphData,
+    edgesByVertex: EdgesByVertex,
     newVtxId: string,
     oldVtxId: string,
     x: number,
     y: number,
   ): void {
-    if (graphData.g.vertices[newVtxId] !== undefined) throw new Error(`Vertex with id ${newVtxId} already exists`);
-    const oldVtx = graphData.g.vertices[oldVtxId];
+    if (graphData.vertices[newVtxId] !== undefined) throw new Error(`Vertex with id ${newVtxId} already exists`);
+    const oldVtx = graphData.vertices[oldVtxId];
     if (oldVtx === undefined) throw new Error(`Coudl not find vertex with id ${oldVtxId}`);
 
     const newVtx: VertexData = JSON.parse(JSON.stringify(oldVtx));
     newVtx.geo.x = x;
     newVtx.geo.y = y;
 
-    this.createVertex(graphData, newVtxId, newVtx);
+    this.createVertex(graphData, edgesByVertex, newVtxId, newVtx);
   }
 
-  public static createVertex(graphData: AugmentedGraphData, id: string, vtxData: VertexData): void {
-    graphData.g.vertices[id] = vtxData;
-    graphData.edgesByVertex[id] = {in: [], out: []};
+  public static createVertex(
+    graphData: GraphData,
+    edgesByVertex: EdgesByVertex,
+    id: string,
+    vtxData: VertexData,
+  ): void {
+    graphData.vertices[id] = vtxData;
+    edgesByVertex[id] = {in: [], out: []};
   }
 
   public static createEdge(
-    graphData: AugmentedGraphData,
+    graphData: GraphData,
+    edgesByVertex: EdgesByVertex,
     edgeId: string,
     sourceVtxId: string,
     sourcePortId: string,
     targetVtxId: string,
     targetPortId: string,
   ): void {
-    const edgeIsValid = this.validateEdge(graphData, sourceVtxId, sourcePortId, targetVtxId, targetPortId);
+    const edgeIsValid = this.validateEdge(
+      graphData,
+      edgesByVertex,
+      sourceVtxId,
+      sourcePortId,
+      targetVtxId,
+      targetPortId,
+    );
+
     if (!edgeIsValid) throw new Error(`Invalid create edge arguments: ${arguments}`);
 
     const edge = {
@@ -115,20 +145,21 @@ export class GraphUtils {
       targetVertexId: targetVtxId,
       targetPortId: targetPortId,
     };
-    graphData.g.edges[edgeId] = edge;
-    graphData.edgesByVertex[edge.sourceVertexId].out.push(edgeId);
-    graphData.edgesByVertex[edge.targetVertexId].in.push(edgeId);
+    graphData.edges[edgeId] = edge;
+    edgesByVertex[edge.sourceVertexId].out.push(edgeId);
+    edgesByVertex[edge.targetVertexId].in.push(edgeId);
   }
 
   public static validateEdge(
-    graphData: AugmentedGraphData,
+    graphData: GraphData,
+    edgesByVertex: EdgesByVertex,
     sourceVtxId: string,
     sourcePortId: string,
     targetVtxId: string,
     targetPortId: string,
   ): boolean {
-    const sourceVertex = graphData.g.vertices[sourceVtxId];
-    const targetVertex = graphData.g.vertices[targetVtxId];
+    const sourceVertex = graphData.vertices[sourceVtxId];
+    const targetVertex = graphData.vertices[targetVtxId];
     if (sourceVertex === undefined || targetVertex === undefined) return false;
 
     const sourcePort = sourceVertex.ports[sourcePortId];
@@ -140,11 +171,11 @@ export class GraphUtils {
     if (targetPort.portType !== "input") return false;
 
     // check that there isn't an identical edge present
-    const sourceOutEdges = graphData.edgesByVertex[sourceVtxId].out;
-    const targetInEdges = graphData.edgesByVertex[targetVtxId].in;
+    const sourceOutEdges = edgesByVertex[sourceVtxId].out;
+    const targetInEdges = edgesByVertex[targetVtxId].in;
     const edgesFromSourceToTarget = sourceOutEdges.filter((edgeId) => targetInEdges.indexOf(edgeId) !== -1);
     for (const edgeId of edgesFromSourceToTarget) {
-      const edge = graphData.g.edges[edgeId];
+      const edge = graphData.edges[edgeId];
 
       // check if the edge is identical
       if (edge.sourcePortId === sourcePortId && edge.targetPortId === targetPortId) {
@@ -160,8 +191,8 @@ export class GraphUtils {
       const vtxIdToInvestigate = vertexIdsToInvestigate.pop() as string;
       sourceAncestorIds.push(vtxIdToInvestigate);
 
-      for (const edgeId of graphData.edgesByVertex[vtxIdToInvestigate].in) {
-        const edgeData = graphData.g.edges[edgeId];
+      for (const edgeId of edgesByVertex[vtxIdToInvestigate].in) {
+        const edgeData = graphData.edges[edgeId];
         // check if the edge's source has not been seen before
         if (
           vertexIdsToInvestigate.indexOf(edgeData.sourceVertexId) === -1 &&

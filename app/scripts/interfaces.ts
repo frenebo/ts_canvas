@@ -138,6 +138,7 @@ export interface ModelInfoResponseMap {
   } | {
     fileIsOpen: true;
     fileName: string;
+    fileIsUpToDate: boolean;
   };
   "savedFileNames": {
     fileNames: string[];
