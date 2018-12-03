@@ -23,7 +23,11 @@ export class SaveUtils {
     if (dataStringOrNull === null) {
       return null;
     } else {
-      return JSON.parse(dataStringOrNull);
+      const modelData: ModelDataObj = JSON.parse(dataStringOrNull);
+
+      // @TODO type checking?
+
+      return modelData;
     }
   }
 
