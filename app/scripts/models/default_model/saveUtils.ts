@@ -1,4 +1,4 @@
-import { ModelDataObj } from "./model";
+import { ModelDataObj, SessionData } from "./model";
 
 export class SaveUtils {
   private static readonly saveFilePrefix = "GRAPH_FILE";
@@ -14,25 +14,34 @@ export class SaveUtils {
     return savedFileKeysWithoutPrefix;
   }
 
-  public static saveFile(fileName: string, data: ModelDataObj): void {
-    window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(data));
-  }
-
-  public static openFile(fileName: string): ModelDataObj | null {
-    const dataStringOrNull = window.localStorage.getItem(`${SaveUtils.saveFilePrefix}${fileName}`);
-
-    if (dataStringOrNull === null) {
-      return null;
-    } else {
-      const modelData: ModelDataObj = JSON.parse(dataStringOrNull);
-
-      // @TODO type checking?
-
-      return modelData;
+  public static saveFile(fileName: string, session: SessionData): void {
+    window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(session.data));
+    session.openFile = {
+      fileName: fileName,
+      fileIdxInHistory: 0,
     }
   }
 
-  public static deleteFile(fileName: string): void {
+  public static openFile(fileName: string, session: SessionData): void {
+    const dataStringOrNull = window.localStorage.getItem(`${SaveUtils.saveFilePrefix}${fileName}`);
+
+    if (dataStringOrNull !== null) {
+      const modelData: ModelDataObj = JSON.parse(dataStringOrNull);
+
+      // @TODO type checking?
+      session.data = modelData;
+      session.openFile = {
+        fileName: fileName,
+        fileIdxInHistory: 0,
+      };
+    }
+  }
+
+  public static deleteFile(fileName: string, session: SessionData): void {
     window.localStorage.removeItem(`${SaveUtils.saveFilePrefix}${fileName}`);
+
+    if (session.openFile !== null && session.openFile.fileName === fileName) {
+      session.openFile = null;
+    }
   }
 }

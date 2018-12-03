@@ -5,6 +5,7 @@ import {
 import { GraphUtils, EdgesByVertex } from "./graphUtils.js";
 import { Diffable, DiffType, applyDiff, createDiff, undoDiff } from "../../diff.js";
 import { SaveUtils } from "./saveUtils.js";
+import { VersioningUtils } from "./versioningUtils.js";
 
 export interface ModelDataObj {
   graph: GraphData;
@@ -12,18 +13,20 @@ export interface ModelDataObj {
   edgesByVertex: EdgesByVertex;
 }
 
-interface SessionData {
+export interface SessionData {
   data: ModelDataObj;
+  pastDiffs: Array<DiffType<ModelDataObj & Diffable>>;
+  futureDiffs: Array<DiffType<ModelDataObj & Diffable>>;
+  openFile: null | {
+    fileName: string;
+    fileIdxInHistory: number | null;
+  }
 }
 
 export class DefaultModel implements ModelInterface {
-  private readonly pastDiffs: Array<DiffType<ModelDataObj & Diffable>> = [];
-  private futureDiffs: Array<DiffType<ModelDataObj & Diffable>> = [];
   private readonly graphChangedListeners: Array<() => void> = [];
   private readonly layerDataDictChangedListeners: Array<() => void> = [];
 
-  private openFileName: string | null = null;
-  private fileIsUpToDate = false;
   private session: SessionData = {
     data: {
       graph: {
@@ -33,6 +36,9 @@ export class DefaultModel implements ModelInterface {
       layers: {},
       edgesByVertex: {},
     },
+    pastDiffs: [],
+    futureDiffs: [],
+    openFile: null,
   };
 
   constructor() {
@@ -76,7 +82,6 @@ export class DefaultModel implements ModelInterface {
   }
 
   public requestModelChanges(...reqs: ModelChangeRequest[]): void {
-    this.futureDiffs = []; // redos are lost when model is changed
 
     const beforeChange = JSON.parse(JSON.stringify(this.session.data));
 
@@ -85,8 +90,23 @@ export class DefaultModel implements ModelInterface {
     }
 
     const changeDiff = createDiff(beforeChange, this.session.data as unknown as Diffable);
-    this.pastDiffs.push(changeDiff as DiffType<ModelDataObj & Diffable>);
-    this.fileIsUpToDate = false;
+    this.session.pastDiffs.push(changeDiff as DiffType<ModelDataObj & Diffable>);
+
+    if (this.session.openFile !== null) {
+      // if the save file is ahead of the current data, set fileIdxInHistory to null
+      if (
+        this.session.futureDiffs.length !== 0 &&
+        this.session.openFile.fileIdxInHistory !== null &&
+        this.session.openFile.fileIdxInHistory < 0
+      ) {
+        this.session.openFile.fileIdxInHistory = null;
+      }
+
+      if (typeof this.session.openFile.fileIdxInHistory === "number") {
+        this.session.openFile.fileIdxInHistory++;
+      }
+    }
+    this.session.futureDiffs = []; // redos are lost when model is changed
 
     for (const listener of this.graphChangedListeners) {
       listener();
@@ -140,39 +160,15 @@ export class DefaultModel implements ModelInterface {
 
   public requestVersioningChange(req: ModelVersioningRequest): void {
     if (req.type === "undo") {
-      if (this.pastDiffs.length === 0) return;
-      const pastDiff = this.pastDiffs.pop()!;
-
-      const newData = undoDiff(this.session.data as unknown as Diffable, pastDiff) as unknown as ModelDataObj;
-
-      this.futureDiffs.splice(0, 0, pastDiff);
-
-      this.session.data = newData;
+      VersioningUtils.undo(this.session);
     } else if (req.type === "redo") {
-      if (this.futureDiffs.length === 0) return;
-      const redoDiff = this.futureDiffs.splice(0, 1)[0];
-
-      const newData = applyDiff(this.session.data as unknown as Diffable, redoDiff) as unknown as ModelDataObj;
-
-      this.pastDiffs.push(redoDiff);
-
-      this.session.data = newData;
+      VersioningUtils.redo(this.session);
     } else if (req.type === "saveFile") {
-      SaveUtils.saveFile(req.fileName, this.session.data);
-      this.openFileName = req.fileName;
-      this.fileIsUpToDate = true;
+      SaveUtils.saveFile(req.fileName, this.session);
     } else if (req.type === "openFile") {
-      const modelDataOrNull = SaveUtils.openFile(req.fileName);
-      if (modelDataOrNull !== null) {
-        this.session.data = modelDataOrNull;
-        this.openFileName = req.fileName;
-        this.fileIsUpToDate = true;
-      }
+      SaveUtils.openFile(req.fileName, this.session);
     } else if (req.type === "deleteFile") {
-      SaveUtils.deleteFile(req.fileName);
-      if (this.openFileName === req.fileName) {
-        this.openFileName = null;
-      }
+      SaveUtils.deleteFile(req.fileName, this.session);
     } else {
       throw new Error("unimplemented");
     }
@@ -206,12 +202,12 @@ export class DefaultModel implements ModelInterface {
       };
       return response;
     } else if (req.type === "fileIsOpen") {
-      const response: ModelInfoResponseMap["fileIsOpen"] = this.openFileName === null ? {
+      const response: ModelInfoResponseMap["fileIsOpen"] = this.session.openFile === null ? {
           fileIsOpen: false,
         } : {
           fileIsOpen: true,
-          fileName: this.openFileName,
-          fileIsUpToDate: this.fileIsUpToDate,
+          fileName: this.session.openFile.fileName,
+          fileIsUpToDate: this.session.openFile.fileIdxInHistory === 0,
         };
 
       return response;
