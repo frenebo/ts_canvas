@@ -6,7 +6,7 @@ class Dialog {
   protected static createTitle(titleText: string) {
     const titleDiv = document.createElement("div");
     titleDiv.textContent = titleText;
-    titleDiv.style.fontSize = "20";
+    titleDiv.style.fontSize = "30px";
     titleDiv.style.fontWeight = "bold";
     titleDiv.style.textAlign = "center";
     titleDiv.style.marginTop = "15px";

@@ -17,9 +17,9 @@ export class PixiView implements ViewInterface {
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
-    const width = 800;
-    const menuBarHeight = 35;
-    const graphHeight = 500;
+    const width = 1200;
+    const menuBarHeight = 50;
+    const graphHeight = 700;
 
     div.style.width = `${width}px`;
     div.style.height = `${menuBarHeight + graphHeight}px`;
