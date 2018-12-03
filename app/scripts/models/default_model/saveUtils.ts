@@ -1,4 +1,4 @@
-import { ModelDataObj } from "./model";
+import { ModelDataObj, ModelAndDiffs } from "./model";
 
 export class SaveUtils {
   private static saveFilePrefix = "GRAPH_FILE";
@@ -13,11 +13,11 @@ export class SaveUtils {
     return savedFileKeysWithoutPrefix;
   }
 
-  public static saveFile(fileName: string, data: ModelDataObj): void {
+  public static saveFile(fileName: string, data: ModelAndDiffs): void {
     window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(data));
   }
 
-  public static openFile(fileName: string): ModelDataObj | null {
+  public static openFile(fileName: string): ModelAndDiffs | null {
     const dataStringOrNull = window.localStorage.getItem(`${SaveUtils.saveFilePrefix}${fileName}`);
 
     if (dataStringOrNull === null) {

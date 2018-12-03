@@ -130,6 +130,9 @@ export class DefaultModel implements ModelInterface {
       }
     } else if (req.type === "deleteFile") {
       SaveUtils.deleteFile(req.fileName);
+      if (this.openFileName === req.fileName) {
+        this.openFileName = null;
+      }
     } else {
       throw new Error("unimplemented");
     }
