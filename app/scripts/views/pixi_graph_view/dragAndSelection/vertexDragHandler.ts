@@ -10,7 +10,7 @@ export class VertexDragHandler {
       x: number;
       y: number;
     };
-    isCtrlClick: boolean;
+    isCtrlOrMetaClick: boolean;
     isDrag: boolean;
     selectionUpdated: boolean;
     // dragData: {
@@ -46,23 +46,23 @@ export class VertexDragHandler {
     const mouseLocalX = this.vtxWrapper.getDataRelativeLoc(event.data).x - this.vtxWrapper.localX();
     const mouseLocalY = this.vtxWrapper.getDataRelativeLoc(event.data).y - this.vtxWrapper.localY();
 
-    const ctrlKeyDown = event.data.originalEvent.ctrlKey;
+    const ctrlOrMetaDown = event.data.originalEvent.ctrlKey || event.data.originalEvent.metaKey;
 
     this.clickData = {
       mouseStartLocal: {
         x: mouseLocalX,
         y: mouseLocalY,
       },
-      isCtrlClick: ctrlKeyDown,
+      isCtrlOrMetaClick: ctrlOrMetaDown,
       isDrag: false,
       selectionUpdated: false,
     };
 
-    if (!this.selectionManager.vertexIsSelected(this.vertexId) && !this.clickData.isCtrlClick) {
+    if (!this.selectionManager.vertexIsSelected(this.vertexId) && !this.clickData.isCtrlOrMetaClick) {
       this.selectionManager.clearSelection();
     }
 
-    if (!this.clickData.isCtrlClick || !this.selectionManager.vertexIsSelected(this.vertexId)) {
+    if (!this.clickData.isCtrlOrMetaClick || !this.selectionManager.vertexIsSelected(this.vertexId)) {
       this.selectionManager.selectVertex(this.vertexId);
       this.clickData.selectionUpdated = true;
     }
@@ -84,7 +84,7 @@ export class VertexDragHandler {
       if (dx*dx + dy*dy > VertexDragHandler.dragThreshold*VertexDragHandler.dragThreshold) {
         // begin drag
         this.clickData.isDrag = true;
-        this.selectionManager.startSelectionDrag(dx, dy, this.clickData.isCtrlClick);
+        this.selectionManager.startSelectionDrag(dx, dy, this.clickData.isCtrlOrMetaClick);
       }
     }
 
@@ -105,7 +105,7 @@ export class VertexDragHandler {
     if (this.clickData.isDrag) {
       this.selectionManager.endSelectionDrag(dx, dy);
     } else if (!this.clickData.selectionUpdated) {
-      if (this.clickData.isCtrlClick) {
+      if (this.clickData.isCtrlOrMetaClick) {
         if (this.selectionManager.vertexIsSelected(this.vertexId)) {
           this.selectionManager.deselectVertex(this.vertexId);
         } else {

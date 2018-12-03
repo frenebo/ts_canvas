@@ -47,7 +47,7 @@ export class HtmlMenuBar {
       }
     });
 
-    this.addMenuItem("File", [
+    this.addMenuList("File", [
       {
         text: "Save",
         tooltip: keyboardHandler.saveShortcutString(),
@@ -75,7 +75,7 @@ export class HtmlMenuBar {
         },
       },
     ]);
-    this.addMenuItem("Edit", [
+    this.addMenuList("Edit", [
       {
         text: "Undo",
         tooltip: keyboardHandler.undoShortcutString(),
@@ -117,7 +117,7 @@ export class HtmlMenuBar {
     }
   }
 
-  private addMenuItem(title: string, subItems: Array<{text: string, tooltip?: string, onclick: () => void}>): void {
+  private addMenuList(title: string, subItems: Array<{text: string, tooltip?: string, onclick: () => void}>): void {
     const list = document.createElement("ul");
     this.lists.push(list);
     list.style.padding = "0";
@@ -142,7 +142,7 @@ export class HtmlMenuBar {
       const subItem = document.createElement("button");
       list.appendChild(subItem);
       subButtons.push(subItem);
-      this.menuItemSetup(subItem, text, "left", tooltip);
+      this.menuItemSetup(subItem, text, "left", tooltip, true);
       subItem.addEventListener("click", (ev) => {
         onclick();
       });
@@ -159,15 +159,28 @@ export class HtmlMenuBar {
       } else {
         list.style.overflow = null;
       }
-      // if (list.style.maxHeight !== "") {
-      //   list.style.maxHeight = null;
-      // } else {
-      //   list.style.maxHeight = `${HtmlMenuBar.itemHeight}px`;
-      // }
+    });
+    const that = this;
+    titleItem.addEventListener("mouseover", () => {
+      let aListIsOpen = false;
+      for (const list of that.lists) {
+        if (list.style.overflow !== "hidden") aListIsOpen = true;
+      }
+
+      if (aListIsOpen) {
+        that.closeMenus(); // close other litss
+        list.style.overflow = null; // open this list
+      }
     });
   }
 
-  private menuItemSetup(el: HTMLElement, text: string, align: "left" | "center", tooltip?: string): void {
+  private menuItemSetup(
+    el: HTMLElement,
+    text: string,
+    align: "left" | "center",
+    tooltip?: string,
+    extraPadding = false,
+  ): void {
     const bottomBorderHeight = 5;
     if (typeof tooltip === "string") el.title = tooltip;
     // el.style.verticalAlign = "top";
@@ -176,11 +189,14 @@ export class HtmlMenuBar {
     el.style.height = `${HtmlMenuBar.itemHeight}px`;
     el.style.lineHeight = `${HtmlMenuBar.itemHeight - bottomBorderHeight}px`;
     el.style.minWidth = `${HtmlMenuBar.itemMinWidth}px`;
+
+    el.style.paddingLeft = extraPadding ? "20px" : "0px";
+    el.style.paddingRight = extraPadding ? "20px" : "0px";
+
     el.style.display = "block";
     el.style.textAlign = align;
     el.style.textDecoration = "none";
     el.style.whiteSpace = "nowrap";
-    // el.setAttribute("href", "#");
     el.style.cursor = "pointer";
 
     el.textContent = text;

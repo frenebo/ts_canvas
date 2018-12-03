@@ -4,7 +4,7 @@ import { Dialogs } from "./dialogs.js";
 
 interface ShortcutDescription {
   eventKeyName: string, // must be lowercase!
-  ctrl?: boolean,
+  ctrlMeta?: boolean,
   shift?: boolean
 }
 
@@ -17,7 +17,7 @@ export class KeyboardHandler {
 
         if (
           description.eventKeyName === ev.key.toLowerCase() &&
-          (description.ctrl === undefined || ev.ctrlKey === description.ctrl) &&
+          (description.ctrlMeta === undefined || (ev.ctrlKey || ev.metaKey) === description.ctrlMeta) &&
           (description.shift === undefined || ev.shiftKey === description.shift)
         ) {
           if (matches.indexOf(shortcutKey) === -1) {
@@ -35,7 +35,7 @@ export class KeyboardHandler {
 
     for (const shortcut of shortcuts) {
       let description = "";
-      if (shortcut.ctrl) description += "Ctrl-";
+      if (shortcut.ctrlMeta) description += "Ctrl-";
       if (shortcut.shift) {
         description += "Shift-";
       }
@@ -49,37 +49,37 @@ export class KeyboardHandler {
 
   private undoShortcuts: ShortcutDescription[] = [{
     eventKeyName: "z",
-    ctrl: true,
+    ctrlMeta: true,
     shift: false,
   }];
   private redoShortcuts: ShortcutDescription[] = [
     {
       eventKeyName: "z",
-      ctrl: true,
+      ctrlMeta: true,
       shift: true,
     },
     {
       eventKeyName: "y",
-      ctrl: true,
-    }
+      ctrlMeta: true,
+    },
   ];
   private selectAllShortcuts: ShortcutDescription[] = [{
     eventKeyName: "a",
-    ctrl: true,
+    ctrlMeta: true,
   }];
   private saveShortcuts: ShortcutDescription[] = [{
     eventKeyName: "s",
-    ctrl: true,
+    ctrlMeta: true,
     shift: false,
   }];
   private saveAsShortcuts: ShortcutDescription[] = [{
     eventKeyName: "s",
-    ctrl: true,
+    ctrlMeta: true,
     shift: true,
   }];
   private openShortcuts: ShortcutDescription[] = [{
     eventKeyName: "o",
-    ctrl: true,
+    ctrlMeta: true,
   }];
   private deleteSelectionShortcuts: ShortcutDescription[] = [{ eventKeyName: "delete" }];
 

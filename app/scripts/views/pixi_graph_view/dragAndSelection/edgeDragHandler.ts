@@ -12,7 +12,7 @@ export class EdgeDragHandler {
     selectionManager: SelectionManager,
   ) {
     let clickData: {
-      isCtrlClick: boolean;
+      isCtrlOrMetaClick: boolean;
       mouseStartLocal: {
         x: number;
         y: number;
@@ -27,7 +27,7 @@ export class EdgeDragHandler {
       const mouseLocalY = edgeWrapper.getDataRelativeLoc(event.data).y - edgeWrapper.localY();
 
       clickData = {
-        isCtrlClick: event.data.originalEvent.ctrlKey,
+        isCtrlOrMetaClick: event.data.originalEvent.ctrlKey || event.data.originalEvent.metaKey,
         mouseStartLocal: {
           x: mouseLocalX,
           y: mouseLocalY,
@@ -36,11 +36,11 @@ export class EdgeDragHandler {
         selectionUpdated: false,
       };
 
-      if (!selectionManager.edgeIsSelected(id) && !clickData.isCtrlClick) {
+      if (!selectionManager.edgeIsSelected(id) && !clickData.isCtrlOrMetaClick) {
         selectionManager.clearSelection();
       }
 
-      if (!clickData.isCtrlClick || !selectionManager.edgeIsSelected(id)) {
+      if (!clickData.isCtrlOrMetaClick || !selectionManager.edgeIsSelected(id)) {
         selectionManager.selectEdge(id);
         clickData.selectionUpdated = true;
       }
@@ -60,7 +60,7 @@ export class EdgeDragHandler {
         if (dx*dx + dy*dy > EdgeDragHandler.dragThreshold*EdgeDragHandler.dragThreshold) {
           // begin drag
           clickData.isDrag = true;
-          selectionManager.startSelectionDrag(dx, dy, clickData.isCtrlClick);
+          selectionManager.startSelectionDrag(dx, dy, clickData.isCtrlOrMetaClick);
         }
       }
 
@@ -80,7 +80,7 @@ export class EdgeDragHandler {
       if (clickData.isDrag) {
         selectionManager.endSelectionDrag(dx, dy);
       } else if (!clickData.selectionUpdated) {
-        if (clickData.isCtrlClick) {
+        if (clickData.isCtrlOrMetaClick) {
           if (selectionManager.edgeIsSelected(id)) {
             selectionManager.deselectEdge(id);
           } else {
