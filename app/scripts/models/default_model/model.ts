@@ -6,7 +6,7 @@ import { GraphUtils, AugmentedGraphData } from "./graphUtils.js";
 import { Diffable, DiffType, applyDiff, createDiff, undoDiff } from "../../diff.js";
 import { SaveUtils } from "./saveUtils.js";
 
-interface ModelDataObj {
+export interface ModelDataObj {
   graph: AugmentedGraphData;
   layers: LayerDataDict;
 }
@@ -34,34 +34,13 @@ export class DefaultModel implements ModelInterface {
             side: "top",
             position: 0.5,
           },
-          // "port1": {
-          //   portType: "input",
-          //   side: "top",
-          //   position: 0.2,
-          // },
           "port2": {
             portType: "output",
             side: "bottom",
             position: 0.5,
           },
-          // "port3": {
-          //   portType: "output",
-          //   side: "bottom",
-          //   position: 0.8,
-          // }
         },
       });
-
-      // if (i !== 0) {
-      //   GraphUtils.createEdge(
-      //     this.modelData.graph,
-      //     i.toString(),
-      //     (i - 1).toString(),
-      //     "port2",
-      //     i.toString(),
-      //     "port0",
-      //   );
-      // }
     }
   }
 
@@ -141,7 +120,16 @@ export class DefaultModel implements ModelInterface {
 
       this.modelData = newData;
     } else if (req.type === "saveFile") {
-      console.log("unimplemented save in open file");
+      SaveUtils.saveFile(req.fileName, this.modelData);
+      this.openFileName = req.fileName;
+    } else if (req.type === "openFile") {
+      const modelDataOrNull = SaveUtils.openFile(req.fileName);
+      if (modelDataOrNull !== null) {
+        this.modelData = modelDataOrNull;
+        this.openFileName = req.fileName;
+      }
+    } else if (req.type === "deleteFile") {
+      SaveUtils.deleteFile(req.fileName);
     } else {
       throw new Error("unimplemented");
     }

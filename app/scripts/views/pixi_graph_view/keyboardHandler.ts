@@ -1,6 +1,6 @@
-import { SelectionManager } from "./selectionManager";
-import { ModelChangeRequest, ModelVersioningRequest } from "../../interfaces";
-import { FileMenu } from "./fileMenu";
+import { SelectionManager } from "./selectionManager.js";
+import { ModelChangeRequest, ModelVersioningRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces.js";
+import { Dialogs } from "./dialogs.js";
 
 interface ShortcutDescription {
   eventKeyName: string, // must be lowercase!
@@ -70,6 +70,12 @@ export class KeyboardHandler {
   private saveShortcuts: ShortcutDescription[] = [{
     eventKeyName: "s",
     ctrl: true,
+    shift: false,
+  }];
+  private saveAsShortcuts: ShortcutDescription[] = [{
+    eventKeyName: "s",
+    ctrl: true,
+    shift: true,
   }];
   private openShortcuts: ShortcutDescription[] = [{
     eventKeyName: "o",
@@ -79,9 +85,10 @@ export class KeyboardHandler {
 
   constructor(
     div: HTMLDivElement,
-    fileMenu: FileMenu,
+    fileMenu: Dialogs,
     selectionManager: SelectionManager,
     sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
+    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
     let divSelected = false;
@@ -101,6 +108,7 @@ export class KeyboardHandler {
         escape: [{ eventKeyName: "escape" }],
         selectAll: this.selectAllShortcuts,
         save: this.saveShortcuts,
+        saveAs: this.saveAsShortcuts,
         open: this.openShortcuts,
       });
 
@@ -120,9 +128,16 @@ export class KeyboardHandler {
         } else if (match === "selectAll") {
           selectionManager.selectAll();
         } else if (match === "save") {
-          fileMenu.saveDialog();
+          const openFileData = sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
+          if (openFileData.fileIsOpen) {
+            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
+          } else {
+            fileMenu.saveAsDialog();
+          }
         } else if (match === "open") {
           fileMenu.openDialog();
+        } else if (match === "saveAs") {
+          fileMenu.saveAsDialog();
         }
       }
     });
@@ -138,6 +153,10 @@ export class KeyboardHandler {
 
   public saveShortcutString(): string {
     return KeyboardHandler.stringifyShortcuts(this.saveShortcuts);
+  }
+
+  public saveAsShortcutString(): string {
+    return KeyboardHandler.stringifyShortcuts(this.saveAsShortcuts);
   }
 
   public openShortcutString(): string {

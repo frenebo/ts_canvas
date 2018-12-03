@@ -94,6 +94,12 @@ export type ModelVersioningRequest = {
 } | {
   type: "saveFile";
   fileName: string;
+} | {
+  type: "openFile";
+  fileName: string;
+} | {
+  type: "deleteFile";
+  fileName: string;
 };
 
 export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoResponseMap;

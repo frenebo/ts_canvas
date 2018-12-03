@@ -1,3 +1,4 @@
+import { ModelDataObj } from "./model";
 
 export class SaveUtils {
   private static saveFilePrefix = "GRAPH_FILE";
@@ -9,10 +10,24 @@ export class SaveUtils {
     });
     const savedFileKeysWithoutPrefix = savedFileKeys.map(key => key.slice(SaveUtils.saveFilePrefix.length));
 
-    // return savedFileKeysWithoutPrefix;
-    const titles: string[] = [];
-    for (let i = 0; i < 100; i++) titles.push(i.toString());
+    return savedFileKeysWithoutPrefix;
+  }
 
-    return titles;
+  public static saveFile(fileName: string, data: ModelDataObj): void {
+    window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(data));
+  }
+
+  public static openFile(fileName: string): ModelDataObj | null {
+    const dataStringOrNull = window.localStorage.getItem(`${SaveUtils.saveFilePrefix}${fileName}`);
+
+    if (dataStringOrNull === null) {
+      return null;
+    } else {
+      return JSON.parse(dataStringOrNull);
+    }
+  }
+
+  public static deleteFile(fileName: string): void {
+    window.localStorage.removeItem(`${SaveUtils.saveFilePrefix}${fileName}`);
   }
 }

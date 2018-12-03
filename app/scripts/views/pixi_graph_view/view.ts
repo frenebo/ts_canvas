@@ -5,7 +5,7 @@ import {
 import { GraphManager, GraphManagerCommand } from "./graphManager.js";
 import { HtmlMenuBar } from "./htmlMenuBar.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
-import { FileMenu } from "./fileMenu.js";
+import { Dialogs } from "./dialogs.js";
 
 export class PixiView implements ViewInterface {
   private data: GraphData = {vertices: {}, edges: {}};
@@ -43,7 +43,7 @@ export class PixiView implements ViewInterface {
       sendModelVersioningRequest,
     );
 
-    const fileMenu = new FileMenu(
+    const fileMenu = new Dialogs(
       div,
       sendModelInfoRequest,
       sendModelVersioningRequest,
@@ -54,6 +54,7 @@ export class PixiView implements ViewInterface {
       fileMenu,
       this.graphManager.getSelectionManager(),
       sendModelChangeRequest,
+      sendModelInfoRequest,
       sendModelVersioningRequest,
     );
 

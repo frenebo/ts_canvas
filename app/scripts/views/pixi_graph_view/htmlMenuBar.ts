@@ -1,7 +1,7 @@
-import { ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest, ModelInfoResponseMap } from "../../interfaces";
-import { KeyboardHandler } from "./keyboardHandler";
-import { SelectionManager } from "./selectionManager";
-import { FileMenu } from "./fileMenu";
+import { ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest, ModelInfoResponseMap } from "../../interfaces.js";
+import { KeyboardHandler } from "./keyboardHandler.js";
+import { SelectionManager } from "./selectionManager.js";
+import { Dialogs } from "./dialogs.js";
 
 export class HtmlMenuBar {
   private static barBackground = "#44596e";
@@ -16,7 +16,7 @@ export class HtmlMenuBar {
     private readonly div: HTMLDivElement,
     width: number,
     private readonly height: number,
-    fileMenu: FileMenu,
+    fileMenu: Dialogs,
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
     sendModelChangeRequest: (req: ModelChangeRequest) => void,
@@ -51,8 +51,20 @@ export class HtmlMenuBar {
         text: "Save",
         tooltip: keyboardHandler.saveShortcutString(),
         onclick: () => {
-          fileMenu.saveDialog();
+          const openFileData = sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
+          if (openFileData.fileIsOpen) {
+            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
+          } else {
+            fileMenu.saveAsDialog();
+          }
         },
+      },
+      {
+        text: "Save As",
+        tooltip: keyboardHandler.saveAsShortcutString(),
+        onclick: () => {
+          fileMenu.saveAsDialog();
+        }
       },
       {
         text: "Open",
