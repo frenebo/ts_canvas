@@ -27,6 +27,7 @@ export class HtmlMenuBar {
     div.style.backgroundColor = HtmlMenuBar.barBackground;
     div.style.overflow = "visible";
     div.style.height = `${this.height}px`;
+    div.style.fontFamily = "Helvetica Neue,Helvetica,Arial";
     div.style.zIndex = "10";
     const that = this;
 
@@ -176,8 +177,6 @@ export class HtmlMenuBar {
     el.style.lineHeight = `${HtmlMenuBar.itemHeight - bottomBorderHeight}px`;
     el.style.minWidth = `${HtmlMenuBar.itemMinWidth}px`;
     el.style.display = "block";
-    // menuItem.style.marginRight = "2px";
-    el.style.fontFamily = "Arial";
     el.style.textAlign = align;
     el.style.textDecoration = "none";
     el.style.whiteSpace = "nowrap";

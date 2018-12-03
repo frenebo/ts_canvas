@@ -35,7 +35,7 @@ class Dialog {
     this.root.style.borderWidth = "3px";
     this.root.style.borderColor = "#444444";
     this.root.style.borderStyle = "solid";
-    this.root.style.fontFamily = "Arial";
+    this.root.style.fontFamily = "Helvetica Neue,Helvetica,Arial";
     this.root.style.zIndex = "11";
 
     const closeButton = document.createElement("button");
