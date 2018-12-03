@@ -49,7 +49,7 @@ export class VertexWrapper {
   private readonly container: PIXI.Container;
   private readonly width: number;
   private readonly height: number;
-  // private readonly label: PIXI.Text;
+  private readonly label: PIXI.Text;
   private editIcon: EditIcon | null = null;
   private readonly positionChangedListeners: Array<() => void> = [];
   private isSelected = false;
@@ -90,8 +90,8 @@ export class VertexWrapper {
       // wordWrapWidth: 440,
     });
 
-    // this.label = new PIXI.Text("", textStyle);
-    // this.container.addChild(this.label);
+    this.label = new PIXI.Text("", textStyle);
+    this.container.addChild(this.label);
 
 
     // this.positionChildren();
@@ -135,10 +135,10 @@ export class VertexWrapper {
       widthForLabel = this.container.width;
     }
 
-    // this.label.position.set(
-    //   (widthForLabel - this.label.width)/2,
-    //   this.label.y = (this.container.height - this.label.height)/2,
-    // );
+    this.label.position.set(
+      (widthForLabel - this.label.width)/2,
+      this.label.y = (this.container.height - this.label.height)/2,
+    );
   }
 
   public positionPort(portWrapper: PortWrapper, position: number, side: "top" | "bottom" | "left" | "right"): void {
@@ -168,10 +168,10 @@ export class VertexWrapper {
   }
 
   public setLabelText(text: string): void {
-    // if (this.label.text !== text) {
-    //   this.label.text = text;
-    //   this.positionChildren();
-    // }
+    if (this.label.text !== text) {
+      this.label.text = text;
+      this.positionChildren();
+    }
   }
 
   public addTo(obj: PIXI.Container): void {
