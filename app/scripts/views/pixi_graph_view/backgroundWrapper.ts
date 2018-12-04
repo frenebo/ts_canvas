@@ -1,10 +1,12 @@
 import { BACKGROUND_TILE_PATH } from "../../constants.js";
 import { VertexWrapper } from "./vertexWrapper.js";
 import { EdgeWrapper } from "./edgeWrapper.js";
+import { PortWrapper } from "./portWrapper.js";
 
 export class BackgroundWrapper {
   private readonly sprite: PIXI.extras.TilingSprite;
   private readonly childContainer: PIXI.Container;
+  private readonly overlayContainer: PIXI.Container;
   private readonly positionOrZoomChangeListeners: Array<() => void> = [];
   private scale: number = 1;
 
@@ -15,6 +17,9 @@ export class BackgroundWrapper {
     this.sprite = new PIXI.extras.TilingSprite(texture, renderer.width, renderer.height);
     this.childContainer = new PIXI.Container();
     this.sprite.addChild(this.childContainer);
+
+    this.overlayContainer = new PIXI.Container();
+    this.sprite.addChild(this.overlayContainer);
 
     this.sprite.interactive = true;
 
@@ -38,6 +43,14 @@ export class BackgroundWrapper {
 
   public getDisplayObject() {
     return this.sprite;
+  }
+
+  public addOverlayObject(overlayObject: PIXI.DisplayObject): void {
+    this.overlayContainer.addChild(overlayObject);
+  }
+
+  public removeOverlayObject(overlayObject: PIXI.DisplayObject): void {
+    this.overlayContainer.removeChild(overlayObject);
   }
 
   public addTo(obj: PIXI.Container): void {
@@ -91,6 +104,7 @@ export class BackgroundWrapper {
   public setPosition(x: number, y: number): void {
     this.sprite.tilePosition.set(x, y);
     this.childContainer.position.set(x, y);
+    this.overlayContainer.position.set(x, y);
 
     for (const listener of this.positionOrZoomChangeListeners) {
       listener();
@@ -105,6 +119,7 @@ export class BackgroundWrapper {
     this.scale = this.sprite.tileScale.x*factor;
     this.sprite.tileScale.set(this.scale);
     this.childContainer.scale.set(this.scale);
+    this.overlayContainer.scale.set(this.scale);
 
     for (const listener of this.positionOrZoomChangeListeners) {
       listener();

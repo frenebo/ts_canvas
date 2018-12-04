@@ -10,6 +10,7 @@ import { StageManager } from "./stageManager.js";
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
 import { CullingManager } from "./cullingManager.js";
+import { PortPreviewManager } from "./portPreviewManager.js";
 
 export type GraphManagerCommand = {
   type: "removeEdge";
@@ -54,6 +55,7 @@ export class GraphManager {
   private readonly selectionManager: SelectionManager;
   private readonly dragRegistry: DragRegistry;
   private readonly cullingManager: CullingManager;
+  private readonly portPreviewManager: PortPreviewManager;
 
   constructor(
     div: HTMLDivElement,
@@ -72,6 +74,11 @@ export class GraphManager {
       this.stageManager.getRenderer(),
       this.stageManager.getBackgroundWrapper(),
     );
+
+    this.portPreviewManager = new PortPreviewManager(
+      this.stageManager.getBackgroundWrapper(),
+    );
+
     this.dragRegistry = new DragRegistry(
       sendModelChangeRequest,
       sendModelInfoRequest,
@@ -81,6 +88,7 @@ export class GraphManager {
       () => this.ports,
       this.stageManager.getBackgroundWrapper(),
       this.selectionManager,
+      this.portPreviewManager,
       this.stageManager.getRenderer(),
     );
 
@@ -177,6 +185,7 @@ export class GraphManager {
     this.stageManager.removeVertex(vertexWrapper);
     this.dragRegistry.removeVertex(vertexKey, vertexWrapper);
     this.cullingManager.removeVertex(vertexKey);
+    this.portPreviewManager.removeVertex(vertexKey);
   }
 
   private removeEdge(edgeKey: string, edgeData: EdgeData) {
@@ -195,13 +204,13 @@ export class GraphManager {
     this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].splice(tgtIdx, 1);
   }
 
-  private updateVertex(vertexKey: string, vertexData: VertexData) {
-    const vertexWrapper = this.vertexWrappers[vertexKey];
+  private updateVertex(vertexId: string, vertexData: VertexData) {
+    const vertexWrapper = this.vertexWrappers[vertexId];
 
     vertexWrapper.setPosition(vertexData.geo.x, vertexData.geo.y);
     vertexWrapper.setLabelText(vertexData.label);
 
-    const beforePorts = Object.keys(this.ports[vertexKey]);
+    const beforePorts = Object.keys(this.ports[vertexId]);
     const afterPorts = Object.keys(vertexData.ports);
 
     const removedPortIds = beforePorts.filter((k) => afterPorts.indexOf(k) === -1);
@@ -209,10 +218,11 @@ export class GraphManager {
     const sharedPortIds = beforePorts.filter((k) => afterPorts.indexOf(k) !== -1);
 
     for (const removedPortId of removedPortIds) {
-      const port = this.ports[vertexKey][removedPortId];
+      const port = this.ports[vertexId][removedPortId];
       vertexWrapper.removeChild(port.getDisplayObject());
-      delete this.ports[vertexKey][removedPortId];
-      delete this.portEdges[vertexKey][removedPortId];
+      delete this.ports[vertexId][removedPortId];
+      delete this.portEdges[vertexId][removedPortId];
+      this.portPreviewManager.removePort(removedPortId, vertexId);
     }
     for (const addedPortId of addedPortIds) {
       const portData = vertexData.ports[addedPortId];
@@ -220,17 +230,17 @@ export class GraphManager {
       vertexWrapper.addChild(portWrapper.getDisplayObject());
       vertexWrapper.positionPort(portWrapper, portData.position, portData.side);
 
-      this.ports[vertexKey][addedPortId] = portWrapper;
-      this.portEdges[vertexKey][addedPortId] = [];
-      this.dragRegistry.registerPort(vertexKey, vertexWrapper, addedPortId, portWrapper);
+      this.ports[vertexId][addedPortId] = portWrapper;
+      this.portEdges[vertexId][addedPortId] = [];
+      this.dragRegistry.registerPort(vertexId, vertexWrapper, addedPortId, portWrapper);
     }
     for (const sharedPortId of sharedPortIds) {
       const portData = vertexData.ports[sharedPortId];
-      const portWrapper = this.ports[vertexKey][sharedPortId];
+      const portWrapper = this.ports[vertexId][sharedPortId];
 
       vertexWrapper.positionPort(portWrapper, portData.position, portData.side);
     }
 
-    this.cullingManager.updateVertex(vertexKey);
+    this.cullingManager.updateVertex(vertexId);
   }
 }

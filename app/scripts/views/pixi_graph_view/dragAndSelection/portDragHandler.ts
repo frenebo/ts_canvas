@@ -1,48 +1,111 @@
 import { DragListeners } from "./dragRegistry.js";
 import { PortWrapper } from "../portWrapper.js";
 
+interface PortListenerTypes {
+  dragStart: (x: number, y: number) => void;
+  dragMove: (x: number, y: number) => void;
+  dragEnd: (x: number, y: number) => void;
+  dragAbort: () => void;
+  click: () => void;
+  hover: () => void;
+  hoverend: () => void;
+}
+
+type ArgumentTypes<F extends Function> = F extends (...args: infer A) => unknown ? A : never
+
 export class PortDragHandler {
-  private readonly portDragStartListeners: Array<(x: number, y: number) => void> = [];
-  private readonly portDragMoveListeners: Array<(x: number, y: number) => void> = [];
-  private readonly portDragEndListeners: Array<(x: number, y: number) => void> = [];
-  private readonly portDragAbortListeners: Array<() => void> = [];
+  private static hoverTimeWait = 500; // milliseconds
+  private static dragThreshold = 8;
+  private readonly listenerDict: {[key in keyof PortListenerTypes]: Array<PortListenerTypes[key]>} = {
+    dragStart: [],
+    dragMove: [],
+    dragEnd: [],
+    dragAbort: [],
+    click: [],
+    hover: [],
+    hoverend: [],
+  };
+
+
   constructor(port: PortWrapper, listeners: DragListeners) {
     const that = this;
 
-    if (port.getIsOutput()) {
-      listeners.onDragStart((ev) => {
-        for (const listener of that.portDragStartListeners) {
-          listener(ev.data.global.x, ev.data.global.y);
+    let clickData: {
+      startGlobalX: number;
+      startGlobalY: number;
+      isDrag: boolean;
+    } | null = null;
+
+    listeners.onDragStart((ev) => {
+      if (clickData !== null) throw new Error("click in progress");
+      clickData = {
+        startGlobalX: ev.data.global.x,
+        startGlobalY: ev.data.global.x,
+        isDrag: false,
+      };
+    });
+    listeners.onDragMove((ev) => {
+      if (clickData === null) throw new Error("no click in progress");
+
+      if (!clickData.isDrag) {
+        const dx = ev.data.global.x - clickData.startGlobalX;
+        const dy = ev.data.global.y - clickData.startGlobalY;
+
+        if (dx*dx + dy*dy >= PortDragHandler.dragThreshold*PortDragHandler.dragThreshold) {
+          clickData.isDrag = true;
+
+          that.callListeners("dragStart", ev.data.global.x, ev.data.global.y);
         }
-      });
-      listeners.onDragMove((ev) => {
-        for (const listener of that.portDragMoveListeners) {
-          listener(ev.data.global.x, ev.data.global.y);
+      }
+
+      if (clickData.isDrag) {
+        that.callListeners("dragMove", ev.data.global.x, ev.data.global.y);
+      }
+    });
+    listeners.onDragEnd((ev) => {
+      if (clickData === null) throw new Error("no click in progress");
+
+      if (clickData.isDrag) {
+        that.callListeners("dragEnd", ev.data.global.x, ev.data.global.y);
+      } else {
+        that.callListeners("click");
+      }
+
+      clickData = null;
+    });
+    listeners.onDragAbort(() => {
+      clickData = null;
+      that.callListeners("dragAbort");
+    });
+
+    let mouseIsOver = false;
+    let mouseIsHovering = false;
+    port.getDisplayObject().on("mouseout", () => {
+      mouseIsOver = false;
+      if (mouseIsHovering) {
+        that.callListeners("hoverend");
+        mouseIsHovering = false;
+      }
+    });
+    port.getDisplayObject().on("mouseover", () => {
+      mouseIsOver = true;
+      setTimeout(() => {
+        if (mouseIsOver) {
+          that.callListeners("hover");
+          mouseIsHovering = true;
         }
-      });
-      listeners.onDragEnd((ev) => {
-        for (const listener of that.portDragEndListeners) {
-          listener(ev.data.global.x, ev.data.global.y);
-        }
-      });
-      listeners.onDragAbort(() => {
-        for (const listener of that.portDragAbortListeners) {
-          listener();
-        }
-      });
+      }, PortDragHandler.hoverTimeWait);
+    });
+  }
+
+  private callListeners<T extends keyof PortListenerTypes>(evName: T, ...listenerArgs: ArgumentTypes<PortListenerTypes[T]>) {
+    const listeners = this.listenerDict[evName] as Array<PortListenerTypes[T]>;
+    for (const listener of listeners) {
+      (listener as (...args: ArgumentTypes<PortListenerTypes[T]>) => unknown)(...listenerArgs);
     }
   }
 
-  public onPortDragStart(listener: (x: number, y: number) => void) {
-    this.portDragStartListeners.push(listener);
-  }
-  public onPortDragMove(listener: (x: number, y: number) => void) {
-    this.portDragMoveListeners.push(listener);
-  }
-  public onPortDragEnd(listener: (x: number, y: number) => void) {
-    this.portDragEndListeners.push(listener);
-  }
-  public onPortDragAbort(listener: () => void) {
-    this.portDragAbortListeners.push(listener);
+  public addListener<T extends keyof PortListenerTypes>(eventName: T, listener: PortListenerTypes[T]): void {
+    (this.listenerDict[eventName] as Array<PortListenerTypes[T]>).push(listener);
   }
 }
