@@ -33,24 +33,25 @@ export class PixiView implements ViewInterface {
     graphDiv.style.position = "absolute";
     div.appendChild(graphDiv);
 
-    this.graphManager = new GraphManager(
-      graphDiv,
-      width,
-      graphHeight,
-      sendModelChangeRequest,
+    const dialogs = new Dialogs(
+      div,
       sendModelInfoRequest,
       sendModelVersioningRequest,
     );
 
-    const fileMenu = new Dialogs(
-      div,
+    this.graphManager = new GraphManager(
+      graphDiv,
+      width,
+      graphHeight,
+      dialogs,
+      sendModelChangeRequest,
       sendModelInfoRequest,
       sendModelVersioningRequest,
     );
 
     const keyboardHandler = new KeyboardHandler(
       div,
-      fileMenu,
+      dialogs,
       this.graphManager.getSelectionManager(),
       sendModelChangeRequest,
       sendModelInfoRequest,
@@ -61,7 +62,7 @@ export class PixiView implements ViewInterface {
       menuBarDiv,
       width,
       menuBarHeight,
-      fileMenu,
+      dialogs,
       keyboardHandler,
       this.graphManager.getSelectionManager(),
       sendModelChangeRequest,

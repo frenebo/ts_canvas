@@ -46,7 +46,7 @@ export class DefaultModel implements ModelInterface {
 
   constructor() {
     for (let i = 0; i < 3; i++) {
-      const layer = Layer.getLayer("RepeatLayer");
+      const layer = Layer.getLayer("Repeat");
       LayerUtils.addLayer(
         this.session.data.layers,
         i.toString(),

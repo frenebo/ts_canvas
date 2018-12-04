@@ -10,7 +10,7 @@ type ValueDict<T extends string> = {
 }
 
 interface LayerTypes {
-  "RepeatLayer": RepeatLayer
+  "Repeat": RepeatLayer
 }
 
 export type GenericLayer = Layer<{[key: string]: ValueWrapper}>;
@@ -25,14 +25,14 @@ export abstract class Layer<V extends ValueDict<string>> {
   public static isLayerType(type: string): type is keyof LayerTypes {
     if (Layer.layerConstructorDict === null) {
       Layer.layerConstructorDict = {
-        "RepeatLayer": new RepeatLayer(),
+        "Repeat": new RepeatLayer(),
       };
     }
 
     return Object.keys(Layer.layerConstructorDict).indexOf(type) !== -1;
   }
   public static getLayer<T extends keyof LayerTypes>(type: T): LayerTypes[T] {
-    if (type === "RepeatLayer") {
+    if (type === "Repeat") {
       return new RepeatLayer();
     } else {
       throw new Error("unimplemented layer")
@@ -101,7 +101,7 @@ export class RepeatLayer extends Layer<{
   inputShape: ShapeWrapper;
   outputShape: ShapeWrapper;
 }> {
-  protected type = "RepeatLayer";
+  protected type = "Repeat";
   protected ports: { [key: string]: LayerPortInfo } = {
     "input0": {
       valueKey: "inputShape",

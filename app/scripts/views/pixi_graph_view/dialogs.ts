@@ -181,7 +181,7 @@ class EditLayerDialog extends Dialog {
   ) {
     super(closeDialogFunc, div, width, height);
     const editLayerTitle = Dialog.createTitle("Edit Layer");
-    div.appendChild(editLayerTitle);
+    this.root.appendChild(editLayerTitle);
   }
 }
 
@@ -210,7 +210,7 @@ export class Dialogs {
   }
 
   public saveAsDialog(): void {
-    if (this.currentDialog !== null) return;
+    if (this.currentDialog !== null) this.closeDialog();
 
     const dialog = new SaveAsDialog(
       () => { this.closeDialog(); },
@@ -226,7 +226,7 @@ export class Dialogs {
   }
 
   public openDialog(): void {
-    if (this.currentDialog !== null) return;
+    if (this.currentDialog !== null) this.closeDialog();
 
     const dialog = new OpenDialog(
       () => { this.closeDialog(); },
@@ -242,6 +242,8 @@ export class Dialogs {
   }
 
   public editLayerDialog(vertexId: string): void {
+    if (this.currentDialog !== null) this.closeDialog();
+
     const dialog = new EditLayerDialog(
       () => { this.closeDialog(); },
       this.div,
