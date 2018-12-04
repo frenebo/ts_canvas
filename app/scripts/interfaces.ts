@@ -122,6 +122,11 @@ export interface ModelInfoRequestMap {
   "savedFileNames": {
     type: "savedFileNames";
   };
+  "getPortInfo": {
+    type: "getPortInfo";
+    vertexId: string;
+    portId: string;
+  };
 }
 
 export interface ModelInfoResponseMap {
@@ -142,5 +147,11 @@ export interface ModelInfoResponseMap {
   };
   "savedFileNames": {
     fileNames: string[];
+  };
+  "getPortInfo": {
+    couldFindPort: true;
+    portValue: string;
+  } | {
+    couldFindPort: false;
   };
 }

@@ -6,6 +6,7 @@ import { GraphUtils, EdgesByVertex } from "./graphUtils.js";
 import { Diffable, DiffType, applyDiff, createDiff, undoDiff } from "../../diff.js";
 import { SaveUtils } from "./saveUtils.js";
 import { VersioningUtils } from "./versioningUtils.js";
+import { LayerUtils } from "./layers/layerUtils.js";
 
 export interface ModelDataObj {
   graph: GraphData;
@@ -215,6 +216,16 @@ export class DefaultModel implements ModelInterface {
       const response: ModelInfoResponseMap["savedFileNames"] = {
         fileNames: SaveUtils.savedFileNames(),
       };
+      return response;
+    } else if (req.type === "getPortInfo") {
+      const info = LayerUtils.getPortInfo(
+        (req as ModelInfoRequestMap["getPortInfo"]).portId,
+        (req as ModelInfoRequestMap["getPortInfo"]).vertexId,
+      );
+      const response: ModelInfoResponseMap["getPortInfo"] = {
+        couldFindPort: true,
+        portValue: info.portValue
+      }
       return response;
     } else {
       throw new Error(`Unimplemented request ${req.type}`);

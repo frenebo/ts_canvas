@@ -1,6 +1,7 @@
 import { PortWrapper } from "./portWrapper";
 import { BackgroundWrapper } from "./backgroundWrapper";
 import { VertexWrapper } from "./vertexWrapper";
+import { ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces";
 
 export class PortPreviewManager {
   private static textPadding = 5;
@@ -14,13 +15,17 @@ export class PortPreviewManager {
   } | null = null;
   constructor(
     private readonly backgroundWrapper: BackgroundWrapper,
+    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
   ) {
 
   }
 
-  public previewPort(port: PortWrapper, vertex: VertexWrapper, portId: string, vertexId: string): void {
+  public portHover(port: PortWrapper, vertex: VertexWrapper, portId: string, vertexId: string): void {
+    const portInfo = this.sendModelInfoRequest<"getPortInfo">({type: "getPortInfo", vertexId: vertexId, portId: portId});
+    if (!portInfo.couldFindPort) return;
+
     if (this.previewData !== null) {
-      this.endPreviewPort(this.previewData.port, this.previewData.portId, this.previewData.vertexId);
+      this.portHoverEnd(this.previewData.port, this.previewData.portId, this.previewData.vertexId);
     }
 
     this.previewData = {
@@ -34,7 +39,7 @@ export class PortPreviewManager {
     const textBackground = new PIXI.Graphics();
     this.previewData.overlay.addChild(textBackground);
 
-    const text = new PIXI.Text("Port");
+    const text = new PIXI.Text(portInfo.portValue);
     this.previewData.overlay.addChild(text);
     text.style = new PIXI.TextStyle({
       fill: "white",
@@ -42,8 +47,8 @@ export class PortPreviewManager {
     });
     text.position.set(PortPreviewManager.textPadding, PortPreviewManager.textPadding);
 
-    const previewX = port.localX() + vertex.localX() + port.getWidth()/2;
-    const previewY = port.localY() + vertex.localY() + port.getHeight()/2;
+    const previewX = port.localX() + vertex.localX() + port.getWidth();
+    const previewY = port.localY() + vertex.localY() + port.getHeight();
     this.previewData.overlay.position.set(previewX, previewY);
 
     const backgroundWidth = text.width + PortPreviewManager.textPadding*2;
@@ -51,10 +56,9 @@ export class PortPreviewManager {
 
     textBackground.beginFill(0x333333);
     textBackground.drawRoundedRect(0, 0, backgroundWidth, backgroundHeight, PortPreviewManager.cornerRadius);
-    // this.previewData.overlay.width = text.width;
   }
 
-  public endPreviewPort(port: PortWrapper, portId: string, vertexId: string): void {
+  public portHoverEnd(port: PortWrapper, portId: string, vertexId: string): void {
     if (this.previewData !== null && this.previewData.portId === portId && this.previewData.vertexId === vertexId) {
       this.backgroundWrapper.removeOverlayObject(this.previewData.overlay);
       this.previewData = null;
@@ -67,13 +71,13 @@ export class PortPreviewManager {
 
   public removePort(portId: string, vertexId: string): void {
     if (this.previewData !== null && this.previewData.portId === portId && this.previewData.vertexId === vertexId) {
-      this.endPreviewPort(this.previewData.port, this.previewData.portId, this.previewData.vertexId);
+      this.portHoverEnd(this.previewData.port, this.previewData.portId, this.previewData.vertexId);
     }
   }
 
   public removeVertex(vertexId: string): void {
     if (this.previewData !== null && this.previewData.vertexId === vertexId) {
-      this.endPreviewPort(this.previewData.port, this.previewData.portId, this.previewData.vertexId);
+      this.portHoverEnd(this.previewData.port, this.previewData.portId, this.previewData.vertexId);
     }
   }
 }
