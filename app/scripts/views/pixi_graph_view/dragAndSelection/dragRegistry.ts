@@ -107,7 +107,7 @@ export class DragRegistry {
       vertex.getDisplayObject(),
       (l) => this.vertexDragAbortListeners[id].push(l),
     );
-    new VertexDragHandler(id, vertex, listeners, this.selectionManager);
+    new VertexDragHandler(id, vertex, listeners, this.selectionManager, this.backgroundWrapper);
   }
 
   public removeVertex(id: string, vertex: VertexWrapper): void {
@@ -129,7 +129,7 @@ export class DragRegistry {
       (l) => this.edgeDragAbortListeners[id].push(l),
     );
 
-    new EdgeDragHandler(id, edge, listeners, this.selectionManager);
+    new EdgeDragHandler(id, edge, listeners, this.selectionManager, this.backgroundWrapper);
   }
 
   public removeEdge(id: string, edge: EdgeWrapper): void {

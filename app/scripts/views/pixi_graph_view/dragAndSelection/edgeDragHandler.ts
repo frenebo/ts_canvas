@@ -1,6 +1,7 @@
 import { EdgeWrapper } from "../edgeWrapper.js";
 import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "../selectionManager.js";
+import { BackgroundWrapper } from "../backgroundWrapper.js";
 
 export class EdgeDragHandler {
   private static readonly dragThreshold = 5;
@@ -10,6 +11,7 @@ export class EdgeDragHandler {
     edgeWrapper: EdgeWrapper,
     listeners: DragListeners,
     selectionManager: SelectionManager,
+    private readonly backgroundWrapper: BackgroundWrapper,
   ) {
     let clickData: {
       isCtrlOrMetaClick: boolean;
@@ -57,7 +59,8 @@ export class EdgeDragHandler {
 
       // If the current click doesn't count as a drag
       if (!clickData.isDrag && selectionManager.edgeIsSelected(id)) {
-        if (dx*dx + dy*dy > EdgeDragHandler.dragThreshold*EdgeDragHandler.dragThreshold) {
+        const scaledThreshold = EdgeDragHandler.dragThreshold/this.backgroundWrapper.getScale();
+        if (dx*dx + dy*dy > scaledThreshold*scaledThreshold) {
           // begin drag
           clickData.isDrag = true;
           selectionManager.startSelectionDrag(dx, dy, clickData.isCtrlOrMetaClick);
