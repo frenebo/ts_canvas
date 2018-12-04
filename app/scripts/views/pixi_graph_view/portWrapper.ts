@@ -1,4 +1,3 @@
-import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 
 export class PortWrapper {
   private static readonly borderWidth = 2;

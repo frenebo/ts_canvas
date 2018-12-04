@@ -116,12 +116,12 @@ export class GraphUtils {
       geo: { x: x, y: y },
       ports: {},
     };
-    let inputPortCount = layer.portIds().filter((id) => layer.getPortInfo(id).type === "input").length;
-    let outputPortCount = layer.portIds().filter((id) => layer.getPortInfo(id).type === "output").length;
+    let inputPortCount = layer.getPortIds().filter((id) => layer.getPortInfo(id).type === "input").length;
+    let outputPortCount = layer.getPortIds().filter((id) => layer.getPortInfo(id).type === "output").length;
 
     let inputPortIdx = 0;
     let outputPortIdx = 0;
-    for (const portId of layer.portIds()) {
+    for (const portId of layer.getPortIds()) {
       const portInfo = layer.getPortInfo(portId);
       vtxData.ports[portId] = {
         portType: portInfo.type,

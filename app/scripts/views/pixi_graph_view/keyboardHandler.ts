@@ -2,7 +2,7 @@ import { SelectionManager } from "./selectionManager.js";
 import {
   ModelChangeRequest, ModelVersioningRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
 } from "../../interfaces.js";
-import { Dialogs } from "./dialogs.js";
+import { DialogManager } from "./dialogs/dialogManager.js";
 
 interface ShortcutDescription {
   eventKeyName: string; // must be lowercase!
@@ -92,7 +92,7 @@ export class KeyboardHandler {
 
   constructor(
     div: HTMLDivElement,
-    fileMenu: Dialogs,
+    dialogManager: DialogManager,
     selectionManager: SelectionManager,
     sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
@@ -139,12 +139,12 @@ export class KeyboardHandler {
           if (openFileData.fileIsOpen) {
             sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
           } else {
-            fileMenu.saveAsDialog();
+            dialogManager.saveAsDialog();
           }
         } else if (match === "open") {
-          fileMenu.openDialog();
+          dialogManager.openDialog();
         } else if (match === "saveAs") {
-          fileMenu.saveAsDialog();
+          dialogManager.saveAsDialog();
         }
       }
     });

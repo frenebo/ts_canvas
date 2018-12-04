@@ -261,6 +261,17 @@ export class DefaultModel implements ModelInterface {
         portValue: info.portValue
       }
       return response;
+    } else if (req.type === "validateValue") {
+      const validationString = LayerUtils.validateValue(
+        this.session.data.layers,
+        (req as ModelInfoRequestMap["validateValue"]).layerId,
+        (req as ModelInfoRequestMap["validateValue"]).valueId,
+        (req as ModelInfoRequestMap["validateValue"]).newValue,
+      );
+      const response: ModelInfoResponseMap["validateValue"] = {
+        validity: validationString,
+      };
+      return response;
     } else {
       throw new Error(`Unimplemented request ${req.type}`);
     }

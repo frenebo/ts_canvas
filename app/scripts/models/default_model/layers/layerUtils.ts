@@ -17,10 +17,24 @@ export class LayerUtils {
     layerId: string,
   ) {
     const valueId = layers[layerId].getPortInfo(portId).valueKey;
-    const portVal = layers[layerId].getValue(valueId).stringify();
+    const portVal = layers[layerId].getValueWrapper(valueId).stringify();
     return {
       portValue: portVal, // placeholder
     };
+  }
+
+  public static validateValue(
+    layers: LayerClassDict,
+    layerId: string,
+    valueId: string,
+    newValueString: string,
+  ) {
+    const layer = layers[layerId];
+    if (layer === undefined) throw new Error(`No layer found with id ${layerId}`);
+
+    if (!layer.hasValueWrapper(valueId)) throw new Error(`Layer with type ${layer.getType()} has no value called ${valueId}`);
+
+    return layer.getValueWrapper(valueId).validateString(newValueString);
   }
 
   public static cloneLayer(
@@ -78,10 +92,16 @@ export class LayerUtils {
 
       dataDict[layerKey] = {
         ports: {},
+        fields: {},
       };
-      for (const portId of layer.portIds()) {
+      for (const portId of layer.getPortIds()) {
         dataDict[layerKey].ports[portId] = {
           valueName: layer.getPortInfo(portId).valueKey,
+        };
+      }
+      for (const valueId of layer.getValueIds()) {
+        dataDict[layerKey].fields[valueId] = {
+          value: layer.getValueWrapper(valueId).stringify(),
         };
       }
     }

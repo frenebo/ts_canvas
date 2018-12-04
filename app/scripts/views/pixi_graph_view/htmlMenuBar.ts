@@ -3,7 +3,7 @@ import {
 } from "../../interfaces.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { SelectionManager } from "./selectionManager.js";
-import { Dialogs } from "./dialogs.js";
+import { DialogManager } from "./dialogs/dialogManager.js";
 
 export class HtmlMenuBar {
   private static readonly barBackground = "#44596e";
@@ -19,7 +19,7 @@ export class HtmlMenuBar {
     private readonly div: HTMLDivElement,
     width: number,
     private readonly height: number,
-    fileMenu: Dialogs,
+    fileMenu: DialogManager,
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
     sendModelChangeRequest: (req: ModelChangeRequest) => void,

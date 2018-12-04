@@ -36,6 +36,15 @@ abstract class AbstractValueWrapper<T, V extends {} & Cloneable> {
 
     this.setValue(parsed);
   }
+  public validateValue(val: T): string | null {
+    return this.utils.validate(val, this.config);
+  }
+  public validateString(str: string): string | null {
+    const parsed = this.utils.parse(str);
+    if (parsed === null) return `Could not process value "${str}"`;
+
+    return this.utils.validate(parsed, this.config);
+  }
   public clone(): AbstractValueWrapper<T, V> {
     return this.utils.factory(
       this.value,

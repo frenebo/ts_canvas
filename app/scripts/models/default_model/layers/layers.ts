@@ -43,8 +43,8 @@ export abstract class Layer<V extends ValueDict<string>> {
       layerType: layer.getType(),
       valDict: {},
     };
-    for (const valueKey in layer.values) {
-      info.valDict[valueKey] = layer.values[valueKey].stringify();
+    for (const valueKey in layer.valueWrappers) {
+      info.valDict[valueKey] = layer.valueWrappers[valueKey].stringify();
     }
     return info;
   }
@@ -55,9 +55,9 @@ export abstract class Layer<V extends ValueDict<string>> {
     const layer = Layer.getLayer(info.layerType);
 
     for (const valueKey in info.valDict) {
-      if (!layer.hasValue(valueKey)) throw new Error(`${info.layerType} type layer does not have value named ${valueKey}`);
+      if (!layer.hasValueWrapper(valueKey)) throw new Error(`${info.layerType} type layer does not have value named ${valueKey}`);
 
-      layer.getValue(valueKey).setFromString(info.valDict[valueKey]);
+      layer.getValueWrapper(valueKey).setFromString(info.valDict[valueKey]);
     }
     return layer;
   }
@@ -66,7 +66,7 @@ export abstract class Layer<V extends ValueDict<string>> {
     [key: string]: LayerPortInfo;
   };
 
-  protected abstract values: V;
+  protected abstract valueWrappers: V;
   protected abstract type: string;
 
   constructor() {
@@ -77,8 +77,12 @@ export abstract class Layer<V extends ValueDict<string>> {
     return this.type;
   }
 
-  public portIds(): string[] {
+  public getPortIds(): string[] {
     return Object.keys(this.ports);
+  }
+
+  public getValueIds(): string[] {
+    return Object.keys(this.valueWrappers);
   }
 
   public getPortInfo(portId: string): LayerPortInfo {
@@ -88,12 +92,12 @@ export abstract class Layer<V extends ValueDict<string>> {
     return portInfo;
   }
 
-  public getValue<T extends keyof V>(value: T): V[T] {
-    return this.values[value];
+  public getValueWrapper<T extends keyof V>(value: T): V[T] {
+    return this.valueWrappers[value];
   }
 
-  public hasValue(value: string | keyof V): value is keyof V {
-    return this.values[value] !== undefined;
+  public hasValueWrapper(value: string | keyof V): value is keyof V {
+    return this.valueWrappers[value] !== undefined;
   }
 }
 
@@ -113,7 +117,7 @@ export class RepeatLayer extends Layer<{
     },
   };
 
-  protected values = {
+  protected valueWrappers = {
     inputShape: new ShapeWrapper([224, 224, 3]),
     outputShape: new ShapeWrapper([224, 224, 3]),
   };

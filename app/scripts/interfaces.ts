@@ -38,6 +38,11 @@ export interface LayerData {
   ports: {
     [key: string]: {
       valueName: string;
+    };
+  };
+  fields: {
+    [key: string]: {
+      value: string;
     }
   }
 }
@@ -131,6 +136,16 @@ export interface ModelInfoRequestMap {
     vertexId: string;
     portId: string;
   };
+  "getLayerInfo": {
+    type: "getLayerInfo";
+    layerId: string;
+  };
+  "validateValue": {
+    type: "validateValue";
+    layerId: string;
+    valueId: string;
+    newValue: string;
+  }
 }
 
 export interface ModelInfoResponseMap {
@@ -157,5 +172,8 @@ export interface ModelInfoResponseMap {
     portValue: string;
   } | {
     couldFindPort: false;
+  };
+  "validateValue": {
+    validity: string | null;
   };
 }

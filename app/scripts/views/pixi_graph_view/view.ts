@@ -5,7 +5,7 @@ import {
 import { GraphManager, GraphManagerCommand } from "./graphManager.js";
 import { HtmlMenuBar } from "./htmlMenuBar.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
-import { Dialogs } from "./dialogs.js";
+import { DialogManager } from "./dialogs/dialogManager.js";
 
 export class PixiView implements ViewInterface {
   private data: GraphData = {vertices: {}, edges: {}};
@@ -33,7 +33,7 @@ export class PixiView implements ViewInterface {
     graphDiv.style.position = "absolute";
     div.appendChild(graphDiv);
 
-    const dialogs = new Dialogs(
+    const dialogs = new DialogManager(
       div,
       sendModelInfoRequest,
       sendModelVersioningRequest,

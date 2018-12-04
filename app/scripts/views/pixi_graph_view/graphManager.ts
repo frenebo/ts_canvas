@@ -11,7 +11,7 @@ import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
 import { CullingManager } from "./cullingManager.js";
 import { PortPreviewManager } from "./portPreviewManager.js";
-import { Dialogs } from "./dialogs.js";
+import { DialogManager } from "./dialogs/dialogManager.js";
 
 export type GraphManagerCommand = {
   type: "removeEdge";
@@ -62,7 +62,7 @@ export class GraphManager {
     div: HTMLDivElement,
     width: number,
     height: number,
-    private readonly dialogs: Dialogs,
+    private readonly dialogs: DialogManager,
     sendModelChangeRequest: (req: ModelChangeRequest) => void,
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
