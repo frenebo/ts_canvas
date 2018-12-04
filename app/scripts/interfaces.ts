@@ -35,7 +35,11 @@ export interface GraphData {
 }
 
 export interface LayerData {
-  description: string;
+  ports: {
+    [key: string]: {
+      valueName: string;
+    }
+  }
 }
 
 export interface LayerDataDict {

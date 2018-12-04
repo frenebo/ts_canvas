@@ -1,4 +1,5 @@
 import { GraphData, EdgeData, VertexData } from "../../interfaces.js";
+import { GenericLayer } from "./layers/layers.js";
 
 export interface EdgesByVertex {
   [key: string]: {
@@ -106,10 +107,36 @@ export class GraphUtils {
     newVtx.geo.x = x;
     newVtx.geo.y = y;
 
-    this.createVertex(graphData, edgesByVertex, newVtxId, newVtx);
+    this.addVertex(graphData, edgesByVertex, newVtxId, newVtx);
   }
 
-  public static createVertex(
+  public static createVertexFromLayer(layer: GenericLayer, x = 0, y = 0): VertexData {
+    const vtxData: VertexData = {
+      label: layer.getType(),
+      geo: { x: x, y: y },
+      ports: {},
+    };
+    let inputPortCount = layer.portIds().filter((id) => layer.getPortInfo(id).type === "input").length;
+    let outputPortCount = layer.portIds().filter((id) => layer.getPortInfo(id).type === "output").length;
+
+    let inputPortIdx = 0;
+    let outputPortIdx = 0;
+    for (const portId of layer.portIds()) {
+      const portInfo = layer.getPortInfo(portId);
+      vtxData.ports[portId] = {
+        portType: portInfo.type,
+        side: portInfo.type === "input" ? "top" : "bottom",
+        position: portInfo.type === "input" ? (
+          1/(inputPortCount + 1)*++inputPortIdx
+        ) : (
+          1/(outputPortCount + 1)*++outputPortIdx
+        ),
+      }
+    }
+    return vtxData;
+  }
+
+  public static addVertex(
     graphData: GraphData,
     edgesByVertex: EdgesByVertex,
     id: string,

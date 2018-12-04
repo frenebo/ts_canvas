@@ -26,7 +26,6 @@ export class PortDragHandler {
     hoverend: [],
   };
 
-
   constructor(port: PortWrapper, listeners: DragListeners) {
     const that = this;
 

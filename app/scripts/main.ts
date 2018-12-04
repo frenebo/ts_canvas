@@ -1,7 +1,6 @@
 import { Messenger } from "./messenger.js";
 import { DefaultModel } from "./models/default_model/model.js";
 import { PixiView } from "./views/pixi_graph_view/view.js";
-import { DefaultLayerEditView } from "./views/layer_edit_view/layerEditView.js";
 
 export function main(...divs: HTMLDivElement[]): void {
   const model = new DefaultModel();
@@ -19,11 +18,6 @@ export function main(...divs: HTMLDivElement[]): void {
         messenger.newRequestHandler(),
         messenger.newInfoRequestHandler(),
         messenger.newVersioningRequestHandler(),
-      ),
-    );
-    messenger.addView(
-      new DefaultLayerEditView(
-        layerDiv,
       ),
     );
   }

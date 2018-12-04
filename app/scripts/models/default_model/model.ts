@@ -3,21 +3,23 @@ import {
   ModelVersioningRequest, LayerDataDict, DeepReadonly,
 } from "../../interfaces.js";
 import { GraphUtils, EdgesByVertex } from "./graphUtils.js";
-import { Diffable, DiffType, applyDiff, createDiff, undoDiff } from "../../diff.js";
+import { Diffable, DiffType, createDiff } from "../../diff.js";
 import { SaveUtils } from "./saveUtils.js";
 import { VersioningUtils } from "./versioningUtils.js";
-import { LayerUtils } from "./layers/layerUtils.js";
+import { LayerUtils, LayerClassDict } from "./layers/layerUtils.js";
+import { Layer } from "./layers/layers.js";
+import { SessionUtils, SessionDataJson } from "./sessionUtils.js";
 
 export interface ModelDataObj {
   graph: GraphData;
-  layers: LayerDataDict;
+  layers: LayerClassDict;
   edgesByVertex: EdgesByVertex;
 }
 
 export interface SessionData {
   data: ModelDataObj;
-  pastDiffs: Array<DiffType<ModelDataObj & Diffable>>;
-  futureDiffs: Array<DiffType<ModelDataObj & Diffable>>;
+  pastDiffs: Array<DiffType<SessionDataJson & Diffable>>;
+  futureDiffs: Array<DiffType<SessionDataJson & Diffable>>;
   openFile: null | {
     fileName: string;
     fileIdxInHistory: number | null;
@@ -44,25 +46,47 @@ export class DefaultModel implements ModelInterface {
 
   constructor() {
     for (let i = 0; i < 3; i++) {
-      GraphUtils.createVertex(this.session.data.graph, this.session.data.edgesByVertex, i.toString(), {
-        label: i.toString(),
-        geo: {
-          x: i*100,
-          y: i*100,
-        },
-        ports: {
-          "port0": {
-            portType: "input",
-            side: "top",
-            position: 0.5,
-          },
-          "port2": {
-            portType: "output",
-            side: "bottom",
-            position: 0.5,
-          },
-        },
-      });
+      const layer = Layer.getLayer("RepeatLayer");
+      LayerUtils.addLayer(
+        this.session.data.layers,
+        i.toString(),
+        layer,
+      );
+      const vertex = GraphUtils.createVertexFromLayer(
+        layer,
+        i*100,
+        i*100,
+      );
+      GraphUtils.addVertex(
+        this.session.data.graph,
+        this.session.data.edgesByVertex,
+        i.toString(),
+        vertex,
+      );
+      // LayerUtils.createLayer(
+      //   this.session.data.layers,
+      //   i.toString(),
+      //   "RepeatLayer",
+      // );
+      // GraphUtils.createVertex(this.session.data.graph, this.session.data.edgesByVertex, i.toString(), {
+      //   label: i.toString(),
+      //   geo: {
+      //     x: i*100,
+      //     y: i*100,
+      //   },
+      //   ports: {
+      //     "port0": {
+      //       portType: "input",
+      //       side: "top",
+      //       position: 0.5,
+      //     },
+      //     "port2": {
+      //       portType: "output",
+      //       side: "bottom",
+      //       position: 0.5,
+      //     },
+      //   },
+      // });
     }
   }
 
@@ -71,7 +95,7 @@ export class DefaultModel implements ModelInterface {
   }
 
   public getLayerDataDict(): DeepReadonly<LayerDataDict> {
-    return this.session.data.layers;
+    return LayerUtils.getLayerDataDict(this.session.data.layers);
   }
 
   public addGraphChangedListener(listener: () => void): void {
@@ -84,14 +108,14 @@ export class DefaultModel implements ModelInterface {
 
   public requestModelChanges(...reqs: ModelChangeRequest[]): void {
 
-    const beforeChange = JSON.parse(JSON.stringify(this.session.data));
+    const beforeChange = SessionUtils.toJson(this.session.data) as unknown as Diffable;
 
     for (const req of reqs) {
       this.requestSingleModelChange(req);
     }
 
-    const changeDiff = createDiff(beforeChange, this.session.data as unknown as Diffable);
-    this.session.pastDiffs.push(changeDiff as DiffType<ModelDataObj & Diffable>);
+    const changeDiff = createDiff(beforeChange, SessionUtils.toJson(this.session.data) as unknown as Diffable);
+    this.session.pastDiffs.push(changeDiff as DiffType<SessionDataJson & Diffable>);
 
     if (this.session.openFile !== null) {
       // if the save file is ahead of the current data, set fileIdxInHistory to null
@@ -142,10 +166,19 @@ export class DefaultModel implements ModelInterface {
         req.x,
         req.y,
       );
+      LayerUtils.cloneLayer(
+        this.session.data.layers,
+        req.sourceVertexId,
+        req.newVertexId,
+      );
     } else if (req.type === "deleteVertex") {
       GraphUtils.deleteVertex(
         this.session.data.graph,
         this.session.data.edgesByVertex,
+        req.vertexId,
+      );
+      LayerUtils.deleteLayer(
+        this.session.data.layers,
         req.vertexId,
       );
     } else if (req.type === "deleteEdge") {
@@ -219,6 +252,7 @@ export class DefaultModel implements ModelInterface {
       return response;
     } else if (req.type === "getPortInfo") {
       const info = LayerUtils.getPortInfo(
+        this.session.data.layers,
         (req as ModelInfoRequestMap["getPortInfo"]).portId,
         (req as ModelInfoRequestMap["getPortInfo"]).vertexId,
       );

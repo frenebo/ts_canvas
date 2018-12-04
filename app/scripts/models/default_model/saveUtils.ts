@@ -1,4 +1,5 @@
-import { ModelDataObj, SessionData } from "./model";
+import { ModelDataObj, SessionData } from "./model.js";
+import { SessionUtils } from "./sessionUtils.js";
 
 export class SaveUtils {
   private static readonly saveFilePrefix = "GRAPH_FILE";
@@ -15,7 +16,7 @@ export class SaveUtils {
   }
 
   public static saveFile(fileName: string, session: SessionData): void {
-    window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(session.data));
+    window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(SessionUtils.toJson(session.data)));
     session.openFile = {
       fileName: fileName,
       fileIdxInHistory: 0,
@@ -26,7 +27,7 @@ export class SaveUtils {
     const dataStringOrNull = window.localStorage.getItem(`${SaveUtils.saveFilePrefix}${fileName}`);
 
     if (dataStringOrNull !== null) {
-      const modelData: ModelDataObj = JSON.parse(dataStringOrNull);
+      const modelData: ModelDataObj = SessionUtils.fromJson(JSON.parse(dataStringOrNull));
 
       // @TODO type checking?
       session.data = modelData;

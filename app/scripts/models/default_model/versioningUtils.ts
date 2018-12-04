@@ -1,16 +1,18 @@
 import { SessionData, ModelDataObj } from "./model.js";
 import { undoDiff, Diffable, applyDiff } from "../../diff.js";
+import { SessionUtils, SessionDataJson } from "./sessionUtils.js";
 
 export class VersioningUtils {
   public static undo(session: SessionData): void {
     if (session.pastDiffs.length === 0) return;
     const pastDiff = session.pastDiffs.pop()!;
 
-    const newData = undoDiff(session.data as unknown as Diffable, pastDiff) as unknown as ModelDataObj;
+    const dataJson = SessionUtils.toJson(session.data);
+    const newData = undoDiff(dataJson as unknown as Diffable, pastDiff) as unknown as SessionDataJson;
 
     session.futureDiffs.splice(0, 0, pastDiff);
 
-    session.data = newData;
+    session.data = SessionUtils.fromJson(newData);
     if (session.openFile !== null) {
       if (typeof session.openFile.fileIdxInHistory === "number") {
         session.openFile.fileIdxInHistory--;
@@ -22,11 +24,11 @@ export class VersioningUtils {
     if (session.futureDiffs.length === 0) return;
     const redoDiff = session.futureDiffs.splice(0, 1)[0];
 
-    const newData = applyDiff(session.data as unknown as Diffable, redoDiff) as unknown as ModelDataObj;
+    const dataJson = SessionUtils.toJson(session.data)
+    const newData = applyDiff(dataJson as unknown as Diffable, redoDiff) as unknown as SessionDataJson;
 
     session.pastDiffs.push(redoDiff);
-
-    session.data = newData;
+    session.data = SessionUtils.fromJson(newData);
     if (session.openFile !== null) {
       if (typeof session.openFile.fileIdxInHistory === "number") {
         session.openFile.fileIdxInHistory++;

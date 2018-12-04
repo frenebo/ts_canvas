@@ -11,7 +11,7 @@ export class BackgroundWrapper {
   private scale: number = 1;
 
   constructor(
-    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
     const texture = PIXI.Texture.fromImage(BACKGROUND_TILE_PATH);
     this.sprite = new PIXI.extras.TilingSprite(texture, renderer.width, renderer.height);
@@ -59,6 +59,16 @@ export class BackgroundWrapper {
 
   public addChild(obj: PIXI.DisplayObject): void {
     this.childContainer.addChild(obj);
+  }
+
+  public getMousePos(): {x: number, y: number} {
+    const mouseX: number = this.renderer.plugins.interaction.mouse.global.x/this.getScale() - this.localX()/this.getScale();
+    const mouseY: number = this.renderer.plugins.interaction.mouse.global.y/this.getScale() - this.localY()/this.getScale();
+
+    return {
+      x: mouseX,
+      y: mouseY,
+    };
   }
 
   public removeChild(obj: PIXI.DisplayObject): void {

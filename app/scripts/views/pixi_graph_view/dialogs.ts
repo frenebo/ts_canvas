@@ -172,6 +172,19 @@ class SaveAsDialog extends Dialog {
   }
 }
 
+class EditLayerDialog extends Dialog {
+  constructor(
+    closeDialogFunc: () => void,
+    div: HTMLDivElement,
+    width: number,
+    height: number
+  ) {
+    super(closeDialogFunc, div, width, height);
+    const editLayerTitle = Dialog.createTitle("Edit Layer");
+    div.appendChild(editLayerTitle);
+  }
+}
+
 export class Dialogs {
   private currentDialog: null | Dialog = null;
 
@@ -223,6 +236,17 @@ export class Dialogs {
       this.sendModelInfoRequest<"savedFileNames">({type: "savedFileNames"}).fileNames,
       (fileName: string) => { this.sendModelVersioningRequest({ type: "openFile", fileName: fileName }); },
       (fileName: string) => { this.sendModelVersioningRequest({ type: "deleteFile", fileName: fileName}); },
+    );
+
+    this.currentDialog = dialog;
+  }
+
+  public editLayerDialog(vertexId: string): void {
+    const dialog = new EditLayerDialog(
+      () => { this.closeDialog(); },
+      this.div,
+      this.div.clientWidth/2,
+      this.div.clientHeight/2,
     );
 
     this.currentDialog = dialog;

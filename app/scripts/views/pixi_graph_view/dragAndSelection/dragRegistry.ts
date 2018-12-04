@@ -161,10 +161,10 @@ export class DragRegistry {
       this.portPreviewManager.editPort(port, vertexId, portId);
     });
     portDragHandler.addListener("hover", () => {
-      this.portPreviewManager.portHover(port, vertex, vertexId, portId);
+      this.portPreviewManager.portHover(port, vertex, portId, vertexId);
     });
     portDragHandler.addListener("hoverend", () => {
-      this.portPreviewManager.portHoverEnd(port, vertexId, portId);
+      this.portPreviewManager.portHoverEnd(port, portId, vertexId);
     });
 
     if (port.getIsOutput()) {
