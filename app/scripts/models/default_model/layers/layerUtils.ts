@@ -1,9 +1,9 @@
-import { Layer, GenericLayer, LayerJsonInfo } from "./layers.js";
-import { LayerDataDict } from "../../../interfaces.js";
+import { Layer, LayerJsonInfo } from "./layers.js";
 import { ValueWrapper } from "./valueWrappers/valueWrapper.js";
+import { LayerData } from "../../../interfaces.js";
 
 export type LayerClassDict = {
-  [key: string]: GenericLayer;
+  [key: string]: Layer;
 }
 
 export type LayerClassDictJson = {
@@ -21,6 +21,32 @@ export class LayerUtils {
     return {
       portValue: portVal, // placeholder
     };
+  }
+
+  public static getLayerData(
+    layers: LayerClassDict,
+    layerId: string,
+  ): LayerData {
+    const layer = layers[layerId];
+    if (layer === undefined) throw new Error(`Could not find layer with id ${layerId}`);
+
+    const data: LayerData = {
+      ports: {},
+      fields: {},
+    };
+    for (const portId of layer.getPortIds()) {
+      data.ports[portId] = {
+        valueName: layer.getPortInfo(portId).valueKey,
+      };
+    }
+    for (const valueId of layer.getFieldIds()) {
+      data.fields[valueId] = {
+        value: layer.getValueWrapper(valueId).stringify(),
+        readonly: layer.isReadonlyField(valueId),
+      };
+    }
+
+    return data;
   }
 
   public static validateValue(
@@ -52,7 +78,7 @@ export class LayerUtils {
   public static addLayer(
     layers: LayerClassDict,
     newLayerId: string,
-    layer: GenericLayer,
+    layer: Layer,
   ): void {
     if (layers[newLayerId] !== undefined) throw new Error(`A layer with the id ${newLayerId} already exists`);
 
@@ -83,29 +109,5 @@ export class LayerUtils {
       layers[layerKey] = Layer.fromJson(layerDictjson[layerKey]);
     }
     return layers;
-  }
-
-  public static getLayerDataDict(layerClassDict: LayerClassDict): LayerDataDict {
-    const dataDict: LayerDataDict = {};
-    for (const layerKey in layerClassDict) {
-      const layer = layerClassDict[layerKey];
-
-      dataDict[layerKey] = {
-        ports: {},
-        fields: {},
-      };
-      for (const portId of layer.getPortIds()) {
-        dataDict[layerKey].ports[portId] = {
-          valueName: layer.getPortInfo(portId).valueKey,
-        };
-      }
-      for (const valueId of layer.getValueIds()) {
-        dataDict[layerKey].fields[valueId] = {
-          value: layer.getValueWrapper(valueId).stringify(),
-        };
-      }
-    }
-
-    return dataDict;
   }
 }

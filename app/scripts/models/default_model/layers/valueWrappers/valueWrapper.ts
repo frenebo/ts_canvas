@@ -93,12 +93,23 @@ export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperCon
 
     return null;
   }
-  private static parse(str: string): number[] {
-    return str.replace("(", "").replace(")", "").split(",").map((dimStr) => parseInt(dimStr));
+  private static parse(str: string): number[] | null {
+    if (str[0] !== "(") return null;
+    if (str[str.length - 1] !== ")") return null;
+    let trimmedDims = str.slice(1, str.length - 1).split(",").map((dimStr) => dimStr.trim());
+
+    if (trimmedDims.length === 1 && trimmedDims[0] === "") trimmedDims = [];
+
+    for (const trimmedDimStr of trimmedDims) {
+      if (!/^\d+$/.test(trimmedDimStr)) return null;
+    }
+
+    return trimmedDims.map((dim) => parseInt(dim));
   }
   private static stringify(val: number[]): string {
     return `(${val.join(",")})`;
   }
+
   constructor(val: number[], config: ShapeWrapperConfig = {}) {
     super(
       val,

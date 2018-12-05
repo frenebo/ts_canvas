@@ -15,12 +15,10 @@ export class Dialog {
 
   constructor(
     closeDialogFunc: () => void,
-    div: HTMLDivElement,
     width: number,
     height: number,
   ) {
     this.root = document.createElement("div");
-    div.appendChild(this.root);
 
     this.root.style.width = `${width}px`;
     this.root.style.height = `${height}px`;

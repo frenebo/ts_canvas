@@ -19,13 +19,6 @@ export class Messenger {
         }
       }
     });
-    this.model.addLayerDataDictChangedListener(() => {
-      for (const view of this.views) {
-        if (view.setLayerDataDict !== undefined) {
-          view.setLayerDataDict(this.model.getLayerDataDict());
-        }
-      }
-    });
   }
 
   public addView(view: ViewInterface): void {

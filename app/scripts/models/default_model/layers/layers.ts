@@ -5,22 +5,16 @@ interface LayerPortInfo {
   type: "input" | "output";
 }
 
-type ValueDict<T extends string> = {
-  [key in T]: ValueWrapper;
-}
-
 interface LayerTypes {
   "Repeat": RepeatLayer
 }
-
-export type GenericLayer = Layer<{[key: string]: ValueWrapper}>;
 
 export type LayerJsonInfo = {
   layerType: string;
   valDict: {[key: string]: string};
 };
 
-export abstract class Layer<V extends ValueDict<string>> {
+export abstract class Layer {
   private static layerConstructorDict: LayerTypes | null = null;
   public static isLayerType(type: string): type is keyof LayerTypes {
     if (Layer.layerConstructorDict === null) {
@@ -38,18 +32,18 @@ export abstract class Layer<V extends ValueDict<string>> {
       throw new Error("unimplemented layer")
     }
   }
-  public static toJson(layer: GenericLayer): LayerJsonInfo {
+  public static toJson(layer: Layer): LayerJsonInfo {
     const info: LayerJsonInfo = {
       layerType: layer.getType(),
       valDict: {},
     };
-    for (const valueKey in layer.valueWrappers) {
-      info.valDict[valueKey] = layer.valueWrappers[valueKey].stringify();
+    for (const valueKey in layer.fields) {
+      info.valDict[valueKey] = layer.fields[valueKey].wrapper.stringify();
     }
     return info;
   }
 
-  public static fromJson(info: LayerJsonInfo): Layer<{[key: string]: ValueWrapper}> {
+  public static fromJson(info: LayerJsonInfo): Layer {
     if (!Layer.isLayerType(info.layerType)) throw new Error(`Unknown layer type ${info.layerType}`)
 
     const layer = Layer.getLayer(info.layerType);
@@ -66,7 +60,12 @@ export abstract class Layer<V extends ValueDict<string>> {
     [key: string]: LayerPortInfo;
   };
 
-  protected abstract valueWrappers: V;
+  protected abstract fields: {
+    [key: string]: {
+      wrapper: ValueWrapper;
+      readonly: boolean;
+    }
+  };
   protected abstract type: string;
 
   constructor() {
@@ -81,8 +80,8 @@ export abstract class Layer<V extends ValueDict<string>> {
     return Object.keys(this.ports);
   }
 
-  public getValueIds(): string[] {
-    return Object.keys(this.valueWrappers);
+  public getFieldIds(): string[] {
+    return Object.keys(this.fields);
   }
 
   public getPortInfo(portId: string): LayerPortInfo {
@@ -92,19 +91,20 @@ export abstract class Layer<V extends ValueDict<string>> {
     return portInfo;
   }
 
-  public getValueWrapper<T extends keyof V>(value: T): V[T] {
-    return this.valueWrappers[value];
+  public getValueWrapper(fieldKey: string): ValueWrapper {
+    return this.fields[fieldKey].wrapper;
   }
 
-  public hasValueWrapper(value: string | keyof V): value is keyof V {
-    return this.valueWrappers[value] !== undefined;
+  public isReadonlyField(fieldKey: string): boolean {
+    return this.fields[fieldKey].readonly;
+  }
+
+  public hasValueWrapper(fieldKey: string): boolean {
+    return this.fields[fieldKey] !== undefined;
   }
 }
 
-export class RepeatLayer extends Layer<{
-  inputShape: ShapeWrapper;
-  outputShape: ShapeWrapper;
-}> {
+export class RepeatLayer extends Layer {
   protected type = "Repeat";
   protected ports: { [key: string]: LayerPortInfo } = {
     "input0": {
@@ -117,9 +117,15 @@ export class RepeatLayer extends Layer<{
     },
   };
 
-  protected valueWrappers = {
-    inputShape: new ShapeWrapper([224, 224, 3]),
-    outputShape: new ShapeWrapper([224, 224, 3]),
+  protected fields = {
+    inputShape: {
+      wrapper: new ShapeWrapper([224, 224, 3]),
+      readonly: false,
+    },
+    outputShape: {
+      wrapper: new ShapeWrapper([224, 224, 3]),
+      readonly: true,
+    },
   };
 
   constructor() {

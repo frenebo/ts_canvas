@@ -1,6 +1,6 @@
 import {
   ModelInterface, GraphData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap,
-  ModelVersioningRequest, LayerDataDict, DeepReadonly,
+  ModelVersioningRequest, DeepReadonly, LayerData,
 } from "../../interfaces.js";
 import { GraphUtils, EdgesByVertex } from "./graphUtils.js";
 import { Diffable, DiffType, createDiff } from "../../diff.js";
@@ -92,10 +92,6 @@ export class DefaultModel implements ModelInterface {
 
   public getGraphData(): DeepReadonly<GraphData> {
     return this.session.data.graph;
-  }
-
-  public getLayerDataDict(): DeepReadonly<LayerDataDict> {
-    return LayerUtils.getLayerDataDict(this.session.data.layers);
   }
 
   public addGraphChangedListener(listener: () => void): void {
@@ -269,7 +265,16 @@ export class DefaultModel implements ModelInterface {
         (req as ModelInfoRequestMap["validateValue"]).newValue,
       );
       const response: ModelInfoResponseMap["validateValue"] = {
-        validity: validationString,
+        invalidError: validationString,
+      };
+      return response;
+    } else if (req.type === "getLayerInfo") {
+      const layerData: LayerData = LayerUtils.getLayerData(
+        this.session.data.layers,
+        (req as ModelInfoRequestMap["getLayerInfo"]).layerId,
+      )
+      const response: ModelInfoResponseMap["getLayerInfo"] = {
+        data: layerData
       };
       return response;
     } else {

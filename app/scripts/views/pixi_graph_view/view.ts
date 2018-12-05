@@ -35,6 +35,7 @@ export class PixiView implements ViewInterface {
 
     const dialogs = new DialogManager(
       div,
+      sendModelChangeRequest,
       sendModelInfoRequest,
       sendModelVersioningRequest,
     );

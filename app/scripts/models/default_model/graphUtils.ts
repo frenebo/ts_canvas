@@ -1,5 +1,5 @@
 import { GraphData, EdgeData, VertexData } from "../../interfaces.js";
-import { GenericLayer } from "./layers/layers.js";
+import { Layer } from "./layers/layers.js";
 
 export interface EdgesByVertex {
   [key: string]: {
@@ -110,7 +110,7 @@ export class GraphUtils {
     this.addVertex(graphData, edgesByVertex, newVtxId, newVtx);
   }
 
-  public static createVertexFromLayer(layer: GenericLayer, x = 0, y = 0): VertexData {
+  public static createVertexFromLayer(layer: Layer, x = 0, y = 0): VertexData {
     const vtxData: VertexData = {
       label: layer.getType(),
       geo: { x: x, y: y },

@@ -1,16 +1,15 @@
-import { Dialog } from "./dialogs.js";
+import { Dialog } from "./dialog.js";
+import { ModelVersioningRequest } from "../../../interfaces.js";
 
 export class OpenDialog extends Dialog {
   constructor(
     closeDialogFunc: () => void,
-    div: HTMLDivElement,
     width: number,
     height: number,
     fileNames: string[],
-    openFunc: (fileName: string) => void,
-    deleteFunc: (fileName: string) => void,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
-    super(closeDialogFunc, div, width, height);
+    super(closeDialogFunc, width, height);
 
     const saveAsTitle = Dialog.createTitle("Open");
     this.root.appendChild(saveAsTitle);
@@ -49,7 +48,7 @@ export class OpenDialog extends Dialog {
       });
 
       fileLabel.addEventListener("click", () => {
-        openFunc(fileName);
+        sendModelVersioningRequest({type: "openFile", fileName: fileName});
         closeDialogFunc();
       });
 
@@ -63,7 +62,7 @@ export class OpenDialog extends Dialog {
       deleteFileButton.textContent = "X";
       deleteFileButton.addEventListener("click", () => {
         if (confirm("Delete file?")) {
-          deleteFunc(fileName);
+          sendModelVersioningRequest({type: "deleteFile", fileName: fileName});
           openFilesDiv.removeChild(fileRow);
         }
       });

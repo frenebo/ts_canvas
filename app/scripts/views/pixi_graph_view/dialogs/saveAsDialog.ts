@@ -1,14 +1,13 @@
-import { Dialog } from "./dialogs.js";
+import { Dialog } from "./dialog.js";
 
 export class SaveAsDialog extends Dialog {
   constructor(
     closeDialogFunc: () => void,
-    div: HTMLDivElement,
     width: number,
     height: number,
     saveFunc: (fileName: string) => void,
   ) {
-    super(closeDialogFunc, div, width, height);
+    super(closeDialogFunc, width, height);
 
     const saveAsTitle = Dialog.createTitle("Save As");
     this.root.appendChild(saveAsTitle);

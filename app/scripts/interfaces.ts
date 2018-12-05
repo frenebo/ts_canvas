@@ -43,17 +43,13 @@ export interface LayerData {
   fields: {
     [key: string]: {
       value: string;
+      readonly: boolean;
     }
   }
 }
 
-export interface LayerDataDict {
-  [key: string]: LayerData;
-}
-
 export interface ViewInterface {
   setGraphData?(data: GraphData): void;
-  setLayerDataDict?(layerDataDict: LayerDataDict): void;
 }
 
 export type DeepReadonly<T extends {}> = Readonly<{
@@ -62,9 +58,7 @@ export type DeepReadonly<T extends {}> = Readonly<{
 
 export interface ModelInterface {
   getGraphData(): DeepReadonly<GraphData>;
-  getLayerDataDict(): DeepReadonly<LayerDataDict>;
   addGraphChangedListener(listener: () => void): void;
-  addLayerDataDictChangedListener(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): void;
   requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T];
   requestVersioningChange(req: ModelVersioningRequest): void;
@@ -173,7 +167,10 @@ export interface ModelInfoResponseMap {
   } | {
     couldFindPort: false;
   };
+  "getLayerInfo": {
+    data: LayerData;
+  };
   "validateValue": {
-    validity: string | null;
+    invalidError: string | null;
   };
 }
