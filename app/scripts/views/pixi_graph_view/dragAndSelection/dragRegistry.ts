@@ -217,6 +217,7 @@ export class DragRegistry {
         port: PortWrapper;
         portId: string;
         vertexId: string;
+        isValid: boolean;
       } | null = null;
       portDragHandler.addListener("dragMove", (cursorX, cursorY) => {
         const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
@@ -235,6 +236,7 @@ export class DragRegistry {
               port: snapPortInfo.targetPort,
               portId: snapPortInfo.targetPortId,
               vertexId: snapPortInfo.targetVtxId,
+              isValid: snapPortInfo.problem === null,
             };
             setTimeout(() => {
               // if the target is still the same
@@ -265,7 +267,7 @@ export class DragRegistry {
 
         // const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
 
-        if (currentTarget !== null) {
+        if (currentTarget !== null && currentTarget.isValid) {
           this.sendModelChangeRequests({
             newEdgeId: this.uniqueEdgeId(),
             type: "createEdge",
@@ -275,11 +277,10 @@ export class DragRegistry {
             targetPortId: currentTarget.portId,
           });
         }
-        console.log(currentTarget);
-        console.log(this.portPreviewManager);
         if (currentTarget !== null) {
           this.portPreviewManager.portHoverEnd(currentTarget.port);
         }
+        currentTarget = null;
       });
       portDragHandler.addListener("dragAbort", () => {
         this.edgeDrawHandler.endDrag();

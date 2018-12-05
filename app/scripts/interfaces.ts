@@ -23,6 +23,7 @@ export interface EdgeData {
   sourcePortId: string;
   targetVertexId: string;
   targetPortId: string;
+  consistency: "consistent" | "inconsistent";
 }
 
 export interface GraphData {

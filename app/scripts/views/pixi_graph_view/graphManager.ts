@@ -167,6 +167,7 @@ export class GraphManager {
       this.ports[edgeData.sourceVertexId][edgeData.sourcePortId],
       this.vertexWrappers[edgeData.targetVertexId],
       this.ports[edgeData.targetVertexId][edgeData.targetPortId],
+      edgeData.consistency,
     );
 
     this.edgeWrappers[edgeKey] = edgeWrapper;

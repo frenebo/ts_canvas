@@ -39,7 +39,6 @@ export class GraphUtils {
 
   public static moveVertex(
     graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
     vtxId: string,
     x: number,
     y: number,
@@ -166,11 +165,12 @@ export class GraphUtils {
 
     if (edgeValidationMessage !== null) throw new Error(`Invalid edge: ${edgeValidationMessage}`);
 
-    const edge = {
+    const edge: EdgeData = {
       sourceVertexId: sourceVtxId,
       sourcePortId: sourcePortId,
       targetVertexId: targetVtxId,
       targetPortId: targetPortId,
+      consistency: "consistent",
     };
     graphData.edges[edgeId] = edge;
     edgesByVertex[edge.sourceVertexId].out.push(edgeId);

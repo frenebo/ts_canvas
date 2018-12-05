@@ -1,5 +1,4 @@
 import { Layer, LayerJsonInfo } from "./layers.js";
-import { ValueWrapper } from "./valueWrappers/valueWrapper.js";
 import { LayerData } from "../../../interfaces.js";
 
 export type LayerClassDict = {

@@ -1,6 +1,5 @@
 import { PortWrapper } from "./portWrapper.js";
 import { VertexWrapper } from "./vertexWrapper.js";
-import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 
 export class EdgeWrapper {
   private static readonly spriteLeftRightPadding = 25;
@@ -17,11 +16,12 @@ export class EdgeWrapper {
     targetX: number,
     targetY: number,
     selected: boolean,
+    consistent: "consistent" | "inconsistent",
   ): PIXI.Graphics {
     // graphics.cacheAsBitmap = false;
     graphics.clear();
     graphics.lineColor = selected ? EdgeWrapper.selectedLineColor : EdgeWrapper.unselectedLineColor;
-    graphics.lineWidth = EdgeWrapper.lineWidth;
+    graphics.lineWidth = EdgeWrapper.lineWidth + (consistent === "consistent" ? 0 : 10);
 
     const topLeftX = Math.min(sourceX, targetX);
     const topLeftY = Math.min(sourceY, targetY);
@@ -47,6 +47,7 @@ export class EdgeWrapper {
     private readonly sourcePort: PortWrapper,
     private readonly targetVertex: VertexWrapper,
     private readonly targetPort: PortWrapper,
+    private readonly consistency: "consistent" | "inconsistent",
   ) {
     this.container = new PIXI.Container();
     this.container.interactive = true;
@@ -132,6 +133,7 @@ export class EdgeWrapper {
         targetX,
         targetY,
         this.isSelected,
+        this.consistency,
       );
     }
 

@@ -90,12 +90,7 @@ export class PixiView implements ViewInterface {
       const newEdge = newData.edges[key];
       const oldEdge = this.data.edges[key];
 
-      if (newEdge.sourcePortId !== oldEdge.sourcePortId) return true;
-      if (newEdge.sourceVertexId !== oldEdge.sourceVertexId) return true;
-      if (newEdge.targetPortId !== oldEdge.targetPortId) return true;
-      if (newEdge.targetVertexId !== oldEdge.targetVertexId) return true;
-
-      return false;
+      return JSON.stringify(newEdge) !== JSON.stringify(oldEdge);
     });
 
     const graphManagerCommands: GraphManagerCommand[] = [];

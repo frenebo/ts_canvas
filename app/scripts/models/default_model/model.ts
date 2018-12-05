@@ -63,30 +63,6 @@ export class DefaultModel implements ModelInterface {
         i.toString(),
         vertex,
       );
-      // LayerUtils.createLayer(
-      //   this.session.data.layers,
-      //   i.toString(),
-      //   "RepeatLayer",
-      // );
-      // GraphUtils.createVertex(this.session.data.graph, this.session.data.edgesByVertex, i.toString(), {
-      //   label: i.toString(),
-      //   geo: {
-      //     x: i*100,
-      //     y: i*100,
-      //   },
-      //   ports: {
-      //     "port0": {
-      //       portType: "input",
-      //       side: "top",
-      //       position: 0.5,
-      //     },
-      //     "port2": {
-      //       portType: "output",
-      //       side: "bottom",
-      //       position: 0.5,
-      //     },
-      //   },
-      // });
     }
   }
 
@@ -138,7 +114,6 @@ export class DefaultModel implements ModelInterface {
     if (req.type === "moveVertex") {
       GraphUtils.moveVertex(
         this.session.data.graph,
-        this.session.data.edgesByVertex,
         req.vertexId,
         req.x,
         req.y,
@@ -189,8 +164,14 @@ export class DefaultModel implements ModelInterface {
         req.layerId,
         req.fieldValues,
       );
+      SessionUtils.updateEdgeConsistenciesFrom(
+        this.session.data.graph,
+        this.session.data.edgesByVertex,
+        this.session.data.layers,
+        req.layerId,
+      );
     } else {
-      // console.log(`Unimplemented request ${req.type}`);
+      throw new Error(`Unimplemented request ${JSON.stringify(req)}`);
     }
   }
 
