@@ -63,18 +63,27 @@ export class SessionUtils {
     const edgeIdsOut: string[] = edgesByVertex[vertexId].out;
 
     for (const edgeId of edgeIdsOut) {
-      const edge = graphData.edges[edgeId];
-      const targetLayer = layers[edge.targetVertexId];
-
-      const sourcePortId = edge.sourcePortId;
-      const targetPortId = edge.targetPortId;
-      const sourceValueId = sourceLayer.getPortInfo(sourcePortId).valueKey;
-      const targetValueId = targetLayer.getPortInfo(targetPortId).valueKey;
-      const sourceValue = sourceLayer.getValueWrapper(sourceValueId);
-      const targetValue = targetLayer.getValueWrapper(targetValueId);
-      const isConsistent: boolean = sourceValue.compareTo(targetValue.getValue());
-
-      edge.consistency = isConsistent ? "consistent" : "inconsistent";
+      SessionUtils.updateEdgeConsistency(graphData, layers, edgeId);
     }
+  }
+
+  public static updateEdgeConsistency(
+    graphData: GraphData,
+    layers: LayerClassDict,
+    edgeId: string,
+  ): void {
+    const edge = graphData.edges[edgeId];
+    const sourceLayer = layers[edge.sourceVertexId];
+    const targetLayer = layers[edge.targetVertexId];
+
+    const sourcePortId = edge.sourcePortId;
+    const targetPortId = edge.targetPortId;
+    const sourceValueId = sourceLayer.getPortInfo(sourcePortId).valueKey;
+    const targetValueId = targetLayer.getPortInfo(targetPortId).valueKey;
+    const sourceValue = sourceLayer.getValueWrapper(sourceValueId);
+    const targetValue = targetLayer.getValueWrapper(targetValueId);
+    const isConsistent: boolean = sourceValue.compareTo(targetValue.getValue());
+
+    edge.consistency = isConsistent ? "consistent" : "inconsistent";
   }
 }

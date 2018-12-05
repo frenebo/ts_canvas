@@ -128,6 +128,11 @@ export class DefaultModel implements ModelInterface {
         req.targetVertexId,
         req.targetPortId,
       );
+      SessionUtils.updateEdgeConsistency(
+        this.session.data.graph,
+        this.session.data.layers,
+        req.newEdgeId,
+      )
     } else if (req.type === "cloneVertex") {
       GraphUtils.cloneVertex(
         this.session.data.graph,
