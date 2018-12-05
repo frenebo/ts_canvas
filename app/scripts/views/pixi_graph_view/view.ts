@@ -85,7 +85,7 @@ export class PixiView implements ViewInterface {
 
     const removedEdgeKeys = oldEdgeKeys.filter((key) => newEdgeKeys.indexOf(key) === -1);
     const addedEdgeKeys = newEdgeKeys.filter((key) => oldEdgeKeys.indexOf(key) === -1);
-    const sharedEdgeKeys = oldEdgeKeys.filter((key) => newEdgeKeys.indexOf(key) === 1);
+    const sharedEdgeKeys = oldEdgeKeys.filter((key) => newEdgeKeys.indexOf(key) !== -1);
     const changedEdgeKeys = sharedEdgeKeys.filter((key) => {
       const newEdge = newData.edges[key];
       const oldEdge = this.data.edges[key];
