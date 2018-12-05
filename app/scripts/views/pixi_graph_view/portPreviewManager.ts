@@ -1,6 +1,6 @@
-import { PortWrapper } from "./portWrapper";
+import { PortWrapper } from "./graphicWrappers/portWrapper";
 import { BackgroundWrapper } from "./backgroundWrapper";
-import { VertexWrapper } from "./vertexWrapper";
+import { VertexWrapper } from "./graphicWrappers/vertexWrapper";
 import { ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap } from "../../interfaces";
 
 export class PortPreviewManager {

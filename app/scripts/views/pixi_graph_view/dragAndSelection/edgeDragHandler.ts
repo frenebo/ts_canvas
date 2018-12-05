@@ -1,4 +1,4 @@
-import { EdgeWrapper } from "../edgeWrapper.js";
+import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
 import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "../selectionManager.js";
 import { BackgroundWrapper } from "../backgroundWrapper.js";

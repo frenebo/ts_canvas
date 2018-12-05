@@ -1,8 +1,9 @@
 // import { VertexData, PortData } from "../../interfaces.js";
-import { EditIcon } from "./icons/editIcon.js";
+import { EditIconWrapper } from "./editIconWrapper.js";
 import { PortWrapper } from "./portWrapper.js";
+import { GraphicWrapper } from "./graphicsWrapper.js";
 
-export class VertexWrapper {
+export class VertexWrapper extends GraphicWrapper {
   private static readonly unselectedFillColor = 0xE6E6E6;
   private static readonly selectedFillColor = 0xFFFF00;
   private static readonly borderColor = 0x333333;
@@ -46,12 +47,10 @@ export class VertexWrapper {
   }
 
   private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
-  private readonly container: PIXI.Container;
   private readonly width: number;
   private readonly height: number;
   private readonly label: PIXI.Text;
-  private editIcon: EditIcon | null = null;
-  private readonly positionChangedListeners: Array<() => void> = [];
+  private editIcon: EditIconWrapper | null = null;
   private isSelected = false;
   private background: PIXI.Sprite;
 
@@ -59,15 +58,13 @@ export class VertexWrapper {
     // private readonly registerPort: (vtx: VertexWrapper, portId: string, port: PortWrapper) => void,
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
+    super({});
     this.renderer = renderer;
     this.width = VertexWrapper.defaultWidth;
     this.height = VertexWrapper.defaultHeight;
 
-    this.container = new PIXI.Container();
-    this.container.interactive = true;
-
     this.background = new PIXI.Sprite(); // placeholder
-    this.container.addChild(this.background);
+    this.addChild(this.background);
     this.redrawBackground();
 
     // this.sprite.buttonMode = true;
@@ -91,27 +88,19 @@ export class VertexWrapper {
     });
 
     this.label = new PIXI.Text("", textStyle);
-    this.container.addChild(this.label);
+    this.addChild(this.label);
 
 
     // this.positionChildren();
   }
 
-  public setVisible(visible: boolean): void {
-    this.container.visible = visible;
-  }
-
-  public addEditIcon(editIcon: EditIcon): void {
+  public addEditIcon(editIcon: EditIconWrapper): void {
     this.editIcon = editIcon;
-    this.editIcon.addTo(this.container);
+    this.addChild(this.editIcon);
     this.editIcon.addClickListener(() => {
       console.log("Edit icon clicked");
     });
     this.positionChildren();
-  }
-
-  public getDisplayObject() {
-    return this.container;
   }
 
   public toggleSelected(selected: boolean): void {
@@ -120,24 +109,24 @@ export class VertexWrapper {
   }
 
   private redrawBackground(): void {
-    this.container.removeChild(this.background);
+    this.removeChild(this.background);
     this.background = new PIXI.Sprite(VertexWrapper.generateBoxTexture(1, this.isSelected, this.renderer));
-    this.container.addChildAt(this.background, 0); // insert behind other children
+    this.addChildAt(this.background, 0); // insert behind other children
   }
 
   private positionChildren(): void {
     let widthForLabel: number;
     if (this.editIcon !== null) {
-      const padding = (this.container.height - this.editIcon.getHeight())/2;
-      this.editIcon.setPosition(this.container.width - (this.editIcon.getWidth() + padding), padding);
-      widthForLabel = this.container.width - (this.editIcon.getWidth() + padding);
+      const padding = (this.getBackgroundHeight() - this.editIcon.getBackgroundHeight())/2;
+      this.editIcon.setPosition(this.getBackgroundWidth() - (this.editIcon.getBackgroundWidth() + padding), padding);
+      widthForLabel = this.getBackgroundWidth() - (this.editIcon.getBackgroundWidth() + padding);
     } else {
-      widthForLabel = this.container.width;
+      widthForLabel = this.getBackgroundWidth();
     }
 
     this.label.position.set(
       (widthForLabel - this.label.width)/2,
-      this.label.y = (this.container.height - this.label.height)/2,
+      this.label.y = (this.getBackgroundHeight() - this.label.height)/2,
     );
   }
 
@@ -145,21 +134,21 @@ export class VertexWrapper {
     let portX: number;
     let portY: number;
     if (side === "top" || side === "bottom") {
-      portX = this.width*position - portWrapper.getWidth()/2;
+      portX = this.width*position - portWrapper.getBackgroundWidth()/2;
     } else if (side === "left") {
-      portX = - portWrapper.getWidth()/2 + VertexWrapper.borderWidth/2;
+      portX = - portWrapper.getBackgroundWidth()/2 + VertexWrapper.borderWidth/2;
     } else if (side === "right") {
-      portX = this.width + VertexWrapper.borderWidth - portWrapper.getWidth()/2;
+      portX = this.width + VertexWrapper.borderWidth - portWrapper.getBackgroundWidth()/2;
     } else {
       throw new Error(`Invalid side type ${side}`);
     }
 
     if (side === "left" || side === "right") {
-      portY = this.height*position - portWrapper.getHeight()/2;
+      portY = this.height*position - portWrapper.getBackgroundHeight()/2;
     } else if (side === "top") {
-      portY = - portWrapper.getHeight()/2 + VertexWrapper.borderWidth/2;
+      portY = - portWrapper.getBackgroundHeight()/2 + VertexWrapper.borderWidth/2;
     } else if (side === "bottom") {
-      portY = this.height + VertexWrapper.borderWidth - portWrapper.getHeight()/2;
+      portY = this.height + VertexWrapper.borderWidth - portWrapper.getBackgroundHeight()/2;
     } else {
       throw new Error(`Invalid side type ${side}`);
     }
@@ -172,58 +161,5 @@ export class VertexWrapper {
       this.label.text = text;
       this.positionChildren();
     }
-  }
-
-  public addTo(obj: PIXI.Container): void {
-    obj.addChild(this.container);
-  }
-
-  public removeFrom(obj: PIXI.Container): void {
-    obj.removeChild(this.container);
-  }
-
-  public addChild(obj: PIXI.DisplayObject): void {
-    this.container.addChild(obj);
-  }
-
-  public removeChild(obj: PIXI.DisplayObject): void {
-    this.container.removeChild(obj);
-  }
-
-  public addPositionChangedListener(listener: () => void): void {
-    this.positionChangedListeners.push(listener);
-  }
-
-  public setPosition(x: number, y: number): void {
-    if (this.container.position.x !== x || this.container.position.y !== y) {
-      this.container.position.set(x, y);
-      for (const listener of this.positionChangedListeners) {
-        listener();
-      }
-    }
-  }
-
-  public localBounds(): PIXI.Rectangle {
-    return this.container.getLocalBounds();
-  }
-
-  public localX(): number {
-    return this.container.position.x;
-  }
-
-  public localY(): number {
-    return this.container.position.y;
-  }
-
-  public getBackgroundWidth(): number {
-    return this.background.width;
-  }
-
-  public getBackgroundHeight(): number {
-    return this.background.height;
-  }
-
-  public getDataRelativeLoc(data: PIXI.interaction.InteractionData): PIXI.Point {
-    return data.getLocalPosition(this.container);
   }
 }

@@ -1,5 +1,5 @@
-import { VertexWrapper } from "./vertexWrapper";
-import { EdgeWrapper } from "./edgeWrapper";
+import { VertexWrapper } from "./graphicWrappers/vertexWrapper";
+import { EdgeWrapper } from "./graphicWrappers/edgeWrapper";
 import { BackgroundWrapper } from "./backgroundWrapper";
 
 class PositionTracker {

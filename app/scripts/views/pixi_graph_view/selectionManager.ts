@@ -1,5 +1,5 @@
-import { VertexWrapper } from "./vertexWrapper.js";
-import { EdgeWrapper } from "./edgeWrapper.js";
+import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
+import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import {
   ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestMap, ModelInfoRequestType,
 } from "../../interfaces.js";

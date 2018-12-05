@@ -1,5 +1,6 @@
+import { GraphicWrapper } from "./graphicsWrapper.js";
 
-export class PortWrapper {
+export class PortWrapper extends GraphicWrapper {
   private static readonly borderWidth = 2;
 
   private static cachedPortTexture: PIXI.RenderTexture | null = null;
@@ -40,59 +41,19 @@ export class PortWrapper {
   private readonly isOutput: boolean;
   private readonly sprite: PIXI.Sprite;
 
-  private readonly positionChangedListeners: Array<() => void> = [];
 
   constructor(renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer, isOutput: boolean) {
+    super({
+      buttonMode: true
+    });
+
     this.isOutput = isOutput;
 
     this.sprite = PortWrapper.createSprite(renderer);
-
-    this.sprite.interactive = true;
-    this.sprite.buttonMode = true;
-  }
-
-  public getDisplayObject() {
-    return this.sprite;
+    this.addChild(this.sprite);
   }
 
   public getIsOutput(): boolean {
     return this.isOutput;
-  }
-
-  public addPositionChangedListener(listener: () => void): void {
-    this.positionChangedListeners.push(listener);
-  }
-
-  public setPosition(x: number, y: number): void {
-    if (this.sprite.position.x !== x || this.sprite.position.y !== y) {
-      this.sprite.position.set(x, y);
-      for (const listener of this.positionChangedListeners) {
-        listener();
-      }
-    }
-  }
-
-  public getWidth(): number {
-    return this.sprite.width;
-  }
-
-  public getHeight(): number {
-    return this.sprite.height;
-  }
-
-  public localX(): number {
-    return this.sprite.position.x;
-  }
-
-  public localY(): number {
-    return this.sprite.position.y;
-  }
-
-  public addTo(obj: PIXI.Container): void {
-    obj.addChild(this.sprite);
-  }
-
-  public removeFrom(obj: PIXI.Container): void {
-    obj.removeChild(this.sprite);
   }
 }

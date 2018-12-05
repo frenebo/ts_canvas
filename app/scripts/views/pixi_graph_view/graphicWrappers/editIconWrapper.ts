@@ -1,5 +1,6 @@
+import { GraphicWrapper } from "./graphicsWrapper.js";
 
-export class EditIcon {
+export class EditIconWrapper extends GraphicWrapper {
   private static readonly texturePadding = 5;
   private static readonly outlinePoints = [
     [0, 50],
@@ -17,13 +18,13 @@ export class EditIcon {
   private static cachedNotClicking: PIXI.RenderTexture | null = null;
 
   private static draw(clicking: boolean, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
-    if (clicking && EditIcon.cachedClicking !== null) {
-      const spriteFromCachedTexture = new PIXI.Sprite(EditIcon.cachedClicking);
+    if (clicking && EditIconWrapper.cachedClicking !== null) {
+      const spriteFromCachedTexture = new PIXI.Sprite(EditIconWrapper.cachedClicking);
       spriteFromCachedTexture.cacheAsBitmap = true;
       return spriteFromCachedTexture;
     }
-    if (!clicking && EditIcon.cachedNotClicking !== null) {
-      const spriteFromCachedTexture = new PIXI.Sprite(EditIcon.cachedNotClicking);
+    if (!clicking && EditIconWrapper.cachedNotClicking !== null) {
+      const spriteFromCachedTexture = new PIXI.Sprite(EditIconWrapper.cachedNotClicking);
       spriteFromCachedTexture.cacheAsBitmap = true;
       return spriteFromCachedTexture;
     }
@@ -35,8 +36,8 @@ export class EditIcon {
 
     function graphPoints(origPts: number[][], loop=false) {
       graphics.moveTo(
-        origPts[0][0] + EditIcon.texturePadding,
-        origPts[0][1] + EditIcon.texturePadding,
+        origPts[0][0] + EditIconWrapper.texturePadding,
+        origPts[0][1] + EditIconWrapper.texturePadding,
       );
 
       // if it's a loop, go over the first leg of the polygon again
@@ -44,14 +45,14 @@ export class EditIcon {
 
       for (const pt of pts.slice(1)) {
         graphics.lineTo(
-          pt[0] + EditIcon.texturePadding,
-          pt[1] + EditIcon.texturePadding,
+          pt[0] + EditIconWrapper.texturePadding,
+          pt[1] + EditIconWrapper.texturePadding,
         );
       }
     }
 
-    graphPoints(EditIcon.outlinePoints, true);
-    graphPoints(EditIcon.eraserPoints);
+    graphPoints(EditIconWrapper.outlinePoints, true);
+    graphPoints(EditIconWrapper.eraserPoints);
 
     const texture = renderer.generateTexture(
       graphics,
@@ -60,13 +61,13 @@ export class EditIcon {
       new PIXI.Rectangle(
         0,
         0,
-        graphics.width + EditIcon.texturePadding*2,
-        graphics.height + EditIcon.texturePadding*2,
+        graphics.width + EditIconWrapper.texturePadding*2,
+        graphics.height + EditIconWrapper.texturePadding*2,
       ),
     );
 
-    if (clicking) EditIcon.cachedClicking = texture;
-    else EditIcon.cachedNotClicking = texture;
+    if (clicking) EditIconWrapper.cachedClicking = texture;
+    else EditIconWrapper.cachedNotClicking = texture;
 
     const sprite = new PIXI.Sprite(texture);
     sprite.cacheAsBitmap = true;
@@ -74,16 +75,15 @@ export class EditIcon {
   }
 
   private static getHitArea(): PIXI.Polygon {
-    const outlineFirstPoint = EditIcon.outlinePoints[EditIcon.outlinePoints.length - 1];
-    const outlinePoints = EditIcon.outlinePoints.concat([outlineFirstPoint]);
+    const outlineFirstPoint = EditIconWrapper.outlinePoints[EditIconWrapper.outlinePoints.length - 1];
+    const outlinePoints = EditIconWrapper.outlinePoints.concat([outlineFirstPoint]);
     const points = outlinePoints.map(([x, y]) => {
-      return new PIXI.Point(x + EditIcon.texturePadding, y + EditIcon.texturePadding);
+      return new PIXI.Point(x + EditIconWrapper.texturePadding, y + EditIconWrapper.texturePadding);
     });
 
     return new PIXI.Polygon(...points);
   }
 
-  private readonly container: PIXI.Container;
   private readonly width: number;
   private readonly height: number;
   private readonly clickListeners: Array<() => void> = [];
@@ -92,51 +92,29 @@ export class EditIcon {
   constructor(
     private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
   ) {
-    this.container = new PIXI.Container();
+    super({
+      buttonMode: true,
+      hitArea: EditIconWrapper.getHitArea(),
+    });
 
-    this.container.interactive = true;
-    this.container.buttonMode = true;
+    this.sprite = EditIconWrapper.draw(false, renderer);
+    this.addChild(this.sprite);
 
-    this.sprite = EditIcon.draw(false, renderer);
-    this.container.addChild(this.sprite);
-
-    this.container.hitArea = EditIcon.getHitArea();
-
-    this.width = this.container.width;
-    this.height = this.container.height;
+    this.width = this.getBackgroundWidth();
+    this.height = this.getBackgroundHeight();
   }
 
   private isSelected = false;
   public toggleSelected(selected: boolean) {
     if (selected !== this.isSelected) {
-      this.container.removeChild(this.sprite);
-      this.sprite = EditIcon.draw(selected, this.renderer);
-      this.container.addChild(this.sprite);
+      this.removeChild(this.sprite);
+      this.sprite = EditIconWrapper.draw(selected, this.renderer);
+      this.addChild(this.sprite);
     }
     this.isSelected = selected;
   }
 
-  public getDisplayObject() {
-    return this.container;
-  }
-
   public addClickListener(listener: () => void): void {
     this.clickListeners.push(listener);
-  }
-
-  public addTo(obj: PIXI.Container): void {
-    obj.addChild(this.container);
-  }
-
-  public setPosition(x: number, y: number): void {
-    this.container.position.set(x, y);
-  }
-
-  public getWidth(): number {
-    return this.width;
-  }
-
-  public getHeight(): number {
-    return this.height;
   }
 }

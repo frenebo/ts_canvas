@@ -1,5 +1,5 @@
 import { DragListeners } from "./dragRegistry.js";
-import { PortWrapper } from "../portWrapper.js";
+import { PortWrapper } from "../graphicWrappers/portWrapper.js";
 
 interface PortListenerTypes {
   dragStart: (x: number, y: number) => void;

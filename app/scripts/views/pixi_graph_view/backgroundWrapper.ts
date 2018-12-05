@@ -1,7 +1,6 @@
 import { BACKGROUND_TILE_PATH } from "../../constants.js";
-import { VertexWrapper } from "./vertexWrapper.js";
-import { EdgeWrapper } from "./edgeWrapper.js";
-import { PortWrapper } from "./portWrapper.js";
+import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
+import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 
 export class BackgroundWrapper {
   private readonly sprite: PIXI.extras.TilingSprite;

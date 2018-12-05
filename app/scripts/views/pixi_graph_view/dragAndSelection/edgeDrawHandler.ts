@@ -1,5 +1,5 @@
-import { PortWrapper } from "../portWrapper.js";
-import { VertexWrapper } from "../vertexWrapper.js";
+import { PortWrapper } from "../graphicWrappers/portWrapper.js";
+import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
 import { BackgroundWrapper } from "../backgroundWrapper.js";
 
 export class EdgeDrawHandler {
@@ -34,9 +34,9 @@ export class EdgeDrawHandler {
     if (this.dragData === null) throw new Error("Not currently drawing edge");
 
     const startX =
-      this.dragData.sourcePort.localX() + this.dragData.sourcePort.getWidth()/2 + this.dragData.sourceVtx.localX();
+      this.dragData.sourcePort.localX() + this.dragData.sourcePort.getBackgroundWidth()/2 + this.dragData.sourceVtx.localX();
     const startY =
-      this.dragData.sourcePort.localY() + this.dragData.sourcePort.getHeight()/2 + this.dragData.sourceVtx.localY();
+      this.dragData.sourcePort.localY() + this.dragData.sourcePort.getBackgroundHeight()/2 + this.dragData.sourceVtx.localY();
 
     this.dragData.graphics.clear();
 

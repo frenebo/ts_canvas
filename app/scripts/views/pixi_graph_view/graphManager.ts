@@ -1,11 +1,11 @@
-import { EdgeWrapper } from "./edgeWrapper.js";
-import { VertexWrapper } from "./vertexWrapper.js";
+import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
+import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import {
   VertexData, EdgeData, ModelVersioningRequest, ModelInfoRequestType, ModelChangeRequest, ModelInfoRequestMap,
   ModelInfoResponseMap,
 } from "../../interfaces.js";
-import { EditIcon } from "./icons/editIcon.js";
-import { PortWrapper } from "./portWrapper.js";
+import { EditIconWrapper } from "./graphicWrappers/editIconWrapper.js";
+import { PortWrapper } from "./graphicWrappers/portWrapper.js";
 import { StageManager } from "./stageManager.js";
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
@@ -132,7 +132,7 @@ export class GraphManager {
     }
 
     const vertexWrapper = new VertexWrapper(this.stageManager.getRenderer());
-    const editIcon = new EditIcon(this.stageManager.getRenderer());
+    const editIcon = new EditIconWrapper(this.stageManager.getRenderer());
     vertexWrapper.addEditIcon(editIcon);
 
     this.dragRegistry.registerEditIcon(

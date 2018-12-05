@@ -1,15 +1,15 @@
 import { BackgroundWrapper } from "../backgroundWrapper.js";
 import { BackgroundDragHandler } from "./backgroundDragHandler.js";
-import { EdgeWrapper } from "../edgeWrapper.js";
-import { VertexWrapper } from "../vertexWrapper.js";
+import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
+import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
 import { VertexDragHandler } from "./vertexDragHandler.js";
-import { PortWrapper } from "../portWrapper.js";
+import { PortWrapper } from "../graphicWrappers/portWrapper.js";
 import {
   ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest,
 } from "../../../interfaces.js";
 import { PortDragHandler } from "./portDragHandler.js";
 import { EdgeDrawHandler } from "./edgeDrawHandler.js";
-import { EditIcon } from "../icons/editIcon.js";
+import { EditIconWrapper } from "../graphicWrappers/editIconWrapper.js";
 import { SelectionManager } from "../selectionManager.js";
 import { EdgeDragHandler } from "./edgeDragHandler.js";
 import { PortPreviewManager } from "../portPreviewManager.js";
@@ -71,8 +71,8 @@ export class DragRegistry {
       const vertexWrapper = this.getVertexWrappers()[vertexKey];
       for (const portKey in this.getPortWrappers()[vertexKey]) {
         const portWrapper = this.getPortWrappers()[vertexKey][portKey];
-        const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + portWrapper.getWidth()/2);
-        const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + portWrapper.getHeight()/2);
+        const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + portWrapper.getBackgroundWidth()/2);
+        const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + portWrapper.getBackgroundHeight()/2);
         portDescriptions.push({
           portKey: portKey,
           port: portWrapper,
@@ -147,7 +147,7 @@ export class DragRegistry {
     delete this.edgeDragAbortListeners[id];
   }
 
-  public registerEditIcon(editIcon: EditIcon, clickBegin: () => void, clickEnd: () => void): void {
+  public registerEditIcon(editIcon: EditIconWrapper, clickBegin: () => void, clickEnd: () => void): void {
     const listeners = this.registerDisplayObject(editIcon.getDisplayObject());
     listeners.onDragStart(clickBegin);
     listeners.onDragEnd(clickEnd);
@@ -201,8 +201,8 @@ export class DragRegistry {
             targetPort: closestPort,
             targetVtxId: closestInfo.vtxKey,
             targetPortId: closestInfo.portKey,
-            xPos: closestPort.localX() + closestPort.getWidth()/2 + closestPortVertex.localX(),
-            yPos: closestPort.localY() + closestPort.getWidth()/2 + closestPortVertex.localY(),
+            xPos: closestPort.localX() + closestPort.getBackgroundWidth()/2 + closestPortVertex.localX(),
+            yPos: closestPort.localY() + closestPort.getBackgroundWidth()/2 + closestPortVertex.localY(),
             problem: edgeValidityInfo.valid ? null : edgeValidityInfo.problem,
           };
         } else {

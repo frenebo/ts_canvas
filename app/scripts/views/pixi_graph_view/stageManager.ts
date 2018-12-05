@@ -1,6 +1,6 @@
-import { VertexWrapper } from "./vertexWrapper.js";
+import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
-import { EdgeWrapper } from "./edgeWrapper.js";
+import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 
 export class StageManager {
   private readonly app: PIXI.Application;

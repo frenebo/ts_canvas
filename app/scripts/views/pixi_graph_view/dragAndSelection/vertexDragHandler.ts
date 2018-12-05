@@ -1,4 +1,4 @@
-import { VertexWrapper } from "../vertexWrapper.js";
+import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
 import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "../selectionManager.js";
 import { BackgroundWrapper } from "../backgroundWrapper.js";
