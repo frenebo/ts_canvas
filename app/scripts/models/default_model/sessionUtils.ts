@@ -1,6 +1,6 @@
 import { ModelDataObj } from "./model.js";
 import { LayerUtils, LayerClassDictJson } from "./layers/layerUtils.js";
-import { EdgesByVertex } from "./graphUtils.js";
+import { EdgesByVertex, GraphUtils } from "./graphUtils.js";
 import { GraphData } from "../../interfaces.js";
 
 export type SessionDataJson = {
@@ -25,5 +25,26 @@ export class SessionUtils {
       layers: LayerUtils.fromJson(jsonData.layers),
     };
     return modelData;
+  }
+
+  public static validateEdge(
+    graphData: GraphData,
+    edgesByVertex: EdgesByVertex,
+    sourceVtxId: string,
+    sourcePortId: string,
+    targetVtxId: string,
+    targetPortId: string,
+  ): string | null {
+    const graphValidated = GraphUtils.validateEdge(
+      graphData,
+      edgesByVertex,
+      sourceVtxId,
+      sourcePortId,
+      targetVtxId,
+      targetPortId,
+    );
+    if (graphValidated !== null) return graphValidated;
+
+    return null;
   }
 }

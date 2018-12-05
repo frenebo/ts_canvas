@@ -213,7 +213,11 @@ export class DragRegistry {
       portDragHandler.addListener("dragStart", () => {
         this.edgeDrawHandler.beginDraw(vertex, port);
       });
-      let currentTarget: PortWrapper | null = null;
+      let currentTarget: {
+        port: PortWrapper;
+        portId: string;
+        vertexId: string;
+      } | null = null;
       portDragHandler.addListener("dragMove", (cursorX, cursorY) => {
         const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
         const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
@@ -226,11 +230,15 @@ export class DragRegistry {
             snapPortInfo.yPos,
             snapPortInfo.problem === null ? "valid" : "invalid",
           );
-          if (currentTarget !== snapPortInfo.targetPort) {
-            currentTarget = snapPortInfo.targetPort;
+          if (currentTarget === null || currentTarget.port !== snapPortInfo.targetPort) {
+            currentTarget = {
+              port: snapPortInfo.targetPort,
+              portId: snapPortInfo.targetPortId,
+              vertexId: snapPortInfo.targetVtxId,
+            };
             setTimeout(() => {
               // if the target is still the same
-              if (currentTarget === snapPortInfo.targetPort) {
+              if (currentTarget !== null && currentTarget.port === snapPortInfo.targetPort) {
                 this.portPreviewManager.portHover(
                   snapPortInfo.targetPort,
                   snapPortInfo.targetVtx,
@@ -243,8 +251,8 @@ export class DragRegistry {
           }
         } else {
           this.edgeDrawHandler.redrawLine(cursorLocalX, cursorLocalY);
-          if (currentTarget !== null && this.portPreviewManager.currentShowingIs(currentTarget)) {
-            this.portPreviewManager.portHoverEnd(currentTarget);
+          if (currentTarget !== null && this.portPreviewManager.currentShowingIs(currentTarget.port)) {
+            this.portPreviewManager.portHoverEnd(currentTarget.port);
           }
           currentTarget = null;
         }
@@ -252,24 +260,25 @@ export class DragRegistry {
       portDragHandler.addListener("dragEnd", (cursorX, cursorY) => {
         this.edgeDrawHandler.endDrag();
 
-        const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
-        const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+        // const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
+        // const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
 
-        const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
+        // const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
 
-        if (snapPortInfo !== null && snapPortInfo.problem === null) {
+        if (currentTarget !== null) {
           this.sendModelChangeRequests({
             newEdgeId: this.uniqueEdgeId(),
             type: "createEdge",
             sourceVertexId: vertexId,
             sourcePortId: portId,
-            targetVertexId: snapPortInfo.targetVtxId,
-            targetPortId: snapPortInfo.targetPortId,
+            targetVertexId: currentTarget.vertexId,
+            targetPortId: currentTarget.portId,
           });
         }
-        throw new Error("The following code doesn't remove previews properly")
-        if (currentTarget !== null && this.portPreviewManager.currentShowingIs(currentTarget)) {
-          this.portPreviewManager.portHoverEnd(currentTarget);
+        console.log(currentTarget);
+        console.log(this.portPreviewManager);
+        if (currentTarget !== null) {
+          this.portPreviewManager.portHoverEnd(currentTarget.port);
         }
       });
       portDragHandler.addListener("dragAbort", () => {

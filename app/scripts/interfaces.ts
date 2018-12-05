@@ -145,6 +145,19 @@ export interface ModelInfoRequestMap {
     layerId: string;
     valueId: string;
     newValue: string;
+  };
+  "compareValue": {
+    type: "compareValue";
+    layerId: string;
+    valueId: string;
+    compareValue: string;
+  };
+  "validateLayerFields": {
+    type: "validateLayerFields";
+    layerId: string;
+    fieldValues: {
+      [key: string]: string;
+    };
   }
 }
 
@@ -182,4 +195,11 @@ export interface ModelInfoResponseMap {
   "validateValue": {
     invalidError: string | null;
   };
+  "compareValue": {
+    isEqual: boolean;
+  };
+  "validateLayerFields": {
+    errors: string[];
+    warnings: string[];
+  }
 }

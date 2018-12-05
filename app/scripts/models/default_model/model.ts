@@ -215,7 +215,7 @@ export class DefaultModel implements ModelInterface {
 
   public requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T] {
     if (req.type === "validateEdge") {
-      const validationMessage = GraphUtils.validateEdge(
+      const validationMessage = SessionUtils.validateEdge(
         this.session.data.graph,
         this.session.data.edgesByVertex,
         (req as ModelInfoRequestMap["validateEdge"]).sourceVertexId,
@@ -285,6 +285,28 @@ export class DefaultModel implements ModelInterface {
       const response: ModelInfoResponseMap["getLayerInfo"] = {
         data: layerData
       };
+      return response;
+    } else if (req.type === "compareValue") {
+      const isEqual = LayerUtils.compareValue(
+        this.session.data.layers,
+        (req as ModelInfoRequestMap["compareValue"]).layerId,
+        (req as ModelInfoRequestMap["compareValue"]).valueId,
+        (req as ModelInfoRequestMap["compareValue"]).compareValue,
+      );
+      const response: ModelInfoResponseMap["compareValue"] = {
+        isEqual: isEqual,
+      };
+      return response;
+    } else if (req.type === "validateLayerFields") {
+      const validated = LayerUtils.validateLayerFields(
+        this.session.data.layers,
+        (req as ModelInfoRequestMap["validateLayerFields"]).layerId,
+        (req as ModelInfoRequestMap["validateLayerFields"]).fieldValues,
+      );
+      const response: ModelInfoResponseMap["validateLayerFields"] = {
+        errors: validated.errors,
+        warnings: validated.warnings,
+      }
       return response;
     } else {
       throw new Error(`Unimplemented request ${req.type}`);

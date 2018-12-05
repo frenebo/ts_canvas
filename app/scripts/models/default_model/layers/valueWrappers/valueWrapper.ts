@@ -12,6 +12,7 @@ abstract class AbstractValueWrapper<T, V extends {} & Cloneable> {
       validate(val: unknown, config: V): null | string;
       parse(str: string): T | null;
       stringify(val: T): string;
+      compareEquals(val1: T, val2: T): boolean;
       factory(val: T, config: V): AbstractValueWrapper<T, V>;
     }>,
   ) {
@@ -31,6 +32,8 @@ abstract class AbstractValueWrapper<T, V extends {} & Cloneable> {
     return this.utils.stringify(this.value);
   }
   public setFromString(str: string): void {
+    if (typeof str !== "string") throw new Error("Argument must be string");
+
     const parsed = this.utils.parse(str);
     if (parsed === null) throw new Error("Could not parse");
 
@@ -40,10 +43,29 @@ abstract class AbstractValueWrapper<T, V extends {} & Cloneable> {
     return this.utils.validate(val, this.config);
   }
   public validateString(str: string): string | null {
+    if (typeof str !== "string") throw new Error("Argument must be string");
+
     const parsed = this.utils.parse(str);
     if (parsed === null) return `Could not process value "${str}"`;
 
     return this.utils.validate(parsed, this.config);
+  }
+  public compareTo(val: T): boolean {
+    return this.utils.compareEquals(
+      this.value,
+      val,
+    );
+  }
+  public compareToString(str: string): boolean {
+    if (typeof str !== "string") throw new Error("Argument must be string");
+
+    const parsed = this.utils.parse(str);
+    if (parsed === null) throw new Error(`Could not parse string ${str}`);
+
+    return this.utils.compareEquals(
+      this.value,
+      parsed,
+    );
   }
   public clone(): AbstractValueWrapper<T, V> {
     return this.utils.factory(
@@ -109,6 +131,14 @@ export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperCon
   private static stringify(val: number[]): string {
     return `(${val.join(",")})`;
   }
+  private static compareEquals(val1: number[], val2: number[]): boolean {
+    if (val1.length !== val2.length) return false;
+
+    for (let i = 0; i < val1.length; i++) {
+      if (val1[i] !== val2[i]) return false;
+    }
+    return true;
+  }
 
   constructor(val: number[], config: ShapeWrapperConfig = {}) {
     super(
@@ -118,6 +148,7 @@ export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperCon
         validate: ShapeWrapper.validate,
         parse: ShapeWrapper.parse,
         stringify: ShapeWrapper.stringify,
+        compareEquals: ShapeWrapper.compareEquals,
         factory: (val: number[], config: ShapeWrapperConfig) => new ShapeWrapper(val, config),
       },
     );

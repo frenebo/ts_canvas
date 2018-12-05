@@ -87,9 +87,15 @@ export class EditLayerDialog extends Dialog {
       });
     }
 
+    const updateErrorDiv = document.createElement("div");
+    this.root.appendChild(updateErrorDiv);
+    updateErrorDiv.style.color = "red";
+    updateErrorDiv.style.textAlign = "center";
+    updateErrorDiv.style.marginTop = "10px";
+
     const saveButtonDiv = document.createElement("div");
     this.root.appendChild(saveButtonDiv);
-    saveButtonDiv.style.marginTop = "20px";
+    saveButtonDiv.style.marginTop = "10px";
 
     const applyButton = document.createElement("button");
     saveButtonDiv.appendChild(applyButton);
@@ -109,20 +115,33 @@ export class EditLayerDialog extends Dialog {
         }
       }
 
-      sendModelChangeRequests({
-        type: "setLayerFields",
+      const validated = sendModelInfoRequest<"validateLayerFields">({
+        type: "validateLayerFields",
         layerId: layerId,
         fieldValues: setFieldValues,
       });
 
-      const newFields = sendModelInfoRequest<"getLayerInfo">({
-        type: "getLayerInfo",
-        layerId: layerId
-      }).data.fields;
+      let errorText = validated.errors.length === 0 ? "" : validated.errors.length === 1 ? "Error: " : "Errors: ";
+      errorText += validated.errors.join(", ");
 
-      for (const fieldId in newFields) {
-        if (inputFields[fieldId].value !== newFields[fieldId].value) {
-          inputFields[fieldId].value = newFields[fieldId].value
+      updateErrorDiv.textContent = errorText;
+
+      if (validated.errors.length === 0) {
+        sendModelChangeRequests({
+          type: "setLayerFields",
+          layerId: layerId,
+          fieldValues: setFieldValues,
+        });
+
+        const newFields = sendModelInfoRequest<"getLayerInfo">({
+          type: "getLayerInfo",
+          layerId: layerId
+        }).data.fields;
+
+        for (const fieldId in newFields) {
+          if (inputFields[fieldId].value !== newFields[fieldId].value) {
+            inputFields[fieldId].value = newFields[fieldId].value
+          }
         }
       }
     });

@@ -56,6 +56,10 @@ export abstract class Layer {
     return layer;
   }
 
+  public static clone(layer: Layer): Layer {
+    return Layer.fromJson(Layer.toJson(layer));
+  }
+
   protected abstract ports: {
     [key: string]: LayerPortInfo;
   };
@@ -72,7 +76,17 @@ export abstract class Layer {
 
   }
 
-  public abstract update(): string | null;
+  public update(): void {
+    const status = this.updateFunc();
+
+    if (status.errors.length !== 0) throw new Error(`Error updating: ${status.errors.join(",")}`);
+  }
+
+  public validateUpdate(): {errors: string[], warnings: string[]} {
+    return Layer.clone(this).updateFunc();
+  }
+
+  protected abstract updateFunc(): {errors: string[], warnings: string[]};
 
   public getType(): string {
     return this.type;
@@ -136,10 +150,10 @@ export class RepeatLayer extends Layer {
     super();
   }
 
-  public update() {
+  public updateFunc() {
     const inputShape = this.fields.inputShape.wrapper.getValue();
     this.fields.outputShape.wrapper.setValue(inputShape);
 
-    return null;
+    return {errors: [], warnings: []};
   }
 }

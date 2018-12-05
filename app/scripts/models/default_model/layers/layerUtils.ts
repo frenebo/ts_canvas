@@ -58,13 +58,47 @@ export class LayerUtils {
     if (layer === undefined) throw new Error(`No layer found with id ${layerId}`);
 
     for (const fieldId in fieldValues) {
-      if (!layer.hasField(fieldId)) throw new Error(`Layer has no field names ${fieldId}`);
+      if (!layer.hasField(fieldId)) throw new Error(`Layer has no field named ${fieldId}`);
 
       if (layer.isReadonlyField(fieldId)) throw new Error(`Field ${fieldId} is readonly`);
 
       layer.getValueWrapper(fieldId).setFromString(fieldValues[fieldId]);
     }
     layer.update();
+  }
+
+  public static validateLayerFields(
+    layers: LayerClassDict,
+    layerId: string,
+    fieldValues: {[key: string]: string},
+  ) {
+    const errors: string[] = [];
+
+    const origLayer = layers[layerId];
+    if (origLayer === undefined) throw new Error(`No layer found with id ${layerId}`);
+
+    const cloneLayer = Layer.clone(origLayer);
+
+    for (const fieldId in fieldValues) {
+      if (!cloneLayer.hasField(fieldId)) {
+        errors.push(`Layer has no field named ${fieldId}`);
+        continue;
+      }
+      if (cloneLayer.isReadonlyField(fieldId)) {
+        errors.push(`Layer field ${fieldId} is readonly`);
+        continue;
+      }
+      const valWrapper = cloneLayer.getValueWrapper(fieldId);
+      const validate = valWrapper.validateString(fieldValues[fieldId]);
+      if (validate !== null) {
+        errors.push(`Field ${fieldId} has invalid value: ${validate}`);
+        continue;
+      }
+
+      valWrapper.setFromString(fieldValues[fieldId]);
+    }
+
+    return cloneLayer.validateUpdate();
   }
 
   public static validateValue(
@@ -79,6 +113,20 @@ export class LayerUtils {
     if (!layer.hasField(valueId)) throw new Error(`Layer with type ${layer.getType()} has no value called ${valueId}`);
 
     return layer.getValueWrapper(valueId).validateString(newValueString);
+  }
+
+  public static compareValue(
+    layers: LayerClassDict,
+    layerId: string,
+    valueId: string,
+    compareString: string,
+  ) {
+    const layer = layers[layerId];
+    if (layer === undefined) throw new Error(`No layer found with id ${layerId}`);
+
+    if (!layer.hasField(valueId)) throw new Error(`Layer with type ${layer.getType()} has no value called ${valueId}`);
+
+    return layer.getValueWrapper(valueId).compareToString(compareString);
   }
 
   public static cloneLayer(
@@ -126,6 +174,7 @@ export class LayerUtils {
     for (const layerKey in layerDictjson) {
       layers[layerKey] = Layer.fromJson(layerDictjson[layerKey]);
     }
+
     return layers;
   }
 }

@@ -56,7 +56,7 @@ export class GraphUtils {
     edgesByVertex: EdgesByVertex,
     vertexId: string,
   ): void {
-    if (graphData.vertices[vertexId] === undefined) return;
+    if (graphData.vertices[vertexId] === undefined) throw new Error(`Could not find vertex with id ${vertexId}`);
 
     const connectedEdges: string[] = [];
     for (const edgeId in graphData.edges) {
@@ -80,7 +80,7 @@ export class GraphUtils {
     edgesByVertex: EdgesByVertex,
     edgeId: string,
   ): void {
-    if (graphData.edges[edgeId] === undefined) return;
+    if (graphData.edges[edgeId] === undefined) throw new Error("Could not find edge with id ${edgeId}");
 
     const edge = graphData.edges[edgeId];
     const inIdx = edgesByVertex[edge.sourceVertexId].out.indexOf(edgeId);
@@ -187,14 +187,14 @@ export class GraphUtils {
   ): string | null {
     const sourceVertex = graphData.vertices[sourceVtxId];
     const targetVertex = graphData.vertices[targetVtxId];
-    if (sourceVertex === undefined) return "Source does not exist"
-    if (targetVertex === undefined) return "Target does not exist";
+    if (sourceVertex === undefined) throw new Error("Source does not exist");
+    if (targetVertex === undefined) throw new Error("Target does not exist");
 
     const sourcePort = sourceVertex.ports[sourcePortId];
     const targetPort = targetVertex.ports[targetPortId];
 
-    if (sourcePort === undefined) return "Source port does not exist";
-    if (targetPort === undefined) return "Target port does not exist";
+    if (sourcePort === undefined) throw new Error("Source port does not exist");
+    if (targetPort === undefined) throw new Error("Target port does not exist");
 
     if (sourcePort.portType !== "output") return "Source is not an output port";
     if (targetPort.portType !== "input") return "Target is not an input port";

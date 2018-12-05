@@ -32,7 +32,6 @@ export class SaveAsDialog extends Dialog {
         }
       }
     });
-    textInput.focus();
 
     const saveButton = document.createElement("button");
     inputDiv.appendChild(saveButton);
