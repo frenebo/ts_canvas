@@ -63,7 +63,7 @@ export class GraphManager {
     width: number,
     height: number,
     private readonly dialogs: DialogManager,
-    sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => void,
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {

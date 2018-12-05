@@ -1,11 +1,12 @@
 import { Dialog } from "./dialog.js";
+import { ModelVersioningRequest } from "../../../interfaces.js";
 
 export class SaveAsDialog extends Dialog {
   constructor(
     closeDialogFunc: () => void,
     width: number,
     height: number,
-    saveFunc: (fileName: string) => void,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
     super(closeDialogFunc, width, height);
 
@@ -26,7 +27,7 @@ export class SaveAsDialog extends Dialog {
     textInput.addEventListener("keydown", (ev) => {
       if (ev.key === "Enter") {
         if (textInput.value.trim() !== "") {
-          saveFunc(textInput.value);
+          sendModelVersioningRequest({type: "saveFile", fileName: textInput.value});
           closeDialogFunc();
         }
       }
@@ -40,7 +41,7 @@ export class SaveAsDialog extends Dialog {
     saveButton.textContent = "Save";
     saveButton.addEventListener("click", () => {
       if (textInput.value.trim() !== "") {
-        saveFunc(textInput.value);
+        sendModelVersioningRequest({type: "saveFile", fileName: textInput.value});
         closeDialogFunc();
       }
     });

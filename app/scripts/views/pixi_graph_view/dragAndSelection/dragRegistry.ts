@@ -24,6 +24,7 @@ export interface DragListeners {
 }
 
 export class DragRegistry {
+  private static readonly portTargetHoverWait = 250;
   private static readonly portSnapDistance = 20;
 
   private currentObject: PIXI.DisplayObject | null;
@@ -160,11 +161,20 @@ export class DragRegistry {
     portDragHandler.addListener("click", () => {
       this.portPreviewManager.editPort(port, vertexId, portId);
     });
+
+    let isHovering = false;
     portDragHandler.addListener("hover", () => {
-      this.portPreviewManager.portHover(port, vertex, portId, vertexId);
+      if (this.portPreviewManager.currentShowingIs(port)) return;
+      const portInfo = this.sendModelInfoRequest<"getPortInfo">({type: "getPortInfo", vertexId: vertexId, portId: portId});
+      if (!portInfo.couldFindPort) return;
+      this.portPreviewManager.portHover(port, vertex, portId, vertexId, portInfo.portValue);
+      isHovering = true;
     });
     portDragHandler.addListener("hoverend", () => {
-      this.portPreviewManager.portHoverEnd(port, portId, vertexId);
+      if (isHovering) {
+        this.portPreviewManager.portHoverEnd(port);
+        isHovering = false;
+      }
     });
 
     if (port.getIsOutput()) {
@@ -193,7 +203,7 @@ export class DragRegistry {
             targetPortId: closestInfo.portKey,
             xPos: closestPort.localX() + closestPort.getWidth()/2 + closestPortVertex.localX(),
             yPos: closestPort.localY() + closestPort.getWidth()/2 + closestPortVertex.localY(),
-            isValid: edgeValidityInfo.validity === "valid",
+            problem: edgeValidityInfo.valid ? null : edgeValidityInfo.problem,
           };
         } else {
           return null;
@@ -203,6 +213,7 @@ export class DragRegistry {
       portDragHandler.addListener("dragStart", () => {
         this.edgeDrawHandler.beginDraw(vertex, port);
       });
+      let currentTarget: PortWrapper | null = null;
       portDragHandler.addListener("dragMove", (cursorX, cursorY) => {
         const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
         const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
@@ -213,10 +224,29 @@ export class DragRegistry {
           this.edgeDrawHandler.redrawLine(
             snapPortInfo.xPos,
             snapPortInfo.yPos,
-            snapPortInfo.isValid ? "valid" : "invalid",
+            snapPortInfo.problem === null ? "valid" : "invalid",
           );
+          if (currentTarget !== snapPortInfo.targetPort) {
+            currentTarget = snapPortInfo.targetPort;
+            setTimeout(() => {
+              // if the target is still the same
+              if (currentTarget === snapPortInfo.targetPort) {
+                this.portPreviewManager.portHover(
+                  snapPortInfo.targetPort,
+                  snapPortInfo.targetVtx,
+                  snapPortInfo.targetPortId,
+                  snapPortInfo.targetVtxId,
+                  snapPortInfo.problem === null ? "Valid target" : snapPortInfo.problem,
+                );
+              }
+            }, DragRegistry.portTargetHoverWait);
+          }
         } else {
           this.edgeDrawHandler.redrawLine(cursorLocalX, cursorLocalY);
+          if (currentTarget !== null && this.portPreviewManager.currentShowingIs(currentTarget)) {
+            this.portPreviewManager.portHoverEnd(currentTarget);
+          }
+          currentTarget = null;
         }
       });
       portDragHandler.addListener("dragEnd", (cursorX, cursorY) => {
@@ -227,7 +257,7 @@ export class DragRegistry {
 
         const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
 
-        if (snapPortInfo !== null && snapPortInfo.isValid) {
+        if (snapPortInfo !== null && snapPortInfo.problem === null) {
           this.sendModelChangeRequests({
             newEdgeId: this.uniqueEdgeId(),
             type: "createEdge",
@@ -236,6 +266,10 @@ export class DragRegistry {
             targetVertexId: snapPortInfo.targetVtxId,
             targetPortId: snapPortInfo.targetPortId,
           });
+        }
+        throw new Error("The following code doesn't remove previews properly")
+        if (currentTarget !== null && this.portPreviewManager.currentShowingIs(currentTarget)) {
+          this.portPreviewManager.portHoverEnd(currentTarget);
         }
       });
       portDragHandler.addListener("dragAbort", () => {

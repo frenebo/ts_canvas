@@ -155,7 +155,7 @@ export class GraphUtils {
     targetVtxId: string,
     targetPortId: string,
   ): void {
-    const edgeIsValid = this.validateEdge(
+    const edgeValidationMessage = this.validateEdge(
       graphData,
       edgesByVertex,
       sourceVtxId,
@@ -164,7 +164,7 @@ export class GraphUtils {
       targetPortId,
     );
 
-    if (!edgeIsValid) throw new Error(`Invalid create edge arguments: ${arguments}`);
+    if (edgeValidationMessage !== null) throw new Error(`Invalid edge: ${edgeValidationMessage}`);
 
     const edge = {
       sourceVertexId: sourceVtxId,
@@ -184,18 +184,20 @@ export class GraphUtils {
     sourcePortId: string,
     targetVtxId: string,
     targetPortId: string,
-  ): boolean {
+  ): string | null {
     const sourceVertex = graphData.vertices[sourceVtxId];
     const targetVertex = graphData.vertices[targetVtxId];
-    if (sourceVertex === undefined || targetVertex === undefined) return false;
+    if (sourceVertex === undefined) return "Source does not exist"
+    if (targetVertex === undefined) return "Target does not exist";
 
     const sourcePort = sourceVertex.ports[sourcePortId];
     const targetPort = targetVertex.ports[targetPortId];
 
-    if (sourcePort === undefined || targetPort === undefined) return false;
+    if (sourcePort === undefined) return "Source port does not exist";
+    if (targetPort === undefined) return "Target port does not exist";
 
-    if (sourcePort.portType !== "output") return false;
-    if (targetPort.portType !== "input") return false;
+    if (sourcePort.portType !== "output") return "Source is not an output port";
+    if (targetPort.portType !== "input") return "Target is not an input port";
 
     // check that there isn't an identical edge present
     const sourceOutEdges = edgesByVertex[sourceVtxId].out;
@@ -206,7 +208,7 @@ export class GraphUtils {
 
       // check if the edge is identical
       if (edge.sourcePortId === sourcePortId && edge.targetPortId === targetPortId) {
-        return false;
+        return "Identical connection already exists";
       }
     }
 
@@ -232,9 +234,9 @@ export class GraphUtils {
 
     // return true if the target vertex is not an ancestor of the source vertex
     if (sourceAncestorIds.indexOf(targetVtxId) === -1) {
-      return true;
+      return null;
     } else {
-      return false;
+      return "Loop detected";
     }
   }
 }

@@ -22,7 +22,7 @@ export class HtmlMenuBar {
     fileMenu: DialogManager,
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
-    sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => void,
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {

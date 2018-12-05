@@ -183,6 +183,12 @@ export class DefaultModel implements ModelInterface {
         this.session.data.edgesByVertex,
         req.edgeId,
       );
+    } else if (req.type === "setLayerFields") {
+      LayerUtils.setLayerFields(
+        this.session.data.layers,
+        req.layerId,
+        req.fieldValues,
+      );
     } else {
       // console.log(`Unimplemented request ${req.type}`);
     }
@@ -209,7 +215,7 @@ export class DefaultModel implements ModelInterface {
 
   public requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T] {
     if (req.type === "validateEdge") {
-      const isValid = GraphUtils.validateEdge(
+      const validationMessage = GraphUtils.validateEdge(
         this.session.data.graph,
         this.session.data.edgesByVertex,
         (req as ModelInfoRequestMap["validateEdge"]).sourceVertexId,
@@ -217,8 +223,11 @@ export class DefaultModel implements ModelInterface {
         (req as ModelInfoRequestMap["validateEdge"]).targetVertexId,
         (req as ModelInfoRequestMap["validateEdge"]).targetPortId,
       );
-      const response: ModelInfoResponseMap["validateEdge"] = {
-        validity: isValid ? "valid" : "invalid",
+      const response: ModelInfoResponseMap["validateEdge"] = validationMessage === null ? {
+        valid: true,
+      } : {
+        valid: false,
+        problem: validationMessage
       };
       return response;
     } else if (req.type === "edgesBetweenVertices") {

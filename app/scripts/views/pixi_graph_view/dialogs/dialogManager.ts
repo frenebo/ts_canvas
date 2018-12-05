@@ -9,7 +9,7 @@ export class DialogManager {
 
   constructor(
     private readonly div: HTMLDivElement,
-    private readonly sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    private readonly sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => void,
     private readonly sendModelInfoRequest:
       <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
@@ -36,9 +36,7 @@ export class DialogManager {
       () => { this.closeDialog(); },
       this.div.clientWidth/2,
       this.div.clientHeight/2,
-      (fileName: string) => {
-        this.sendModelVersioningRequest({ type: "saveFile", fileName: fileName });
-      },
+      this.sendModelVersioningRequest,
     );
     this.div.appendChild(dialog.root);
 

@@ -14,7 +14,7 @@ export class PixiView implements ViewInterface {
 
   constructor(
     div: HTMLDivElement,
-    sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => void,
     private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {

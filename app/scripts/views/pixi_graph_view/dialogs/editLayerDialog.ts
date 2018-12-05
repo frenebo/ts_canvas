@@ -6,7 +6,7 @@ export class EditLayerDialog extends Dialog {
     closeDialogFunc: () => void,
     width: number,
     height: number,
-    sendModelChangeRequest: (req: ModelChangeRequest) => void,
+    sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
     private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     layerId: string,
   ) {
@@ -23,6 +23,7 @@ export class EditLayerDialog extends Dialog {
     this.root.appendChild(fieldDiv);
 
     let invalidFields: string[] = [];
+    const inputFields: {[key: string]: HTMLInputElement} = {};
     for (const fieldId in layerData.fields) {
       const row = document.createElement("div");
       fieldDiv.appendChild(row);
@@ -38,6 +39,7 @@ export class EditLayerDialog extends Dialog {
 
       const input = document.createElement("input");
       row.appendChild(input);
+      inputFields[fieldId] = input;
       input.style.display = "inline-block";
       input.value = layerData.fields[fieldId].value;
       input.style.width = "10em";
@@ -81,7 +83,7 @@ export class EditLayerDialog extends Dialog {
           }
         }
 
-        updateSaveButton();
+        updateApplyButton();
       });
     }
 
@@ -89,18 +91,40 @@ export class EditLayerDialog extends Dialog {
     this.root.appendChild(saveButtonDiv);
     saveButtonDiv.style.marginTop = "20px";
 
-    const saveButton = document.createElement("button");
-    saveButtonDiv.appendChild(saveButton);
-    saveButton.textContent = "Save";
-    saveButton.style.margin = "0 auto";
-    saveButton.style.display = "block";
+    const applyButton = document.createElement("button");
+    saveButtonDiv.appendChild(applyButton);
+    applyButton.textContent = "Apply";
+    applyButton.style.margin = "0 auto";
+    applyButton.style.display = "block";
 
-    function updateSaveButton() {
-      saveButton.disabled = invalidFields.length !== 0;
+    function updateApplyButton() {
+      applyButton.disabled = invalidFields.length !== 0;
     }
 
-    saveButton.addEventListener("click", () => {
-      sendModelChangeRequest
-    })
+    applyButton.addEventListener("click", () => {
+      const setFieldValues: {[key: string]: string} = {};
+      for (const fieldId in inputFields) {
+        if (!layerData.fields[fieldId].readonly) {
+          setFieldValues[fieldId] = inputFields[fieldId].value;
+        }
+      }
+
+      sendModelChangeRequests({
+        type: "setLayerFields",
+        layerId: layerId,
+        fieldValues: setFieldValues,
+      });
+
+      const newFields = sendModelInfoRequest<"getLayerInfo">({
+        type: "getLayerInfo",
+        layerId: layerId
+      }).data.fields;
+
+      for (const fieldId in newFields) {
+        if (inputFields[fieldId].value !== newFields[fieldId].value) {
+          inputFields[fieldId].value = newFields[fieldId].value
+        }
+      }
+    });
   }
 }

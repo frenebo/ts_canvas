@@ -20,12 +20,19 @@ export class PortPreviewManager {
 
   }
 
-  public portHover(port: PortWrapper, vertex: VertexWrapper, portId: string, vertexId: string): void {
-    const portInfo = this.sendModelInfoRequest<"getPortInfo">({type: "getPortInfo", vertexId: vertexId, portId: portId});
-    if (!portInfo.couldFindPort) return;
+  public currentShowingIs(port: PortWrapper): boolean {
+    return this.previewData !== null && this.previewData.port === port;
+  }
 
+  public portHover(
+    port: PortWrapper,
+    vertex: VertexWrapper,
+    portId: string,
+    vertexId: string,
+    showString: string,
+  ): void {
     if (this.previewData !== null) {
-      this.portHoverEnd(this.previewData.port, this.previewData.portId, this.previewData.vertexId);
+      this.portHoverEnd(this.previewData.port);
     }
 
     this.previewData = {
@@ -40,7 +47,7 @@ export class PortPreviewManager {
     const textBackground = new PIXI.Graphics();
     this.previewData.overlay.addChild(textBackground);
 
-    const text = new PIXI.Text(portInfo.portValue);
+    const text = new PIXI.Text(showString);
     this.previewData.overlay.addChild(text);
     text.style = new PIXI.TextStyle({
       fill: "white",
@@ -60,11 +67,11 @@ export class PortPreviewManager {
     textBackground.beginFill(0x333333);
     textBackground.drawRoundedRect(0, 0, backgroundWidth, backgroundHeight, PortPreviewManager.cornerRadius);
 
-    this.backgroundWrapper.onPositionOrZoomChanged(() => { this.portHoverEnd(port, portId, vertexId); });
+    this.backgroundWrapper.onPositionOrZoomChanged(() => { this.portHoverEnd(port); });
   }
 
-  public portHoverEnd(port: PortWrapper, portId: string, vertexId: string): void {
-    if (this.previewData !== null && this.previewData.portId === portId && this.previewData.vertexId === vertexId) {
+  public portHoverEnd(port: PortWrapper): void {
+    if (this.previewData !== null && this.previewData.port === port) {
       this.backgroundWrapper.removeOverlayObject(this.previewData.overlay);
       this.previewData = null;
     }
@@ -76,13 +83,13 @@ export class PortPreviewManager {
 
   public removePort(portId: string, vertexId: string): void {
     if (this.previewData !== null && this.previewData.portId === portId && this.previewData.vertexId === vertexId) {
-      this.portHoverEnd(this.previewData.port, this.previewData.portId, this.previewData.vertexId);
+      this.portHoverEnd(this.previewData.port);
     }
   }
 
   public removeVertex(vertexId: string): void {
     if (this.previewData !== null && this.previewData.vertexId === vertexId) {
-      this.portHoverEnd(this.previewData.port, this.previewData.portId, this.previewData.vertexId);
+      this.portHoverEnd(this.previewData.port);
     }
   }
 }

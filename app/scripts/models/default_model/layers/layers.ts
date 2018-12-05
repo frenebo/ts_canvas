@@ -49,7 +49,7 @@ export abstract class Layer {
     const layer = Layer.getLayer(info.layerType);
 
     for (const valueKey in info.valDict) {
-      if (!layer.hasValueWrapper(valueKey)) throw new Error(`${info.layerType} type layer does not have value named ${valueKey}`);
+      if (!layer.hasField(valueKey)) throw new Error(`${info.layerType} type layer does not have value named ${valueKey}`);
 
       layer.getValueWrapper(valueKey).setFromString(info.valDict[valueKey]);
     }
@@ -71,6 +71,8 @@ export abstract class Layer {
   constructor() {
 
   }
+
+  public abstract update(): string | null;
 
   public getType(): string {
     return this.type;
@@ -99,14 +101,16 @@ export abstract class Layer {
     return this.fields[fieldKey].readonly;
   }
 
-  public hasValueWrapper(fieldKey: string): boolean {
+  public hasField(fieldKey: string): boolean {
     return this.fields[fieldKey] !== undefined;
   }
 }
 
 export class RepeatLayer extends Layer {
   protected type = "Repeat";
-  protected ports: { [key: string]: LayerPortInfo } = {
+  protected ports: {
+    [key: string]: LayerPortInfo;
+  } = {
     "input0": {
       valueKey: "inputShape",
       type: "input",
@@ -130,5 +134,12 @@ export class RepeatLayer extends Layer {
 
   constructor() {
     super();
+  }
+
+  public update() {
+    const inputShape = this.fields.inputShape.wrapper.getValue();
+    this.fields.outputShape.wrapper.setValue(inputShape);
+
+    return null;
   }
 }

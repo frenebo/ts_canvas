@@ -49,6 +49,24 @@ export class LayerUtils {
     return data;
   }
 
+  public static setLayerFields(
+    layers: LayerClassDict,
+    layerId: string,
+    fieldValues: {[key: string]: string},
+  ): void {
+    const layer = layers[layerId];
+    if (layer === undefined) throw new Error(`No layer found with id ${layerId}`);
+
+    for (const fieldId in fieldValues) {
+      if (!layer.hasField(fieldId)) throw new Error(`Layer has no field names ${fieldId}`);
+
+      if (layer.isReadonlyField(fieldId)) throw new Error(`Field ${fieldId} is readonly`);
+
+      layer.getValueWrapper(fieldId).setFromString(fieldValues[fieldId]);
+    }
+    layer.update();
+  }
+
   public static validateValue(
     layers: LayerClassDict,
     layerId: string,
@@ -58,7 +76,7 @@ export class LayerUtils {
     const layer = layers[layerId];
     if (layer === undefined) throw new Error(`No layer found with id ${layerId}`);
 
-    if (!layer.hasValueWrapper(valueId)) throw new Error(`Layer with type ${layer.getType()} has no value called ${valueId}`);
+    if (!layer.hasField(valueId)) throw new Error(`Layer with type ${layer.getType()} has no value called ${valueId}`);
 
     return layer.getValueWrapper(valueId).validateString(newValueString);
   }

@@ -88,6 +88,12 @@ export type ModelChangeRequest = {
 } | {
   type: "deleteEdge";
   edgeId: string;
+} | {
+  type: "setLayerFields";
+  layerId: string;
+  fieldValues: {
+    [key: string]: string;
+  };
 };
 
 export type ModelVersioningRequest = {
@@ -144,7 +150,10 @@ export interface ModelInfoRequestMap {
 
 export interface ModelInfoResponseMap {
   "validateEdge": {
-    validity: "valid" | "invalid";
+    valid: true;
+  } | {
+    valid: false;
+    problem: string;
   };
   "edgesBetweenVertices": {
     edges: {
