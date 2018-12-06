@@ -18,12 +18,24 @@ export class PixiView implements ViewInterface {
     private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
-    const width = 1200;
-    const menuBarHeight = 50;
-    const graphHeight = 700;
+    document.body.style.margin = "0px";
+    document.body.style.width = "100%";
+    document.body.style.height = "100%";
+    document.body.style.overflow = "hidden";
+    document.documentElement!.style.margin = "0px";
+    document.documentElement!.style.width = "100%";
+    document.documentElement!.style.height = "100%";
+    document.documentElement!.style.overflow = "hidden";
+    // div.style.width = "100%";
+    // div.style.height = "100%";
+    const onResize = () => {
+      if (document.documentElement === null) return;
+      console.log()
+      this.menuBar.setWidth(window.innerWidth);
+      this.graphManager.setDimensions(window.innerWidth, window.innerHeight - HtmlMenuBar.menuHeight);
+    }
 
-    div.style.width = `${width}px`;
-    div.style.height = `${menuBarHeight + graphHeight}px`;
+    window.addEventListener("resize", onResize);
 
     const menuBarDiv = document.createElement("div");
     menuBarDiv.style.position = "relative";
@@ -42,8 +54,6 @@ export class PixiView implements ViewInterface {
 
     this.graphManager = new GraphManager(
       graphDiv,
-      width,
-      graphHeight,
       dialogs,
       sendModelChangeRequest,
       sendModelInfoRequest,
@@ -61,8 +71,6 @@ export class PixiView implements ViewInterface {
 
     this.menuBar = new HtmlMenuBar(
       menuBarDiv,
-      width,
-      menuBarHeight,
       dialogs,
       keyboardHandler,
       this.graphManager.getSelectionManager(),
@@ -70,6 +78,7 @@ export class PixiView implements ViewInterface {
       sendModelInfoRequest,
       sendModelVersioningRequest,
     );
+    onResize();
   }
 
   public setGraphData(newData: GraphData): void {

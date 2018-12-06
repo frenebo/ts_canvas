@@ -6,14 +6,19 @@ export class StageManager {
   private readonly app: PIXI.Application;
   private readonly background: BackgroundWrapper;
 
-  constructor(div: HTMLDivElement, width: number, height: number) {
-    this.app = new PIXI.Application(width, height);
+  constructor(div: HTMLDivElement) {
+    this.app = new PIXI.Application();
     div.appendChild(this.app.view);
 
     this.app.ticker.start(); // To continually refresh view
 
     this.background = new BackgroundWrapper(this.app.renderer);
     this.app.stage.addChild(this.background.getDisplayObject());
+  }
+
+  public setDimensions(width: number, height: number): void {
+    this.background.setDimensions(width, height);
+    this.app.renderer.resize(width, height)
   }
 
   public getBackgroundWrapper() {
@@ -25,18 +30,18 @@ export class StageManager {
   }
 
   public addVertex(vertexWrapper: VertexWrapper): void {
-    this.background.addVertex(vertexWrapper);
+    this.background.addChild(vertexWrapper);
   }
 
   public removeVertex(vertexWrapper: VertexWrapper): void {
-    this.background.removeVertex(vertexWrapper);
+    this.background.removeChild(vertexWrapper);
   }
 
   public addEdge(edgeWrapper: EdgeWrapper): void {
-    this.background.addEdge(edgeWrapper);
+    this.background.addChild(edgeWrapper);
   }
 
   public removeEdge(edgeWrapper: EdgeWrapper): void {
-    this.background.removeEdge(edgeWrapper);
+    this.background.removeChild(edgeWrapper);
   }
 }

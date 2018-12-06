@@ -5,6 +5,9 @@ import { OpenDialog } from "./openDialog.js";
 import { SaveAsDialog } from "./saveAsDialog.js";
 
 export class DialogManager {
+  private static readonly dialogWidth = 500;
+  private static readonly dialogHeight = 500;
+
   private currentDialog: null | Dialog = null;
 
   constructor(
@@ -31,11 +34,12 @@ export class DialogManager {
 
   public saveAsDialog(): void {
     if (this.currentDialog !== null) this.closeDialog();
-
+    console.log(this.div.clientWidth);
+    console.log(this.div.clientHeight);
     const dialog = new SaveAsDialog(
       () => { this.closeDialog(); },
-      this.div.clientWidth/2,
-      this.div.clientHeight/2,
+      DialogManager.dialogWidth,
+      DialogManager.dialogHeight,
       this.sendModelVersioningRequest,
     );
     this.div.appendChild(dialog.root);
@@ -48,8 +52,8 @@ export class DialogManager {
 
     const dialog = new OpenDialog(
       () => { this.closeDialog(); },
-      this.div.clientWidth/2,
-      this.div.clientHeight/2,
+      DialogManager.dialogWidth,
+      DialogManager.dialogHeight,
       this.sendModelInfoRequest<"savedFileNames">({type: "savedFileNames"}).fileNames,
       this.sendModelVersioningRequest,
     );
@@ -63,8 +67,8 @@ export class DialogManager {
 
     const dialog = new EditLayerDialog(
       () => { this.closeDialog(); },
-      this.div.clientWidth/2,
-      this.div.clientHeight/2,
+      DialogManager.dialogWidth,
+      DialogManager.dialogHeight,
       this.sendModelChangeRequest,
       this.sendModelInfoRequest,
       layerId,

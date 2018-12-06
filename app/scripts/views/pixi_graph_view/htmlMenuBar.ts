@@ -6,6 +6,7 @@ import { SelectionManager } from "./selectionManager.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
 
 export class HtmlMenuBar {
+  public static readonly menuHeight = 50;
   private static readonly barBackground = "#44596e";
   private static readonly menuItemDefaultBackground = "#34495e";
   private static readonly menuItemMouseoverBackground = "#999999";
@@ -17,8 +18,6 @@ export class HtmlMenuBar {
 
   constructor(
     private readonly div: HTMLDivElement,
-    width: number,
-    private readonly height: number,
     fileMenu: DialogManager,
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
@@ -26,10 +25,9 @@ export class HtmlMenuBar {
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
-    div.style.width = `${width}px`;
     div.style.backgroundColor = HtmlMenuBar.barBackground;
     div.style.overflow = "visible";
-    div.style.height = `${this.height}px`;
+    div.style.height = `${HtmlMenuBar.menuHeight}px`;
     div.style.fontFamily = "Helvetica Neue,Helvetica,Arial";
     div.style.zIndex = "10";
     const that = this;
@@ -112,8 +110,8 @@ export class HtmlMenuBar {
     this.fileUpToDateLabel = document.createElement("div");
     this.div.appendChild(this.fileUpToDateLabel);
     this.fileUpToDateLabel.style.display = "inline-block";
-    this.fileUpToDateLabel.style.height = `${height}px`;
-    this.fileUpToDateLabel.style.lineHeight = `${height}px`;
+    this.fileUpToDateLabel.style.height = `${HtmlMenuBar.menuHeight}px`;
+    this.fileUpToDateLabel.style.lineHeight = `${HtmlMenuBar.menuHeight}px`;
     this.fileUpToDateLabel.style.paddingLeft = "20px";
     this.fileUpToDateLabel.style.color = "white";
     this.fileUpToDateLabel.style.fontWeight = "bold";
@@ -123,6 +121,10 @@ export class HtmlMenuBar {
 
     this.setUnsavedChanges(false);
     this.collapseMenus();
+  }
+
+  public setWidth(w: number): void {
+    this.div.style.width = `${w}px`;
   }
 
   public setUnsavedChanges(unsavedChanges: boolean): void {

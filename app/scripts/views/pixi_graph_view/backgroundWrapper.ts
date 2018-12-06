@@ -1,6 +1,7 @@
 import { BACKGROUND_TILE_PATH } from "../../constants.js";
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
+import { GraphicWrapper } from "./graphicWrappers/graphicsWrapper.js";
 
 export class BackgroundWrapper {
   private readonly sprite: PIXI.extras.TilingSprite;
@@ -40,6 +41,11 @@ export class BackgroundWrapper {
     });
   }
 
+  public setDimensions(w: number, h: number): void {
+    this.sprite.width = w;
+    this.sprite.height = h;
+  }
+
   public getDisplayObject() {
     return this.sprite;
   }
@@ -56,10 +62,6 @@ export class BackgroundWrapper {
     obj.addChild(this.sprite);
   }
 
-  public addChild(obj: PIXI.DisplayObject): void {
-    this.childContainer.addChild(obj);
-  }
-
   public getMousePos(): {x: number, y: number} {
     const mouseX: number = this.renderer.plugins.interaction.mouse.global.x/this.getScale() - this.localX()/this.getScale();
     const mouseY: number = this.renderer.plugins.interaction.mouse.global.y/this.getScale() - this.localY()/this.getScale();
@@ -70,24 +72,20 @@ export class BackgroundWrapper {
     };
   }
 
-  public removeChild(obj: PIXI.DisplayObject): void {
-    this.childContainer.removeChild(obj);
+  public addChild(obj: PIXI.DisplayObject | GraphicWrapper): void {
+    if (obj instanceof GraphicWrapper) {
+      obj.addTo(this.childContainer);
+    } else {
+      this.childContainer.addChild(obj);
+    }
   }
 
-  public addVertex(vtxWrapper: VertexWrapper): void {
-    vtxWrapper.addTo(this.childContainer);
-  }
-
-  public removeVertex(vtxWrapper: VertexWrapper): void {
-    vtxWrapper.removeFrom(this.childContainer);
-  }
-
-  public addEdge(edgeWrapper: EdgeWrapper): void {
-    edgeWrapper.addTo(this.childContainer);
-  }
-
-  public removeEdge(edgeWrapper: EdgeWrapper): void {
-    edgeWrapper.removeFrom(this.childContainer);
+  public removeChild(obj: PIXI.DisplayObject | GraphicWrapper): void {
+    if (obj instanceof GraphicWrapper) {
+      obj.removeFrom(this.childContainer);
+    } else {
+      this.childContainer.removeChild(obj);
+    }
   }
 
   public getDataRelativeLoc(data: PIXI.interaction.InteractionData) {

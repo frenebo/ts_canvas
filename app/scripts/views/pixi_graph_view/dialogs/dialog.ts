@@ -22,8 +22,9 @@ export class Dialog {
 
     this.root.style.width = `${width}px`;
     this.root.style.height = `${height}px`;
-    this.root.style.marginLeft = `${width/2}px`;
-    this.root.style.marginTop = `${height/2}px`;
+    this.root.style.margin = "0 auto";
+    // this.root.style.marginLeft = `${width/2}px`;
+    this.root.style.marginTop = "100px";
     this.root.style.backgroundColor = "#DDDDDD";
     this.root.style.position = "relative";
     this.root.style.borderRadius = "7px";

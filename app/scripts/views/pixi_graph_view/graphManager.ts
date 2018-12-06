@@ -59,15 +59,13 @@ export class GraphManager {
   private readonly portPreviewManager: PortPreviewManager;
 
   constructor(
-    div: HTMLDivElement,
-    width: number,
-    height: number,
+    private readonly div: HTMLDivElement,
     private readonly dialogs: DialogManager,
     sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => void,
     sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
     sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
   ) {
-    this.stageManager = new StageManager(div, width, height);
+    this.stageManager = new StageManager(div);
     this.selectionManager = new SelectionManager(
       () => this.vertexWrappers,
       () => this.edgeWrappers,
@@ -99,6 +97,12 @@ export class GraphManager {
       this.stageManager.getBackgroundWrapper(),
       this.stageManager.getRenderer(),
     );
+  }
+
+  public setDimensions(w: number, h: number): void {
+    this.stageManager.setDimensions(w, h);
+    this.div.style.width = `${w}px`;
+    this.div.style.height = `${h}px`;
   }
 
   public getSelectionManager() {
