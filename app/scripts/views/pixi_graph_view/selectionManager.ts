@@ -25,7 +25,7 @@ export class SelectionManager {
     private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
     private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(
       req: ModelInfoRequestMap[T],
-    ) => ModelInfoResponseMap[T],
+    ) => Promise<ModelInfoResponseMap[T]>,
     private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
     private readonly background: BackgroundWrapper,
   ) {
@@ -181,7 +181,7 @@ export class SelectionManager {
     this.selectionDrag = null;
   }
 
-  public endSelectionDrag(dx: number, dy: number): void {
+  public async endSelectionDrag(dx: number, dy: number): Promise<void> {
     if (this.selectionDrag === null) throw new Error("No drag currently happening");
 
     this.background.removeChild(this.selectionDrag.ghostRoot);
@@ -210,10 +210,11 @@ export class SelectionManager {
         });
       }
 
-      const edgesToClone = this.sendModelInfoRequest<"edgesBetweenVertices">({
+      const edgesBetweenData = await this.sendModelInfoRequest<"edgesBetweenVertices">({
         type: "edgesBetweenVertices",
         vertexIds: vertexIds,
-      }).edges;
+      });
+      const edgesToClone = edgesBetweenData.edges
 
       for (const edgeId in edgesToClone) {
         const edgeData = edgesToClone[edgeId];

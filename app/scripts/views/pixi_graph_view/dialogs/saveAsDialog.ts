@@ -6,7 +6,7 @@ export class SaveAsDialog extends Dialog {
     closeDialogFunc: () => void,
     width: number,
     height: number,
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     super(closeDialogFunc, width, height);
 

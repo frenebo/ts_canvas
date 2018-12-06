@@ -95,8 +95,8 @@ export class KeyboardHandler {
     dialogManager: DialogManager,
     selectionManager: SelectionManager,
     sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
+    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     let divSelected = false;
     document.addEventListener("click", (ev) => {
@@ -105,7 +105,7 @@ export class KeyboardHandler {
       }
     });
 
-    document.addEventListener("keydown", (ev) => {
+    document.addEventListener("keydown", async (ev) => {
       if (!divSelected) return;
 
       const shortcutMatches = KeyboardHandler.matchShortcuts(ev, {
@@ -135,7 +135,7 @@ export class KeyboardHandler {
         } else if (match === "selectAll") {
           selectionManager.selectAll();
         } else if (match === "save") {
-          const openFileData = sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
+          const openFileData = await sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
           if (openFileData.fileIsOpen) {
             sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
           } else {

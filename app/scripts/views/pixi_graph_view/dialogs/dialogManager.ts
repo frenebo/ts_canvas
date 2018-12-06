@@ -12,10 +12,9 @@ export class DialogManager {
 
   constructor(
     private readonly div: HTMLDivElement,
-    private readonly sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => void,
-    private readonly sendModelInfoRequest:
-      <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
-    private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
+    private readonly sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
+    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     const that = this;
     document.addEventListener("keydown", (ev) => {
@@ -47,14 +46,14 @@ export class DialogManager {
     this.currentDialog = dialog;
   }
 
-  public openDialog(): void {
+  public async openDialog(): Promise<void> {
     if (this.currentDialog !== null) this.closeDialog();
 
     const dialog = new OpenDialog(
       () => { this.closeDialog(); },
       DialogManager.dialogWidth,
       DialogManager.dialogHeight,
-      this.sendModelInfoRequest<"savedFileNames">({type: "savedFileNames"}).fileNames,
+      (await this.sendModelInfoRequest<"savedFileNames">({type: "savedFileNames"})).fileNames,
       this.sendModelVersioningRequest,
     );
     this.div.appendChild(dialog.root);

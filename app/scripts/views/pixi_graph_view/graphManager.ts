@@ -61,9 +61,9 @@ export class GraphManager {
   constructor(
     private readonly div: HTMLDivElement,
     private readonly dialogs: DialogManager,
-    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => void,
-    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
+    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
+    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     this.stageManager = new StageManager(div);
     this.selectionManager = new SelectionManager(

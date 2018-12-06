@@ -27,17 +27,20 @@ export class SessionUtils {
     return modelData;
   }
 
-  public static validateEdge(
-    graphData: GraphData,
+  public static validateCreateEdge(
+    graph: GraphData,
     edgesByVertex: EdgesByVertex,
+    layers: LayerClassDict,
+    edgeId: string,
     sourceVtxId: string,
     sourcePortId: string,
     targetVtxId: string,
     targetPortId: string,
   ): string | null {
-    const graphValidated = GraphUtils.validateEdge(
-      graphData,
+    const graphValidated = GraphUtils.validateCreateEdge(
+      graph,
       edgesByVertex,
+      edgeId,
       sourceVtxId,
       sourcePortId,
       targetVtxId,
@@ -47,6 +50,53 @@ export class SessionUtils {
     if (graphValidated !== null) return graphValidated;
 
     return null;
+  }
+
+  public static createEdge(
+    graph: GraphData,
+    edgesByVertex: EdgesByVertex,
+    layers: LayerClassDict,
+    edgeId: string,
+    sourceVtxId: string,
+    sourcePortId: string,
+    targetVtxId: string,
+    targetPortId: string,
+  ): void {
+
+    GraphUtils.createEdge(
+      graph,
+      edgesByVertex,
+      edgeId,
+      sourceVtxId,
+      sourcePortId,
+      targetVtxId,
+      targetPortId,
+    );
+    SessionUtils.updateEdgeConsistency(
+      graph,
+      layers,
+      edgeId,
+    );
+  }
+
+  public static setLayerFields(
+    graph: GraphData,
+    edgesByVertex: EdgesByVertex,
+    layers: LayerClassDict,
+    layerId: string,
+    fieldValues: {[key: string]: string},
+  ): void {
+    LayerUtils.setLayerFields(
+      layers,
+      layerId,
+      fieldValues,
+    );
+    SessionUtils.updateEdgeConsistenciesFrom(
+      graph,
+      edgesByVertex,
+      layers,
+      layerId,
+    );
   }
 
   public static updateEdgeConsistenciesFrom(
@@ -65,6 +115,124 @@ export class SessionUtils {
     for (const edgeId of edgeIdsOut) {
       SessionUtils.updateEdgeConsistency(graphData, layers, edgeId);
     }
+  }
+
+  public static validateCloneVertex(
+    graphData: GraphData,
+    layers: LayerClassDict,
+    edgesByVertex: EdgesByVertex,
+    newVtxId: string,
+    oldVtxId: string,
+    x: number,
+    y: number,
+  ): string | null {
+    const graphValidate = GraphUtils.validateCloneVertex(
+      graphData,
+      edgesByVertex,
+      newVtxId,
+      oldVtxId,
+      x,
+      y,
+    );
+    return graphValidate;
+  }
+
+  public static validateDeleteVertex(
+    graph: GraphData,
+    edgesByVertex: EdgesByVertex,
+    layers: LayerClassDict,
+    vertexId: string,
+  ): string | null {
+    const graphValidation = GraphUtils.validateDeleteVertex(
+      graph,
+      edgesByVertex,
+      vertexId,
+    );
+
+    return graphValidation;
+  }
+
+  public static deleteEdge(
+    graph: GraphData,
+    edgesByVertex: EdgesByVertex,
+    edgeId: string,
+  ): void {
+    GraphUtils.deleteEdge(
+      graph,
+      edgesByVertex,
+      edgeId,
+    );
+  }
+
+  public static validateSetLayerFields(
+    graph: GraphData,
+    edgesByVertex: EdgesByVertex,
+    layers: LayerClassDict,
+    layerId: string,
+    fieldValues: {[key: string]: string},
+  ): string | null {
+    const validated = LayerUtils.validateLayerFields(
+      layers,
+      layerId,
+      fieldValues,
+    );
+    if (!validated.requestError) return "value fields do not exist";
+    if (validated.errors.length === 0) return null;
+    else return validated.errors.join(", ");
+  }
+
+  public static validateDeleteEdge(
+    graph: GraphData,
+    edgesByVertex: EdgesByVertex,
+    edgeId: string,
+  ): string | null {
+    return GraphUtils.validateDeleteEdge(
+      graph,
+      edgesByVertex,
+      edgeId,
+    );
+  }
+
+  public static deleteVertex(
+    graph: GraphData,
+    edgesByVertex: EdgesByVertex,
+    layers: LayerClassDict,
+    vertexId: string,
+  ): void {
+    GraphUtils.deleteVertex(
+      graph,
+      edgesByVertex,
+      vertexId,
+    );
+    LayerUtils.deleteLayer(
+      layers,
+      vertexId,
+    );
+  }
+
+  public static cloneVertex(
+    graph: GraphData,
+    layers: LayerClassDict,
+    edgesByVertex: EdgesByVertex,
+    newVtxId: string,
+    oldVtxId: string,
+    x: number,
+    y: number,
+  ): void {
+
+    GraphUtils.cloneVertex(
+      graph,
+      edgesByVertex,
+      newVtxId,
+      oldVtxId,
+      x,
+      y,
+    );
+    LayerUtils.cloneLayer(
+      layers,
+      oldVtxId,
+      newVtxId,
+    );
   }
 
   public static updateEdgeConsistency(

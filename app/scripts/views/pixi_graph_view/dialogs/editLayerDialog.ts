@@ -6,18 +6,34 @@ export class EditLayerDialog extends Dialog {
     closeDialogFunc: () => void,
     width: number,
     height: number,
-    sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
-    layerId: string,
+    private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
+    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    private readonly layerId: string,
   ) {
     super(closeDialogFunc, width, height);
+    this.init();
+  }
 
+  private alertLayerNonexistent() {
+    const layerNonexistentDiv = document.createElement("div");
+    this.root.appendChild(layerNonexistentDiv);
+    layerNonexistentDiv.style.textAlign = "center";
+    layerNonexistentDiv.style.marginTop = "10px";
+    layerNonexistentDiv.textContent = "Layer does not exist";
+  }
+
+  private async init() {
     this.root.style.overflowY = "scroll";
 
     const editLayerTitle = Dialog.createTitle("Edit Layer");
     this.root.appendChild(editLayerTitle);
 
-    const layerData: LayerData = sendModelInfoRequest<"getLayerInfo">({type: "getLayerInfo", layerId: layerId}).data;
+    const layerInfoResponse = await this.sendModelInfoRequest<"getLayerInfo">({type: "getLayerInfo", layerId: this.layerId});
+    if (!layerInfoResponse.layerExists) {
+      this.alertLayerNonexistent();
+      return;
+    }
+    const layerData = layerInfoResponse.data;
 
     const fieldDiv = document.createElement("div");
     this.root.appendChild(fieldDiv);
@@ -55,13 +71,15 @@ export class EditLayerDialog extends Dialog {
       errorText.style.fontSize = "10px";
       errorText.style.marginLeft = "10px";
 
-      input.addEventListener("input", (ev) => {
-        const validateVal = sendModelInfoRequest<"validateValue">({
+      input.addEventListener("input", async (ev) => {
+        const validateVal = await this.sendModelInfoRequest<"validateValue">({
           type: "validateValue",
-          layerId: layerId,
+          layerId: this.layerId,
           valueId: fieldId,
           newValue: input.value,
         });
+
+        validateVal
 
         if (validateVal.invalidError === null) {
           input.style.border = "1px solid black";
@@ -107,7 +125,7 @@ export class EditLayerDialog extends Dialog {
       applyButton.disabled = invalidFields.length !== 0;
     }
 
-    applyButton.addEventListener("click", () => {
+    applyButton.addEventListener("click", async () => {
       const setFieldValues: {[key: string]: string} = {};
       for (const fieldId in inputFields) {
         if (!layerData.fields[fieldId].readonly) {
@@ -115,11 +133,19 @@ export class EditLayerDialog extends Dialog {
         }
       }
 
-      const validated = sendModelInfoRequest<"validateLayerFields">({
+      const validated = await this.sendModelInfoRequest<"validateLayerFields">({
         type: "validateLayerFields",
-        layerId: layerId,
+        layerId: this.layerId,
         fieldValues: setFieldValues,
       });
+
+      if (validated.requestError === "layer_nonexistent") {
+        this.alertLayerNonexistent();
+        return;
+      }
+      if (validated.requestError === "field_nonexistent") {
+        this.alertFieldNonexistent(validated.fieldName);
+      }
 
       let errorText = validated.errors.length === 0 ? "" : validated.errors.length === 1 ? "Error: " : "Errors: ";
       errorText += validated.errors.join(", ");
@@ -127,16 +153,22 @@ export class EditLayerDialog extends Dialog {
       updateErrorDiv.textContent = errorText;
 
       if (validated.errors.length === 0) {
-        sendModelChangeRequests({
+        this.sendModelChangeRequests({
           type: "setLayerFields",
-          layerId: layerId,
+          layerId: this.layerId,
           fieldValues: setFieldValues,
         });
 
-        const newFields = sendModelInfoRequest<"getLayerInfo">({
+        const newInfo = await this.sendModelInfoRequest<"getLayerInfo">({
           type: "getLayerInfo",
-          layerId: layerId
-        }).data.fields;
+          layerId: this.layerId
+        });
+        if (!newInfo.layerExists) {
+          this.alertLayerNonexistent();
+          return;
+        }
+
+        const newFields = newInfo.data.fields;
 
         for (const fieldId in newFields) {
           if (inputFields[fieldId].value !== newFields[fieldId].value) {

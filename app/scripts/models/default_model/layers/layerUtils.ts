@@ -1,5 +1,5 @@
 import { Layer, LayerJsonInfo } from "./layers.js";
-import { LayerData } from "../../../interfaces.js";
+import { LayerData, ModelInfoResponseMap } from "../../../interfaces.js";
 
 export type LayerClassDict = {
   [key: string]: Layer;
@@ -14,20 +14,23 @@ export class LayerUtils {
     layers: LayerClassDict,
     portId: string,
     layerId: string,
-  ) {
+  ): ModelInfoResponseMap["getPortInfo"] {
+    if (layers[layerId] === undefined) return {couldFindPort: false};
+    if (layers[layerId].getPortIds().indexOf(portId) === -1) return {couldFindPort: false};
     const valueId = layers[layerId].getPortInfo(portId).valueKey;
     const portVal = layers[layerId].getValueWrapper(valueId).stringify();
     return {
+      couldFindPort: true,
       portValue: portVal, // placeholder
     };
   }
 
-  public static getLayerData(
+  public static getLayerInfo(
     layers: LayerClassDict,
     layerId: string,
-  ): LayerData {
+  ): ModelInfoResponseMap["getLayerInfo"] {
     const layer = layers[layerId];
-    if (layer === undefined) throw new Error(`Could not find layer with id ${layerId}`);
+    if (layer === undefined) return {layerExists: false};
 
     const data: LayerData = {
       ports: {},
@@ -45,7 +48,10 @@ export class LayerUtils {
       };
     }
 
-    return data;
+    return {
+      layerExists: true,
+      data: data,
+    };
   }
 
   public static setLayerFields(
@@ -70,18 +76,17 @@ export class LayerUtils {
     layers: LayerClassDict,
     layerId: string,
     fieldValues: {[key: string]: string},
-  ) {
+  ): ModelInfoResponseMap["validateLayerFields"] {
     const errors: string[] = [];
 
     const origLayer = layers[layerId];
-    if (origLayer === undefined) throw new Error(`No layer found with id ${layerId}`);
+    if (origLayer === undefined) return {requestError: false};
 
     const cloneLayer = Layer.clone(origLayer);
 
     for (const fieldId in fieldValues) {
       if (!cloneLayer.hasField(fieldId)) {
-        errors.push(`Layer has no field named ${fieldId}`);
-        continue;
+        return {requestError: "field_nonexistent"};
       }
       if (cloneLayer.isReadonlyField(fieldId)) {
         errors.push(`Layer field ${fieldId} is readonly`);
@@ -97,7 +102,13 @@ export class LayerUtils {
       valWrapper.setFromString(fieldValues[fieldId]);
     }
 
-    return cloneLayer.validateUpdate();
+    const validated = cloneLayer.validateUpdate();
+
+    return {
+      requestError: null,
+      errors: validated.errors,
+      warnings: validated.warnings,
+    }
   }
 
   public static validateValue(
@@ -105,13 +116,16 @@ export class LayerUtils {
     layerId: string,
     valueId: string,
     newValueString: string,
-  ) {
+  ): ModelInfoResponseMap["validateValue"] {
     const layer = layers[layerId];
-    if (layer === undefined) throw new Error(`No layer found with id ${layerId}`);
+    if (layer === undefined) return {requestError: "layer_nonexistent"};
 
-    if (!layer.hasField(valueId)) throw new Error(`Layer with type ${layer.getType()} has no value called ${valueId}`);
+    if (!layer.hasField(valueId)) return {requestError: "field_nonexistent"};
 
-    return layer.getValueWrapper(valueId).validateString(newValueString);
+    return {
+      requestError: null,
+      invalidError: layer.getValueWrapper(valueId).validateString(newValueString),
+    }
   }
 
   public static compareValue(
@@ -119,13 +133,16 @@ export class LayerUtils {
     layerId: string,
     valueId: string,
     compareString: string,
-  ) {
+  ): ModelInfoResponseMap["compareValue"] {
     const layer = layers[layerId];
-    if (layer === undefined) throw new Error(`No layer found with id ${layerId}`);
+    if (layer === undefined) return {requestError: "layer_nonexistent"};
 
-    if (!layer.hasField(valueId)) throw new Error(`Layer with type ${layer.getType()} has no value called ${valueId}`);
+    if (!layer.hasField(valueId)) return {requestError: "field_nonexistent"};
 
-    return layer.getValueWrapper(valueId).compareToString(compareString);
+    return {
+      requestError: null,
+      isEqual: layer.getValueWrapper(valueId).compareToString(compareString),
+    }
   }
 
   public static cloneLayer(

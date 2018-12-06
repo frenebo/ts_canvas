@@ -7,7 +7,7 @@ export class OpenDialog extends Dialog {
     width: number,
     height: number,
     fileNames: string[],
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     super(closeDialogFunc, width, height);
 

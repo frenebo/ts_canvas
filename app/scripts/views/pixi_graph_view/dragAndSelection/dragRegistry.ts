@@ -37,8 +37,8 @@ export class DragRegistry {
     private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
     private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(
       req: ModelInfoRequestMap[T],
-    ) => ModelInfoResponseMap[T],
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
+    ) => Promise<ModelInfoResponseMap[T]>,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
     private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
     private readonly getPortWrappers: () => Readonly<{[vertexKey: string]: Readonly<{[portKey: string]: PortWrapper}>}>,
@@ -163,9 +163,9 @@ export class DragRegistry {
     });
 
     let isHovering = false;
-    portDragHandler.addListener("hover", () => {
+    portDragHandler.addListener("hover", async () => {
       if (this.portPreviewManager.currentShowingIs(port)) return;
-      const portInfo = this.sendModelInfoRequest<"getPortInfo">({type: "getPortInfo", vertexId: vertexId, portId: portId});
+      const portInfo = await this.sendModelInfoRequest<"getPortInfo">({type: "getPortInfo", vertexId: vertexId, portId: portId});
       if (!portInfo.couldFindPort) return;
       this.portPreviewManager.portHover(port, vertex, portId, vertexId, portInfo.portValue);
       isHovering = true;
@@ -178,7 +178,7 @@ export class DragRegistry {
     });
 
     if (port.getIsOutput()) {
-      const getSnapPortInfo = (cursorLocalX: number, cursorLocalY: number) => {
+      const getSnapPortInfo = async (cursorLocalX: number, cursorLocalY: number) => {
         const closestInfo = this.portsByCloseness(cursorLocalX, cursorLocalY)[0];
 
         const closestPortVertex = closestInfo.vtx;
@@ -188,8 +188,13 @@ export class DragRegistry {
           (closestPortVertex !== vertex || closestPort !== port) &&
           closestInfo.distanceSquared < DragRegistry.portSnapDistance*DragRegistry.portSnapDistance
         ) {
-          const edgeValidityInfo = this.sendModelInfoRequest<"validateEdge">({
+          const uniqueEdgeId = (await this.sendModelInfoRequest<"getUniqueEdgeId">({
+            type: "getUniqueEdgeId",
+          })).edgeId;
+
+          const edgeValidityInfo = await this.sendModelInfoRequest<"validateEdge">({
             type: "validateEdge",
+            edgeId: uniqueEdgeId,
             sourceVertexId: vertexId,
             sourcePortId: portId,
             targetVertexId: closestInfo.vtxKey,
@@ -219,10 +224,10 @@ export class DragRegistry {
         vertexId: string;
         isValid: boolean;
       } | null = null;
-      portDragHandler.addListener("dragMove", (cursorX, cursorY) => {
+      portDragHandler.addListener("dragMove", async (cursorX, cursorY) => {
         const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
         const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
-        const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
+        const snapPortInfo = await getSnapPortInfo(cursorLocalX, cursorLocalY);
 
         // snap to closest port
         if (snapPortInfo !== null) {

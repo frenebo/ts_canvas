@@ -28,24 +28,38 @@ export class Messenger {
     }
   }
 
-  public newRequestHandler(): (...reqs: ModelChangeRequest[]) => void {
+  public newRequestHandler(): (...reqs: ModelChangeRequest[]) => Promise<boolean> {
     const that = this;
     return (...reqs: ModelChangeRequest[]) => {
-      that.model.requestModelChanges(...reqs);
-    };
+      return new Promise<boolean>((resolve, reject) => {
+        that.model.requestModelChanges(...reqs);
+        setTimeout(() => {
+          resolve(true);
+        }, 500);
+      });
+    }
   }
 
   public newInfoRequestHandler() {
     const that = this;
-    return <V extends ModelInfoRequestType>(req: ModelInfoRequestMap[V]): ModelInfoResponseMap[V] => {
-      return that.model.requestModelInfo(req);
+    return <V extends ModelInfoRequestType>(req: ModelInfoRequestMap[V]): Promise<ModelInfoResponseMap[V]> => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(that.model.requestModelInfo(req));
+        }, 500);
+      });
     };
   }
 
-  public newVersioningRequestHandler() {
+  public newVersioningRequestHandler(): (req: ModelVersioningRequest) => Promise<boolean> {
     const that = this;
     return (req: ModelVersioningRequest) => {
-      that.model.requestVersioningChange(req);
+      return new Promise((resolve, reject) => {
+        that.model.requestVersioningChange(req);
+        setTimeout(() => {
+          resolve(true);
+        }, 500);
+      });
     };
   }
 }

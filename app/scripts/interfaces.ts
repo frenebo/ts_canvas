@@ -117,6 +117,7 @@ export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoRe
 export interface ModelInfoRequestMap {
   "validateEdge": {
     type: "validateEdge";
+    edgeId: string;
     sourceVertexId: string;
     sourcePortId: string;
     targetVertexId: string;
@@ -159,7 +160,10 @@ export interface ModelInfoRequestMap {
     fieldValues: {
       [key: string]: string;
     };
-  }
+  };
+  "getUniqueEdgeId": {
+    type: "getUniqueEdgeId";
+  };
 }
 
 export interface ModelInfoResponseMap {
@@ -170,9 +174,12 @@ export interface ModelInfoResponseMap {
     problem: string;
   };
   "edgesBetweenVertices": {
+    verticesExist: true;
     edges: {
       [key: string]: EdgeData;
     };
+  } | {
+    verticesExist: false;
   };
   "fileIsOpen": {
     fileIsOpen: false;
@@ -191,16 +198,38 @@ export interface ModelInfoResponseMap {
     couldFindPort: false;
   };
   "getLayerInfo": {
+    layerExists: true;
     data: LayerData;
+  } | {
+    layerExists: false;
   };
   "validateValue": {
+    requestError: null;
     invalidError: string | null;
+  } | {
+    requestError: "layer_nonexistent";
+  } | {
+    requestError: "field_nonexistent"
   };
   "compareValue": {
+    requestError: null;
     isEqual: boolean;
+  } | {
+    requestError: "layer_nonexistent";
+  } | {
+    requestError: "field_nonexistent"
   };
   "validateLayerFields": {
+    requestError: null;
     errors: string[];
     warnings: string[];
-  }
+  } | {
+    requestError: "layer_nonexistent";
+  } | {
+    requestError: "field_nonexistent";
+    fieldName: string;
+  };
+  "getUniqueEdgeId": {
+    edgeId: string;
+  };
 }

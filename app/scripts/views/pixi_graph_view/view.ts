@@ -14,9 +14,9 @@ export class PixiView implements ViewInterface {
 
   constructor(
     div: HTMLDivElement,
-    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => void,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
+    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
+    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     document.body.style.margin = "0px";
     document.body.style.width = "100%";
@@ -148,13 +148,15 @@ export class PixiView implements ViewInterface {
       });
     }
 
-    // all changes are done at once inside here so graphManager can wait until all changes are made to do expensive
-    // updates
-    this.graphManager.applyCommands(graphManagerCommands);
 
     this.data = JSON.parse(JSON.stringify(newData));
-    const fileData = this.sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
-    const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
-    this.menuBar.setUnsavedChanges(unsavedChanges)
+    this.sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"}).then((fileData) => {;
+      const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
+      this.menuBar.setUnsavedChanges(unsavedChanges);
+
+      // all changes are done at once inside here so graphManager can wait until all changes are made to do expensive
+      // updates
+      this.graphManager.applyCommands(graphManagerCommands);
+    });
   }
 }

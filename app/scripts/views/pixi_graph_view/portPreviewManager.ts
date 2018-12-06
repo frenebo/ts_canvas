@@ -15,7 +15,7 @@ export class PortPreviewManager {
   } | null = null;
   constructor(
     private readonly backgroundWrapper: BackgroundWrapper,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
+    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
   ) {
 
   }

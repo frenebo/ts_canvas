@@ -21,9 +21,9 @@ export class HtmlMenuBar {
     fileMenu: DialogManager,
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
-    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => void,
-    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => ModelInfoResponseMap[T],
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => void,
+    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
+    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     div.style.backgroundColor = HtmlMenuBar.barBackground;
     div.style.overflow = "visible";
@@ -52,8 +52,8 @@ export class HtmlMenuBar {
       {
         text: "Save",
         tooltip: keyboardHandler.saveShortcutString(),
-        onclick: () => {
-          const openFileData = sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
+        onclick: async () => {
+          const openFileData = await sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
           if (openFileData.fileIsOpen) {
             sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
           } else {
