@@ -1,5 +1,8 @@
 import { Dialog } from "./dialog.js";
-import { ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, LayerData, ModelChangeRequest } from "../../../interfaces.js";
+import {
+  ModelChangeRequest,
+  ModelInfoReqs,
+} from "../../../interfaces.js";
 
 export class EditLayerDialog extends Dialog {
   constructor(
@@ -7,7 +10,7 @@ export class EditLayerDialog extends Dialog {
     width: number,
     height: number,
     private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
     private readonly layerId: string,
   ) {
     super(closeDialogFunc, width, height);
@@ -19,7 +22,15 @@ export class EditLayerDialog extends Dialog {
     this.root.appendChild(layerNonexistentDiv);
     layerNonexistentDiv.style.textAlign = "center";
     layerNonexistentDiv.style.marginTop = "10px";
-    layerNonexistentDiv.textContent = "Layer does not exist";
+    layerNonexistentDiv.textContent = "Layer no longer exists";
+  }
+
+  private alertFieldNonexistent(fieldName: string) {
+    const fieldNonexistentDiv = document.createElement("div");
+    this.root.appendChild(fieldNonexistentDiv);
+    fieldNonexistentDiv.style.textAlign = "center";
+    fieldNonexistentDiv.style.marginTop = "10px";
+    fieldNonexistentDiv.textContent = `Field does ${fieldName} not exist`;
   }
 
   private async init() {
@@ -79,7 +90,13 @@ export class EditLayerDialog extends Dialog {
           newValue: input.value,
         });
 
-        validateVal
+        if (validateVal.requestError === "layer_nonexistent") {
+          this.alertLayerNonexistent();
+          return;
+        } else if (validateVal.requestError === "field_nonexistent") {
+          this.alertFieldNonexistent(validateVal.fieldName);
+          return;
+        }
 
         if (validateVal.invalidError === null) {
           input.style.border = "1px solid black";
@@ -145,6 +162,7 @@ export class EditLayerDialog extends Dialog {
       }
       if (validated.requestError === "field_nonexistent") {
         this.alertFieldNonexistent(validated.fieldName);
+        return;
       }
 
       let errorText = validated.errors.length === 0 ? "" : validated.errors.length === 1 ? "Error: " : "Errors: ";

@@ -1,5 +1,7 @@
 import {
-  ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest, ModelInfoResponseMap,
+  ModelChangeRequest,
+  ModelVersioningRequest,
+  ModelInfoReqs,
 } from "../../interfaces.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { SelectionManager } from "./selectionManager.js";
@@ -22,7 +24,7 @@ export class HtmlMenuBar {
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
     sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
-    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
     sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     div.style.backgroundColor = HtmlMenuBar.barBackground;

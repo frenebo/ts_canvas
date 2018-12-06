@@ -1,4 +1,7 @@
-import { ModelDataObj, SessionData } from "./model.js";
+import {
+  ModelDataObj,
+  SessionData
+} from "./model.js";
 import { SessionUtils } from "./sessionUtils.js";
 
 export class SaveUtils {

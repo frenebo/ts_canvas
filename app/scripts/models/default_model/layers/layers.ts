@@ -1,4 +1,7 @@
-import { ValueWrapper, ShapeWrapper } from "./valueWrappers/valueWrapper.js";
+import {
+  ValueWrapper,
+  ShapeWrapper
+} from "./valueWrappers/valueWrapper.js";
 
 interface LayerPortInfo {
   valueKey: string;

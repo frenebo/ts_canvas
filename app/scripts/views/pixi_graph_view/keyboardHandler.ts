@@ -1,6 +1,8 @@
 import { SelectionManager } from "./selectionManager.js";
 import {
-  ModelChangeRequest, ModelVersioningRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
+  ModelChangeRequest,
+  ModelVersioningRequest,
+  ModelInfoReqs,
 } from "../../interfaces.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
 
@@ -95,7 +97,7 @@ export class KeyboardHandler {
     dialogManager: DialogManager,
     selectionManager: SelectionManager,
     sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
     sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     let divSelected = false;

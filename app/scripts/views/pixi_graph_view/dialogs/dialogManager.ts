@@ -1,4 +1,8 @@
-import { ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap, ModelVersioningRequest, ModelChangeRequest } from "../../../interfaces.js";
+import {
+  ModelVersioningRequest,
+  ModelChangeRequest,
+  ModelInfoReqs
+} from "../../../interfaces.js";
 import { Dialog } from "./dialog.js";
 import { EditLayerDialog } from "./editLayerDialog.js";
 import { OpenDialog } from "./openDialog.js";
@@ -13,7 +17,7 @@ export class DialogManager {
   constructor(
     private readonly div: HTMLDivElement,
     private readonly sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
     private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     const that = this;

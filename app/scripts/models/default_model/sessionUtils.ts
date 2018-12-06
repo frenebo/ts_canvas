@@ -1,6 +1,13 @@
-import { ModelDataObj, SessionData } from "./model.js";
-import { LayerUtils, LayerClassDictJson, LayerClassDict } from "./layers/layerUtils.js";
-import { EdgesByVertex, GraphUtils } from "./graphUtils.js";
+import { ModelDataObj } from "./model.js";
+import {
+  LayerUtils,
+  LayerClassDictJson,
+  LayerClassDict
+} from "./layers/layerUtils.js";
+import {
+  EdgesByVertex,
+  GraphUtils
+} from "./graphUtils.js";
 import { GraphData } from "../../interfaces.js";
 
 export type SessionDataJson = {
@@ -176,7 +183,7 @@ export class SessionUtils {
       layerId,
       fieldValues,
     );
-    if (!validated.requestError) return "value fields do not exist";
+    if (validated.requestError !== null) return validated.requestError;
     if (validated.errors.length === 0) return null;
     else return validated.errors.join(", ");
   }

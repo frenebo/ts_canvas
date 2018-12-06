@@ -1,14 +1,31 @@
 import {
-  ModelInterface, GraphData, ModelChangeRequest, ModelInfoRequestMap, ModelInfoRequestType, ModelInfoResponseMap,
-  ModelVersioningRequest, DeepReadonly, LayerData,
+  ModelInterface,
+  GraphData,
+  ModelChangeRequest,
+  ModelVersioningRequest,
+  DeepReadonly,
+  ModelInfoReqs,
 } from "../../interfaces.js";
-import { GraphUtils, EdgesByVertex } from "./graphUtils.js";
-import { Diffable, DiffType, createDiff } from "../../diff.js";
+import {
+  GraphUtils,
+  EdgesByVertex
+} from "./graphUtils.js";
+import {
+  Diffable,
+  DiffType,
+  createDiff
+} from "../../diff.js";
 import { SaveUtils } from "./saveUtils.js";
 import { VersioningUtils } from "./versioningUtils.js";
-import { LayerUtils, LayerClassDict } from "./layers/layerUtils.js";
+import {
+  LayerUtils,
+  LayerClassDict
+} from "./layers/layerUtils.js";
 import { Layer } from "./layers/layers.js";
-import { SessionUtils, SessionDataJson } from "./sessionUtils.js";
+import {
+  SessionUtils,
+  SessionDataJson
+} from "./sessionUtils.js";
 
 export interface ModelDataObj {
   graph: GraphData;
@@ -236,19 +253,19 @@ export class DefaultModel implements ModelInterface {
     }
   }
 
-  public requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T] {
+  public requestModelInfo<T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]): ModelInfoReqs[T]["response"]{
     if (req.type === "validateEdge") {
       const validationMessage = SessionUtils.validateCreateEdge(
         this.session.data.graph,
         this.session.data.edgesByVertex,
         this.session.data.layers,
-        (req as ModelInfoRequestMap["validateEdge"]).edgeId,
-        (req as ModelInfoRequestMap["validateEdge"]).sourceVertexId,
-        (req as ModelInfoRequestMap["validateEdge"]).sourcePortId,
-        (req as ModelInfoRequestMap["validateEdge"]).targetVertexId,
-        (req as ModelInfoRequestMap["validateEdge"]).targetPortId,
+        (req as ModelInfoReqs["validateEdge"]["request"]).edgeId,
+        (req as ModelInfoReqs["validateEdge"]["request"]).sourceVertexId,
+        (req as ModelInfoReqs["validateEdge"]["request"]).sourcePortId,
+        (req as ModelInfoReqs["validateEdge"]["request"]).targetVertexId,
+        (req as ModelInfoReqs["validateEdge"]["request"]).targetPortId,
       );
-      const response: ModelInfoResponseMap["validateEdge"] = validationMessage === null ? {
+      const response: ModelInfoReqs["validateEdge"]["response"] = validationMessage === null ? {
         valid: true,
       } : {
         valid: false,
@@ -259,10 +276,10 @@ export class DefaultModel implements ModelInterface {
       return GraphUtils.edgesBetweenVertices(
         this.session.data.graph,
         this.session.data.edgesByVertex,
-        (req as ModelInfoRequestMap["edgesBetweenVertices"]).vertexIds,
+        (req as ModelInfoReqs["edgesBetweenVertices"]["request"]).vertexIds,
       );
     } else if (req.type === "fileIsOpen") {
-      const response: ModelInfoResponseMap["fileIsOpen"] = this.session.openFile === null ? {
+      const response: ModelInfoReqs["fileIsOpen"]["response"] = this.session.openFile === null ? {
           fileIsOpen: false,
         } : {
           fileIsOpen: true,
@@ -272,41 +289,43 @@ export class DefaultModel implements ModelInterface {
 
       return response;
     } else if (req.type === "savedFileNames") {
-      const response: ModelInfoResponseMap["savedFileNames"] = {
+      const response: ModelInfoReqs["savedFileNames"]["response"] = {
         fileNames: SaveUtils.savedFileNames(),
       };
       return response;
     } else if (req.type === "getPortInfo") {
       return LayerUtils.getPortInfo(
         this.session.data.layers,
-        (req as ModelInfoRequestMap["getPortInfo"]).portId,
-        (req as ModelInfoRequestMap["getPortInfo"]).vertexId,
+        (req as ModelInfoReqs["getPortInfo"]["request"]).portId,
+        (req as ModelInfoReqs["getPortInfo"]["request"]).vertexId,
       );
     } else if (req.type === "validateValue") {
       return LayerUtils.validateValue(
         this.session.data.layers,
-        (req as ModelInfoRequestMap["validateValue"]).layerId,
-        (req as ModelInfoRequestMap["validateValue"]).valueId,
-        (req as ModelInfoRequestMap["validateValue"]).newValue,
+        (req as ModelInfoReqs["validateValue"]["request"]).layerId,
+        (req as ModelInfoReqs["validateValue"]["request"]).valueId,
+        (req as ModelInfoReqs["validateValue"]["request"]).newValue,
       );
     } else if (req.type === "getLayerInfo") {
       return LayerUtils.getLayerInfo(
         this.session.data.layers,
-        (req as ModelInfoRequestMap["getLayerInfo"]).layerId,
+        (req as ModelInfoReqs["getLayerInfo"]["request"]).layerId,
       )
     } else if (req.type === "compareValue") {
       return LayerUtils.compareValue(
         this.session.data.layers,
-        (req as ModelInfoRequestMap["compareValue"]).layerId,
-        (req as ModelInfoRequestMap["compareValue"]).valueId,
-        (req as ModelInfoRequestMap["compareValue"]).compareValue,
+        (req as ModelInfoReqs["compareValue"]["request"]).layerId,
+        (req as ModelInfoReqs["compareValue"]["request"]).valueId,
+        (req as ModelInfoReqs["compareValue"]["request"]).compareValue,
       );
     } else if (req.type === "validateLayerFields") {
       return LayerUtils.validateLayerFields(
         this.session.data.layers,
-        (req as ModelInfoRequestMap["validateLayerFields"]).layerId,
-        (req as ModelInfoRequestMap["validateLayerFields"]).fieldValues,
+        (req as ModelInfoReqs["validateLayerFields"]["request"]).layerId,
+        (req as ModelInfoReqs["validateLayerFields"]["request"]).fieldValues,
       );
+    } else if (req.type === "getUniqueEdgeId") {
+      return GraphUtils.getUniqueEdgeId(this.session.data.graph);
     } else {
       throw new Error(`Unimplemented request ${req.type}`);
     }

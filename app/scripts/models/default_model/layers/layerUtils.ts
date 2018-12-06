@@ -1,5 +1,11 @@
-import { Layer, LayerJsonInfo } from "./layers.js";
-import { LayerData, ModelInfoResponseMap } from "../../../interfaces.js";
+import {
+  Layer,
+  LayerJsonInfo
+} from "./layers.js";
+import {
+  LayerData,
+  ModelInfoReqs
+} from "../../../interfaces.js";
 
 export type LayerClassDict = {
   [key: string]: Layer;
@@ -14,7 +20,7 @@ export class LayerUtils {
     layers: LayerClassDict,
     portId: string,
     layerId: string,
-  ): ModelInfoResponseMap["getPortInfo"] {
+  ): ModelInfoReqs["getPortInfo"]["response"] {
     if (layers[layerId] === undefined) return {couldFindPort: false};
     if (layers[layerId].getPortIds().indexOf(portId) === -1) return {couldFindPort: false};
     const valueId = layers[layerId].getPortInfo(portId).valueKey;
@@ -28,7 +34,7 @@ export class LayerUtils {
   public static getLayerInfo(
     layers: LayerClassDict,
     layerId: string,
-  ): ModelInfoResponseMap["getLayerInfo"] {
+  ): ModelInfoReqs["getLayerInfo"]["response"] {
     const layer = layers[layerId];
     if (layer === undefined) return {layerExists: false};
 
@@ -76,17 +82,17 @@ export class LayerUtils {
     layers: LayerClassDict,
     layerId: string,
     fieldValues: {[key: string]: string},
-  ): ModelInfoResponseMap["validateLayerFields"] {
+  ): ModelInfoReqs["validateLayerFields"]["response"] {
     const errors: string[] = [];
 
     const origLayer = layers[layerId];
-    if (origLayer === undefined) return {requestError: false};
+    if (origLayer === undefined) return {requestError: "layer_nonexistent"};
 
     const cloneLayer = Layer.clone(origLayer);
 
     for (const fieldId in fieldValues) {
       if (!cloneLayer.hasField(fieldId)) {
-        return {requestError: "field_nonexistent"};
+        return {requestError: "field_nonexistent", fieldName: fieldId};
       }
       if (cloneLayer.isReadonlyField(fieldId)) {
         errors.push(`Layer field ${fieldId} is readonly`);
@@ -116,11 +122,11 @@ export class LayerUtils {
     layerId: string,
     valueId: string,
     newValueString: string,
-  ): ModelInfoResponseMap["validateValue"] {
+  ): ModelInfoReqs["validateValue"]["response"] {
     const layer = layers[layerId];
     if (layer === undefined) return {requestError: "layer_nonexistent"};
 
-    if (!layer.hasField(valueId)) return {requestError: "field_nonexistent"};
+    if (!layer.hasField(valueId)) return {requestError: "field_nonexistent", fieldName: valueId};
 
     return {
       requestError: null,
@@ -133,7 +139,7 @@ export class LayerUtils {
     layerId: string,
     valueId: string,
     compareString: string,
-  ): ModelInfoResponseMap["compareValue"] {
+  ): ModelInfoReqs["compareValue"]["response"] {
     const layer = layers[layerId];
     if (layer === undefined) return {requestError: "layer_nonexistent"};
 

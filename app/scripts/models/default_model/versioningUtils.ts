@@ -1,6 +1,13 @@
-import { SessionData, ModelDataObj } from "./model.js";
-import { undoDiff, Diffable, applyDiff } from "../../diff.js";
-import { SessionUtils, SessionDataJson } from "./sessionUtils.js";
+import { SessionData } from "./model.js";
+import {
+  undoDiff,
+  Diffable,
+  applyDiff
+} from "../../diff.js";
+import {
+  SessionUtils,
+  SessionDataJson
+} from "./sessionUtils.js";
 
 export class VersioningUtils {
   public static undo(session: SessionData): void {

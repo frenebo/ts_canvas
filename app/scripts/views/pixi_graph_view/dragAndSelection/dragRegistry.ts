@@ -5,7 +5,9 @@ import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
 import { VertexDragHandler } from "./vertexDragHandler.js";
 import { PortWrapper } from "../graphicWrappers/portWrapper.js";
 import {
-  ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestType, ModelInfoRequestMap, ModelVersioningRequest,
+  ModelChangeRequest,
+  ModelVersioningRequest,
+  ModelInfoReqs,
 } from "../../../interfaces.js";
 import { PortDragHandler } from "./portDragHandler.js";
 import { EdgeDrawHandler } from "./edgeDrawHandler.js";
@@ -35,9 +37,7 @@ export class DragRegistry {
 
   constructor(
     private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(
-      req: ModelInfoRequestMap[T],
-    ) => Promise<ModelInfoResponseMap[T]>,
+    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
     sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
     private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,

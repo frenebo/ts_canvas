@@ -1,8 +1,14 @@
 import {
-  ViewInterface, GraphData, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
+  ViewInterface,
+  GraphData,
+  ModelChangeRequest,
   ModelVersioningRequest,
+  ModelInfoReqs,
 } from "../../interfaces.js";
-import { GraphManager, GraphManagerCommand } from "./graphManager.js";
+import {
+  GraphManager,
+  GraphManagerCommand,
+} from "./graphManager.js";
 import { HtmlMenuBar } from "./htmlMenuBar.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
@@ -15,7 +21,7 @@ export class PixiView implements ViewInterface {
   constructor(
     div: HTMLDivElement,
     sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
     sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     document.body.style.margin = "0px";
@@ -81,7 +87,7 @@ export class PixiView implements ViewInterface {
     onResize();
   }
 
-  public setGraphData(newData: GraphData): void {
+  public async setGraphData(newData: GraphData): Promise<void> {
     const newVertexKeys = Object.keys(newData.vertices);
     const oldVertexKeys = Object.keys(this.data.vertices);
 
@@ -150,13 +156,12 @@ export class PixiView implements ViewInterface {
 
 
     this.data = JSON.parse(JSON.stringify(newData));
-    this.sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"}).then((fileData) => {;
-      const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
-      this.menuBar.setUnsavedChanges(unsavedChanges);
+    const fileData = await this.sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"})
+    const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
+    this.menuBar.setUnsavedChanges(unsavedChanges);
 
-      // all changes are done at once inside here so graphManager can wait until all changes are made to do expensive
-      // updates
-      this.graphManager.applyCommands(graphManagerCommands);
-    });
+    // all changes are done at once inside here so graphManager can wait until all changes are made to do expensive
+    // updates
+    this.graphManager.applyCommands(graphManagerCommands);
   }
 }

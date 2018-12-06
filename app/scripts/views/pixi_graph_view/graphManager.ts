@@ -1,8 +1,11 @@
 import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import {
-  VertexData, EdgeData, ModelVersioningRequest, ModelInfoRequestType, ModelChangeRequest, ModelInfoRequestMap,
-  ModelInfoResponseMap,
+  VertexData,
+  EdgeData,
+  ModelVersioningRequest,
+  ModelChangeRequest,
+  ModelInfoReqs,
 } from "../../interfaces.js";
 import { EditIconWrapper } from "./graphicWrappers/editIconWrapper.js";
 import { PortWrapper } from "./graphicWrappers/portWrapper.js";
@@ -62,7 +65,7 @@ export class GraphManager {
     private readonly div: HTMLDivElement,
     private readonly dialogs: DialogManager,
     sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
-    sendModelInfoRequest: <T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]) => Promise<ModelInfoResponseMap[T]>,
+    sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
     sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     this.stageManager = new StageManager(div);

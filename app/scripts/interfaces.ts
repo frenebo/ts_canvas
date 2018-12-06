@@ -10,8 +10,6 @@ export interface VertexData {
   geo: {
     x: number;
     y: number;
-    // w: number;
-    // h: number;
   };
   ports: {
     [key: string]: PortData;
@@ -61,7 +59,7 @@ export interface ModelInterface {
   getGraphData(): DeepReadonly<GraphData>;
   addGraphChangedListener(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): void;
-  requestModelInfo<T extends ModelInfoRequestType>(req: ModelInfoRequestMap[T]): ModelInfoResponseMap[T];
+  requestModelInfo<T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]): ModelInfoReqs[T]["response"];
   requestVersioningChange(req: ModelVersioningRequest): void;
 }
 
@@ -112,124 +110,147 @@ export type ModelVersioningRequest = {
   fileName: string;
 };
 
-export type ModelInfoRequestType = keyof ModelInfoRequestMap & keyof ModelInfoResponseMap;
-
-export interface ModelInfoRequestMap {
-  "validateEdge": {
-    type: "validateEdge";
-    edgeId: string;
-    sourceVertexId: string;
-    sourcePortId: string;
-    targetVertexId: string;
-    targetPortId: string;
-  };
-  "edgesBetweenVertices": {
-    type: "edgesBetweenVertices";
-    vertexIds: string[];
-  };
-  "fileIsOpen": {
-    type: "fileIsOpen";
-  };
-  "savedFileNames": {
-    type: "savedFileNames";
-  };
-  "getPortInfo": {
-    type: "getPortInfo";
-    vertexId: string;
-    portId: string;
-  };
-  "getLayerInfo": {
-    type: "getLayerInfo";
-    layerId: string;
-  };
-  "validateValue": {
-    type: "validateValue";
-    layerId: string;
-    valueId: string;
-    newValue: string;
-  };
-  "compareValue": {
-    type: "compareValue";
-    layerId: string;
-    valueId: string;
-    compareValue: string;
-  };
-  "validateLayerFields": {
-    type: "validateLayerFields";
-    layerId: string;
-    fieldValues: {
-      [key: string]: string;
-    };
-  };
-  "getUniqueEdgeId": {
-    type: "getUniqueEdgeId";
-  };
+type ReqMapType<T extends string> = {
+  [key in T]: {
+    request: unknown;
+    response: unknown;
+  }
 }
-
-export interface ModelInfoResponseMap {
+export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
   "validateEdge": {
-    valid: true;
-  } | {
-    valid: false;
-    problem: string;
+    "request": {
+      type: "validateEdge";
+      edgeId: string;
+      sourceVertexId: string;
+      sourcePortId: string;
+      targetVertexId: string;
+      targetPortId: string;
+    };
+    "response": {
+      valid: true;
+    } | {
+      valid: false;
+      problem: string;
+    };
   };
   "edgesBetweenVertices": {
-    verticesExist: true;
-    edges: {
-      [key: string]: EdgeData;
+    "request": {
+      type: "edgesBetweenVertices";
+      vertexIds: string[];
+    }
+    "response": {
+      verticesExist: true;
+      edges: {
+        [key: string]: EdgeData;
+      };
+    } | {
+      verticesExist: false;
+      requestNonexistentVertices: string[];
     };
-  } | {
-    verticesExist: false;
   };
   "fileIsOpen": {
-    fileIsOpen: false;
-  } | {
-    fileIsOpen: true;
-    fileName: string;
-    fileIsUpToDate: boolean;
+    "request": {
+      type: "fileIsOpen";
+    };
+    "response": {
+      fileIsOpen: false;
+    } | {
+      fileIsOpen: true;
+      fileName: string;
+      fileIsUpToDate: boolean;
+    };
   };
   "savedFileNames": {
-    fileNames: string[];
+    "request": {
+      type: "savedFileNames";
+    };
+    "response": {
+      fileNames: string[];
+    };
   };
   "getPortInfo": {
-    couldFindPort: true;
-    portValue: string;
-  } | {
-    couldFindPort: false;
+    "request": {
+      type: "getPortInfo";
+      vertexId: string;
+      portId: string;
+    };
+    "response": {
+      couldFindPort: true;
+      portValue: string;
+    } | {
+      couldFindPort: false;
+    };
   };
   "getLayerInfo": {
-    layerExists: true;
-    data: LayerData;
-  } | {
-    layerExists: false;
+    "request": {
+      type: "getLayerInfo";
+      layerId: string;
+    };
+    "response": {
+      layerExists: true;
+      data: LayerData;
+    } | {
+      layerExists: false;
+    }
   };
   "validateValue": {
-    requestError: null;
-    invalidError: string | null;
-  } | {
-    requestError: "layer_nonexistent";
-  } | {
-    requestError: "field_nonexistent"
+    "request": {
+      type: "validateValue";
+      layerId: string;
+      valueId: string;
+      newValue: string;
+    };
+    "response": {
+      requestError: null;
+      invalidError: string | null;
+    } | {
+      requestError: "layer_nonexistent";
+    } | {
+      requestError: "field_nonexistent";
+      fieldName: string;
+    };
   };
   "compareValue": {
-    requestError: null;
-    isEqual: boolean;
-  } | {
-    requestError: "layer_nonexistent";
-  } | {
-    requestError: "field_nonexistent"
-  };
+    "request": {
+      type: "compareValue";
+      layerId: string;
+      valueId: string;
+      compareValue: string;
+    };
+    "response": {
+      requestError: null;
+      isEqual: boolean;
+    } | {
+      requestError: "layer_nonexistent";
+    } | {
+      requestError: "field_nonexistent"
+    };
+  }
   "validateLayerFields": {
-    requestError: null;
-    errors: string[];
-    warnings: string[];
-  } | {
-    requestError: "layer_nonexistent";
-  } | {
-    requestError: "field_nonexistent";
-    fieldName: string;
-  };
+    "request": {
+      type: "validateLayerFields";
+      layerId: string;
+      fieldValues: {
+        [key: string]: string;
+      };
+    };
+    "response":{
+      requestError: null;
+      errors: string[];
+      warnings: string[];
+    } | {
+      requestError: "layer_nonexistent";
+    } | {
+      requestError: "field_nonexistent";
+      fieldName: string;
+    };
+  }
   "getUniqueEdgeId": {
-    edgeId: string;
-  };
+    "request": {
+      type: "getUniqueEdgeId";
+    };
+    "response": {
+      edgeId: string;
+    };
+  }
 }

@@ -1,7 +1,7 @@
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import {
-  ModelChangeRequest, ModelInfoResponseMap, ModelInfoRequestMap, ModelInfoRequestType,
+  ModelChangeRequest, ModelInfoReqs, EdgeData,
 } from "../../interfaces.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
 
@@ -23,9 +23,7 @@ export class SelectionManager {
     private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
     private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    private readonly sendModelInfoRequest: <T extends ModelInfoRequestType>(
-      req: ModelInfoRequestMap[T],
-    ) => Promise<ModelInfoResponseMap[T]>,
+    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
     private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
     private readonly background: BackgroundWrapper,
   ) {
@@ -210,11 +208,19 @@ export class SelectionManager {
         });
       }
 
-      const edgesBetweenData = await this.sendModelInfoRequest<"edgesBetweenVertices">({
-        type: "edgesBetweenVertices",
-        vertexIds: vertexIds,
-      });
-      const edgesToClone = edgesBetweenData.edges
+      let requestIds: string[] = vertexIds.slice();
+      let edgesToClone: {[key: string]: EdgeData} | null = null;
+      while (edgesToClone === null) {
+        const requestData = await this.sendModelInfoRequest<"edgesBetweenVertices">({
+          type: "edgesBetweenVertices",
+          vertexIds: requestIds,
+        });
+        if (requestData.verticesExist) {
+          edgesToClone = requestData.edges;
+        } else {
+          requestIds = requestIds.filter((id) => requestData.requestNonexistentVertices.indexOf(id) === -1);
+        }
+      }
 
       for (const edgeId in edgesToClone) {
         const edgeData = edgesToClone[edgeId];

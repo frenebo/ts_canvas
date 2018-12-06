@@ -1,6 +1,4 @@
 import { BACKGROUND_TILE_PATH } from "../../constants.js";
-import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
-import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import { GraphicWrapper } from "./graphicWrappers/graphicsWrapper.js";
 
 export class BackgroundWrapper {

@@ -1,4 +1,9 @@
-import { GraphData, EdgeData, VertexData, ModelInfoResponseMap } from "../../interfaces.js";
+import {
+  GraphData,
+  EdgeData,
+  VertexData,
+  ModelInfoReqs
+} from "../../interfaces.js";
 import { Layer } from "./layers/layers.js";
 
 export interface EdgesByVertex {
@@ -13,10 +18,20 @@ export class GraphUtils {
     graphData: GraphData,
     edgesByVertex: EdgesByVertex,
     vtxIds: string[],
-  ): ModelInfoResponseMap["edgesBetweenVertices"] {
+  ): ModelInfoReqs["edgesBetweenVertices"]["response"] {
+    const nonexistentVertices: string[] = [];
     for (const vtxId of vtxIds) {
-      if (graphData.vertices[vtxId] === undefined) return {verticesExist: false};
+      if (graphData.vertices[vtxId] === undefined) {
+        nonexistentVertices.push(vtxId);
+      }
     }
+    if (nonexistentVertices.length !== 0) {
+      return {
+        verticesExist: false,
+        requestNonexistentVertices: nonexistentVertices,
+      };
+    }
+
     const vtxOutputEdges = new Set<string>();
     const vtxInputEdges = new Set<string>();
 
@@ -41,6 +56,18 @@ export class GraphUtils {
       verticesExist: true,
       edges: edgesBetween,
     }
+  }
+
+  public static getUniqueEdgeId(graphData: GraphData): ModelInfoReqs["getUniqueEdgeId"]["response"] {
+    const randomVal = Math.random();
+    let multiple = 10;
+    let id: string;
+    while (graphData.edges[id = Math.floor(randomVal*multiple).toString()] !== undefined) {
+      multiple *= 10;
+    }
+    return {
+      edgeId: id,
+    };
   }
 
   public static validateMoveVertex(
@@ -240,7 +267,7 @@ export class GraphUtils {
     targetVtxId: string,
     targetPortId: string,
   ): string | null {
-    if (graphData.edges[edgeId] !== null) return `Edge with id ${edgeId} already exists`;
+    if (graphData.edges[edgeId] !== undefined) return `Edge with id ${edgeId} already exists`;
 
     const sourceVertex = graphData.vertices[sourceVtxId];
     const targetVertex = graphData.vertices[targetVtxId];

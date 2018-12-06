@@ -1,6 +1,7 @@
 import {
-  ModelInterface, ViewInterface, ModelChangeRequest, ModelInfoRequestType, ModelInfoRequestMap, ModelInfoResponseMap,
+  ModelInterface, ViewInterface, ModelChangeRequest,
   ModelVersioningRequest,
+  ModelInfoReqs,
 } from "./interfaces.js";
 
 
@@ -42,7 +43,7 @@ export class Messenger {
 
   public newInfoRequestHandler() {
     const that = this;
-    return <V extends ModelInfoRequestType>(req: ModelInfoRequestMap[V]): Promise<ModelInfoResponseMap[V]> => {
+    return <V extends keyof ModelInfoReqs>(req: ModelInfoReqs[V]["request"]): Promise<ModelInfoReqs[V]["response"]> => {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           resolve(that.model.requestModelInfo(req));
