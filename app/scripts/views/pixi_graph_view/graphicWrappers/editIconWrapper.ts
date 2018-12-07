@@ -41,7 +41,7 @@ export class EditIconWrapper extends GraphicWrapper {
       );
 
       // if it's a loop, go over the first leg of the polygon again
-      const pts = loop ? origPts.concat(origPts.slice(origPts.length - 2)) : origPts;
+      const pts = loop ? origPts.concat(origPts.slice(0, 2)) : origPts;
 
       for (const pt of pts.slice(1)) {
         graphics.lineTo(
