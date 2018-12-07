@@ -48,7 +48,7 @@ export interface LayerData {
 }
 
 export interface ViewInterface {
-  setGraphData?(data: GraphData): void;
+  setGraphData(data: GraphData): void;
 }
 
 export type DeepReadonly<T extends {}> = Readonly<{

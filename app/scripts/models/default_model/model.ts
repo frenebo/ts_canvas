@@ -7,23 +7,23 @@ import {
 } from "../../interfaces.js";
 import {
   GraphUtils,
-  EdgesByVertex
+  EdgesByVertex,
 } from "./graphUtils.js";
 import {
   Diffable,
   DiffType,
-  createDiff
+  createDiff,
 } from "../../diff.js";
 import { SaveUtils } from "./saveUtils.js";
 import { VersioningUtils } from "./versioningUtils.js";
 import {
   LayerUtils,
-  LayerClassDict
+  LayerClassDict,
 } from "./layers/layerUtils.js";
 import { Layer } from "./layers/layers.js";
 import {
   SessionUtils,
-  SessionDataJson
+  SessionDataJson,
 } from "./sessionUtils.js";
 
 export interface ModelDataObj {
@@ -121,11 +121,12 @@ export class DefaultModel implements ModelInterface {
           this.session.openFile.fileIdxInHistory++;
         }
       }
-      this.session.futureDiffs = []; // redos are lost when model is changed
 
-      for (const listener of this.graphChangedListeners) {
-        listener();
-      }
+      this.session.futureDiffs = []; // redos are lost when model is changed
+    }
+
+    for (const listener of this.graphChangedListeners) {
+      listener();
     }
   }
 
@@ -241,12 +242,11 @@ export class DefaultModel implements ModelInterface {
     } else {
       throw new Error("unimplemented");
     }
-    for (const listener of this.graphChangedListeners) {
-      listener();
-    }
   }
 
-  public requestModelInfo<T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]): ModelInfoReqs[T]["response"]{
+  public requestModelInfo<T extends keyof ModelInfoReqs>(
+    req: ModelInfoReqs[T]["request"],
+): ModelInfoReqs[T]["response"] {
     if (req.type === "validateEdge") {
       const validationMessage = SessionUtils.validateCreateEdge(
         this.session.data.graph,

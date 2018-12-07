@@ -30,7 +30,7 @@ export class EdgeDrawHandler {
     };
   }
 
-  public redrawLine(endX: number, endY: number, validity?: "valid" | "invalid"): void {
+  public redrawLine(endX: number, endY: number, validity?: "valid" | "invalid" | undefined | null): void {
     if (this.dragData === null) throw new Error("Not currently drawing edge");
 
     const startX =
@@ -40,7 +40,7 @@ export class EdgeDrawHandler {
 
     this.dragData.graphics.clear();
 
-    if (validity === undefined) this.dragData.graphics.lineColor = 0x444444;
+    if (validity === undefined || validity === null) this.dragData.graphics.lineColor = 0x444444;
     else if (validity === "valid") this.dragData.graphics.lineColor = 0x009933;
     else if (validity === "invalid") this.dragData.graphics.lineColor = 0xCC0000;
     else throw new Error(`Unknown validity value ${validity}`);

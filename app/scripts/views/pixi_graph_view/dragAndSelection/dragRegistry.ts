@@ -11,6 +11,7 @@ import { SelectionManager } from "../selectionManager.js";
 import { EdgeDragHandler } from "./edgeDragHandler.js";
 import { PortPreviewManager } from "../portPreviewManager.js";
 import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
+import { ModelInfoReqs } from "../../../interfaces.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
 
@@ -176,7 +177,7 @@ export class DragRegistry {
     });
 
     if (port.getIsOutput()) {
-      const getSnapPortInfo = async (cursorLocalX: number, cursorLocalY: number) => {
+      const getSnapPortInfo = (cursorLocalX: number, cursorLocalY: number) => {
         const closestInfo = this.portsByCloseness(cursorLocalX, cursorLocalY)[0];
 
         const closestPortVertex = closestInfo.vtx;
@@ -186,19 +187,6 @@ export class DragRegistry {
           (closestPortVertex !== vertex || closestPort !== port) &&
           closestInfo.distanceSquared < DragRegistry.portSnapDistance*DragRegistry.portSnapDistance
         ) {
-          const uniqueEdgeId = (await this.sendModelInfoRequests<"getUniqueEdgeIds">({
-            type: "getUniqueEdgeIds",
-            count: 1,
-          })).edgeIds[0];
-
-          const edgeValidityInfo = await this.sendModelInfoRequests<"validateEdge">({
-            type: "validateEdge",
-            edgeId: uniqueEdgeId,
-            sourceVertexId: vertexId,
-            sourcePortId: portId,
-            targetVertexId: closestInfo.vtxKey,
-            targetPortId: closestInfo.portKey,
-          });
 
           return {
             targetVtx: closestPortVertex,
@@ -207,88 +195,225 @@ export class DragRegistry {
             targetPortId: closestInfo.portKey,
             xPos: closestPort.localX() + closestPort.getBackgroundWidth()/2 + closestPortVertex.localX(),
             yPos: closestPort.localY() + closestPort.getBackgroundWidth()/2 + closestPortVertex.localY(),
-            problem: edgeValidityInfo.valid ? null : edgeValidityInfo.problem,
           };
         } else {
           return null;
         }
       };
 
+      let dragData: {
+        currentTarget: {
+          port: PortWrapper;
+          portId: string;
+          xPos: number;
+          yPos: number;
+          vertexId: string;
+          validation: {
+            isValid: true;
+            edgeId: string;
+          } | {
+            isValid: false;
+            message: string;
+          } | "waiting_for_validity";
+        } | null;
+      } | null = null;
       portDragHandler.addListener("dragStart", () => {
         this.edgeDrawHandler.beginDraw(vertex, port);
+        dragData = {
+          currentTarget: null,
+        };
       });
-      let currentTarget: {
-        port: PortWrapper;
-        portId: string;
-        vertexId: string;
-        isValid: boolean;
-      } | null = null;
-      portDragHandler.addListener("dragMove", async (cursorX, cursorY) => {
-        const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
-        const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
-        const snapPortInfo = await getSnapPortInfo(cursorLocalX, cursorLocalY);
+      portDragHandler.addListener("dragMove", (cursorX, cursorY) => {
+        if (dragData === null) throw new Error("No current drag");
 
-        // snap to closest port
-        if (snapPortInfo !== null) {
-          this.edgeDrawHandler.redrawLine(
-            snapPortInfo.xPos,
-            snapPortInfo.yPos,
-            snapPortInfo.problem === null ? "valid" : "invalid",
-          );
-          if (currentTarget === null || currentTarget.port !== snapPortInfo.targetPort) {
-            currentTarget = {
-              port: snapPortInfo.targetPort,
-              portId: snapPortInfo.targetPortId,
-              vertexId: snapPortInfo.targetVtxId,
-              isValid: snapPortInfo.problem === null,
-            };
-            setTimeout(() => {
-              // if the target is still the same
-              if (currentTarget !== null && currentTarget.port === snapPortInfo.targetPort) {
-                this.portPreviewManager.portHover(
-                  snapPortInfo.targetPort,
-                  snapPortInfo.targetVtx,
-                  snapPortInfo.targetPortId,
-                  snapPortInfo.targetVtxId,
-                  snapPortInfo.problem === null ? "Valid target" : snapPortInfo.problem,
-                );
-              }
-            }, DragRegistry.portTargetHoverWait);
-          }
+        const stageX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
+        const stageY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+
+        let targetHasChanged = false;
+        const snapInfo = getSnapPortInfo(stageX, stageY);
+        if (snapInfo === null) {
+          dragData.currentTarget = null;
         } else {
-          this.edgeDrawHandler.redrawLine(cursorLocalX, cursorLocalY);
-          if (currentTarget !== null && this.portPreviewManager.currentShowingIs(currentTarget.port)) {
-            this.portPreviewManager.portHoverEnd(currentTarget.port);
+          if (
+            dragData.currentTarget === null ||
+            (dragData.currentTarget.portId !== snapInfo.targetPortId || dragData.currentTarget.vertexId !== snapInfo.targetVtxId)
+          ) {
+            targetHasChanged = true;
+            dragData.currentTarget = {
+              port: snapInfo.targetPort,
+              portId: snapInfo.targetPortId,
+              xPos: snapInfo.xPos,
+              yPos: snapInfo.yPos,
+              vertexId: snapInfo.targetVtxId,
+              validation: "waiting_for_validity",
+            };
           }
-          currentTarget = null;
         }
-      });
-      portDragHandler.addListener("dragEnd", (cursorX, cursorY) => {
-        this.edgeDrawHandler.endDrag();
 
-        // const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
-        // const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+        let lineEndX: number;
+        let lineEndY: number;
+        let validity: "valid" | "invalid" | undefined;
 
-        // const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
+        if (dragData.currentTarget === null || dragData.currentTarget.validation === "waiting_for_validity") {
+          lineEndX = stageX;
+          lineEndY = stageY;
+        } else {
+          lineEndX = dragData.currentTarget.xPos;
+          lineEndY = dragData.currentTarget.yPos;
+          validity = dragData.currentTarget.validation.isValid ? "valid" : "invalid";
+        }
 
-        if (currentTarget !== null && currentTarget.isValid) {
-          this.sendModelChangeRequests({
-            newEdgeId: this.uniqueEdgeId(),
-            type: "createEdge",
-            sourceVertexId: vertexId,
-            sourcePortId: portId,
-            targetVertexId: currentTarget.vertexId,
-            targetPortId: currentTarget.portId,
+        this.edgeDrawHandler.redrawLine(
+          lineEndX,
+          lineEndY,
+          validity,
+        );
+
+        if (
+          // An edge validity will only be checked if there is a port to snap to and if the target has changed
+          snapInfo !== null && targetHasChanged
+        ) {
+          this.sendModelInfoRequests<"getUniqueEdgeIds">({
+            type: "getUniqueEdgeIds", count: 1
+          }).then((response) => {
+            return Promise.all([this.sendModelInfoRequests<"validateEdge">({
+              type: "validateEdge",
+              edgeId: response.edgeIds[0],
+              sourceVertexId: vertexId,
+              sourcePortId: portId,
+              targetVertexId: snapInfo.targetVtxId,
+              targetPortId: snapInfo.targetPortId,
+            }), response.edgeIds[0]]) as Promise<[ModelInfoReqs["validateEdge"]["response"], string]>;
+          }).then(([response, edgeId]) => {
+            // do nothing if the current target has changed by the time the edge has been validated
+            if (
+              dragData !== null &&
+              dragData.currentTarget !== null &&
+              dragData.currentTarget.portId === snapInfo.targetPortId &&
+              dragData.currentTarget.vertexId === snapInfo.targetVtxId
+            ) {
+              dragData.currentTarget.validation = response.valid ? {
+                isValid: true,
+                edgeId: edgeId,
+              } : {
+                isValid: false,
+                message: response.problem,
+              }
+              this.edgeDrawHandler.redrawLine(
+                snapInfo.xPos,
+                snapInfo.yPos,
+                dragData.currentTarget.validation.isValid ? "valid" : "invalid",
+              );
+              this.portPreviewManager.portHover(
+                snapInfo.targetPort,
+                snapInfo.targetVtx,
+                snapInfo.targetPortId,
+                snapInfo.targetVtxId,
+                dragData.currentTarget.validation.isValid ? "Valid target" : dragData.currentTarget.validation.message,
+              );
+            }
           });
         }
-        if (currentTarget !== null) {
-          this.portPreviewManager.portHoverEnd(currentTarget.port);
-        }
-        currentTarget = null;
       });
-      portDragHandler.addListener("dragAbort", () => {
+      portDragHandler.addListener("dragEnd", () => {
+        if (
+          dragData !== null &&
+          dragData.currentTarget !== null &&
+          dragData.currentTarget.validation !== "waiting_for_validity" &&
+          dragData.currentTarget.validation.isValid
+        ) {
+          this.sendModelChangeRequests({
+            type: "createEdge",
+            newEdgeId: dragData.currentTarget.validation.edgeId,
+            sourceVertexId: vertexId,
+            sourcePortId: portId,
+            targetVertexId: dragData.currentTarget.vertexId,
+            targetPortId: dragData.currentTarget.portId,
+          });
+        }
+        dragData = null;
         this.edgeDrawHandler.endDrag();
       });
+      portDragHandler.addListener("dragAbort", () => {
+        dragData = null;
+        this.edgeDrawHandler.endDrag();
+      });
+      // portDragHandler.addListener("dragStart", () => {
+      //   this.edgeDrawHandler.beginDraw(vertex, port);
+      // });
+      // let currentTarget: {
+      //   port: PortWrapper;
+      //   portId: string;
+      //   vertexId: string;
+      //   isValid: boolean;
+      // } | null = null;
+      // portDragHandler.addListener("dragMove", async (cursorX, cursorY) => {
+      //   const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
+      //   const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+      //   this.edgeDrawHandler.redrawLine(cursorLocalX, cursorLocalY);
+      //
+      //   const snapPortInfo = await getSnapPortInfo(cursorLocalX, cursorLocalY);
+      //
+      //   // snap to closest port
+      //   if (snapPortInfo !== null) {
+      //     this.edgeDrawHandler.redrawLine(
+      //       snapPortInfo.xPos,
+      //       snapPortInfo.yPos,
+      //       snapPortInfo.problem === null ? "valid" : "invalid",
+      //     );
+      //     if (currentTarget === null || currentTarget.port !== snapPortInfo.targetPort) {
+      //       currentTarget = {
+      //         port: snapPortInfo.targetPort,
+      //         portId: snapPortInfo.targetPortId,
+      //         vertexId: snapPortInfo.targetVtxId,
+      //         isValid: snapPortInfo.problem === null,
+      //       };
+      //       setTimeout(() => {
+      //         // if the target is still the same
+      //         if (currentTarget !== null && currentTarget.port === snapPortInfo.targetPort) {
+      //           this.portPreviewManager.portHover(
+      //             snapPortInfo.targetPort,
+      //             snapPortInfo.targetVtx,
+      //             snapPortInfo.targetPortId,
+      //             snapPortInfo.targetVtxId,
+      //             snapPortInfo.problem === null ? "Valid target" : snapPortInfo.problem,
+      //           );
+      //         }
+      //       }, DragRegistry.portTargetHoverWait);
+      //     }
+      //   } else {
+      //     if (currentTarget !== null && this.portPreviewManager.currentShowingIs(currentTarget.port)) {
+      //       this.portPreviewManager.portHoverEnd(currentTarget.port);
+      //     }
+      //     currentTarget = null;
+      //   }
+      // });
+      // portDragHandler.addListener("dragEnd", (cursorX, cursorY) => {
+      //   this.edgeDrawHandler.endDrag();
+      //
+      //   // const cursorLocalX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
+      //   // const cursorLocalY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+      //
+      //   // const snapPortInfo = getSnapPortInfo(cursorLocalX, cursorLocalY);
+      //
+      //   if (currentTarget !== null && currentTarget.isValid) {
+      //     this.sendModelChangeRequests({
+      //       newEdgeId: this.uniqueEdgeId(),
+      //       type: "createEdge",
+      //       sourceVertexId: vertexId,
+      //       sourcePortId: portId,
+      //       targetVertexId: currentTarget.vertexId,
+      //       targetPortId: currentTarget.portId,
+      //     });
+      //   }
+      //   if (currentTarget !== null) {
+      //     this.portPreviewManager.portHoverEnd(currentTarget.port);
+      //   }
+      //   currentTarget = null;
+      // });
+      // portDragHandler.addListener("dragAbort", () => {
+      //   this.edgeDrawHandler.endDrag();
+      // });
     }
   }
 

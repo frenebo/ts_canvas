@@ -149,12 +149,13 @@ export class PixiView implements ViewInterface {
 
 
     this.data = JSON.parse(JSON.stringify(newData));
-    const fileData = await this.sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"})
-    const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
-    this.menuBar.setUnsavedChanges(unsavedChanges);
 
     // all changes are done at once inside here so graphManager can wait until all changes are made to do expensive
     // updates
     this.graphManager.applyCommands(graphManagerCommands);
+
+    const fileData = await this.sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"})
+    const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
+    this.menuBar.setUnsavedChanges(unsavedChanges);
   }
 }
