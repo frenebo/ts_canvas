@@ -92,8 +92,8 @@ export class KeyboardHandler {
     div: HTMLDivElement,
     dialogManager: DialogManager,
     selectionManager: SelectionManager,
-    private readonly sendModelChangeRequests: RequestModelChangesFunc,
-    private readonly sendModelInfoRequests: RequestInfoFunc,
+    sendModelChangeRequests: RequestModelChangesFunc,
+    sendModelInfoRequests: RequestInfoFunc,
   ) {
     let divSelected = false;
     document.addEventListener("click", (ev) => {
@@ -104,6 +104,7 @@ export class KeyboardHandler {
 
     document.addEventListener("keydown", async (ev) => {
       if (!divSelected) return;
+      if (dialogManager.isADialogOpen()) return;
 
       const shortcutMatches = KeyboardHandler.matchShortcuts(ev, {
         undo: this.undoShortcuts,

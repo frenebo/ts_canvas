@@ -23,6 +23,10 @@ export class DialogManager {
     });
   }
 
+  public isADialogOpen(): boolean {
+    return this.currentDialog !== null;
+  }
+
   private closeDialog(): void {
     if (this.currentDialog === null) return;
 
