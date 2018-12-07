@@ -42,7 +42,10 @@ export class PortWrapper extends GraphicWrapper {
   private readonly sprite: PIXI.Sprite;
 
 
-  constructor(renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer, isOutput: boolean) {
+  constructor(
+    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    isOutput: boolean,
+  ) {
     super({
       buttonMode: true
     });

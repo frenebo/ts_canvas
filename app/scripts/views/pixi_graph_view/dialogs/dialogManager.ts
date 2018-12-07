@@ -1,12 +1,8 @@
-import {
-  ModelVersioningRequest,
-  ModelChangeRequest,
-  ModelInfoReqs
-} from "../../../interfaces.js";
 import { Dialog } from "./dialog.js";
 import { EditLayerDialog } from "./editLayerDialog.js";
 import { OpenDialog } from "./openDialog.js";
 import { SaveAsDialog } from "./saveAsDialog.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
 
 export class DialogManager {
   private static readonly dialogWidth = 700;
@@ -16,9 +12,8 @@ export class DialogManager {
 
   constructor(
     private readonly div: HTMLDivElement,
-    private readonly sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
-    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
-    private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly sendModelInfoRequests: RequestInfoFunc,
   ) {
     const that = this;
     document.addEventListener("keydown", (ev) => {
@@ -37,13 +32,11 @@ export class DialogManager {
 
   public saveAsDialog(): void {
     if (this.currentDialog !== null) this.closeDialog();
-    console.log(this.div.clientWidth);
-    console.log(this.div.clientHeight);
     const dialog = new SaveAsDialog(
       () => { this.closeDialog(); },
       DialogManager.dialogWidth,
       DialogManager.dialogHeight,
-      this.sendModelVersioningRequest,
+      this.sendModelChangeRequests,
     );
     this.div.appendChild(dialog.root);
 
@@ -57,8 +50,8 @@ export class DialogManager {
       () => { this.closeDialog(); },
       DialogManager.dialogWidth,
       DialogManager.dialogHeight,
-      this.sendModelInfoRequest,
-      this.sendModelVersioningRequest,
+      this.sendModelChangeRequests,
+      this.sendModelInfoRequests,
     );
     this.div.appendChild(dialog.root);
 
@@ -72,8 +65,8 @@ export class DialogManager {
       () => { this.closeDialog(); },
       DialogManager.dialogWidth,
       DialogManager.dialogHeight,
-      this.sendModelChangeRequest,
-      this.sendModelInfoRequest,
+      this.sendModelChangeRequests,
+      this.sendModelInfoRequests,
       layerId,
     );
     this.div.appendChild(dialog.root);

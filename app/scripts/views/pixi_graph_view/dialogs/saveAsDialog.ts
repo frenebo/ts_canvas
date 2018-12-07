@@ -1,12 +1,12 @@
 import { Dialog } from "./dialog.js";
-import { ModelVersioningRequest } from "../../../interfaces.js";
+import { RequestModelChangesFunc } from "../../../messenger.js";
 
 export class SaveAsDialog extends Dialog {
   constructor(
     closeDialogFunc: () => void,
     width: number,
     height: number,
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
   ) {
     super(closeDialogFunc, width, height);
 
@@ -27,7 +27,7 @@ export class SaveAsDialog extends Dialog {
     textInput.addEventListener("keydown", (ev) => {
       if (ev.key === "Enter") {
         if (textInput.value.trim() !== "") {
-          sendModelVersioningRequest({type: "saveFile", fileName: textInput.value});
+          sendModelChangeRequests({type: "saveFile", fileName: textInput.value});
           closeDialogFunc();
         }
       }
@@ -41,9 +41,9 @@ export class SaveAsDialog extends Dialog {
     saveButton.addEventListener("click", async () => {
       if (textInput.value.trim() !== "") {
         this.addLoadIcon();
-        await sendModelVersioningRequest({type: "saveFile", fileName: textInput.value});
-        closeDialogFunc();
-        this.removeLoadIcon();
+        await sendModelChangeRequests({type: "saveFile", fileName: textInput.value});
+        this.removeLoadIcon(); // redundant?
+        closeDialogFunc(); // redundant?
       }
     });
   }

@@ -4,17 +4,13 @@ import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
 import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
 import { VertexDragHandler } from "./vertexDragHandler.js";
 import { PortWrapper } from "../graphicWrappers/portWrapper.js";
-import {
-  ModelChangeRequest,
-  ModelVersioningRequest,
-  ModelInfoReqs,
-} from "../../../interfaces.js";
 import { PortDragHandler } from "./portDragHandler.js";
 import { EdgeDrawHandler } from "./edgeDrawHandler.js";
 import { EditIconWrapper } from "../graphicWrappers/editIconWrapper.js";
 import { SelectionManager } from "../selectionManager.js";
 import { EdgeDragHandler } from "./edgeDragHandler.js";
 import { PortPreviewManager } from "../portPreviewManager.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
 
@@ -36,9 +32,8 @@ export class DragRegistry {
   private readonly vertexDragAbortListeners: {[key: string]: Array<() => void>} = {};
 
   constructor(
-    private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly sendModelInfoRequests: RequestInfoFunc,
     private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
     private readonly getPortWrappers: () => Readonly<{[vertexKey: string]: Readonly<{[portKey: string]: PortWrapper}>}>,
@@ -165,10 +160,13 @@ export class DragRegistry {
     let isHovering = false;
     portDragHandler.addListener("hover", async () => {
       if (this.portPreviewManager.currentShowingIs(port)) return;
-      const portInfo = await this.sendModelInfoRequest<"getPortInfo">({type: "getPortInfo", vertexId: vertexId, portId: portId});
-      if (!portInfo.couldFindPort) return;
-      this.portPreviewManager.portHover(port, vertex, portId, vertexId, portInfo.portValue);
       isHovering = true;
+
+      const portInfo = await this.sendModelInfoRequests<"getPortInfo">({type: "getPortInfo", vertexId: vertexId, portId: portId});
+
+      if (!portInfo.couldFindPort) return;
+      if (!isHovering) return; // if the mouse has left by the time the model info is gotten
+      this.portPreviewManager.portHover(port, vertex, portId, vertexId, portInfo.portValue);
     });
     portDragHandler.addListener("hoverend", () => {
       if (isHovering) {
@@ -188,11 +186,12 @@ export class DragRegistry {
           (closestPortVertex !== vertex || closestPort !== port) &&
           closestInfo.distanceSquared < DragRegistry.portSnapDistance*DragRegistry.portSnapDistance
         ) {
-          const uniqueEdgeId = (await this.sendModelInfoRequest<"getUniqueEdgeId">({
-            type: "getUniqueEdgeId",
-          })).edgeId;
+          const uniqueEdgeId = (await this.sendModelInfoRequests<"getUniqueEdgeIds">({
+            type: "getUniqueEdgeIds",
+            count: 1,
+          })).edgeIds[0];
 
-          const edgeValidityInfo = await this.sendModelInfoRequest<"validateEdge">({
+          const edgeValidityInfo = await this.sendModelInfoRequests<"validateEdge">({
             type: "validateEdge",
             edgeId: uniqueEdgeId,
             sourceVertexId: vertexId,

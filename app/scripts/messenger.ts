@@ -1,9 +1,11 @@
 import {
   ModelInterface, ViewInterface, ModelChangeRequest,
-  ModelVersioningRequest,
   ModelInfoReqs,
 } from "./interfaces.js";
 
+
+export type RequestModelChangesFunc = (...reqs: ModelChangeRequest[]) => Promise<void>;
+export type RequestInfoFunc = <V extends keyof ModelInfoReqs>(req: ModelInfoReqs[V]["request"]) => Promise<ModelInfoReqs[V]["response"]>;
 
 export class Messenger {
   private readonly model: ModelInterface;
@@ -29,36 +31,24 @@ export class Messenger {
     }
   }
 
-  public newRequestHandler(): (...reqs: ModelChangeRequest[]) => Promise<boolean> {
+  public newRequestHandler(): RequestModelChangesFunc {
     const that = this;
     return (...reqs: ModelChangeRequest[]) => {
-      return new Promise<boolean>((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         that.model.requestModelChanges(...reqs);
         setTimeout(() => {
-          resolve(true);
+          resolve();
         }, 500);
       });
     }
   }
 
-  public newInfoRequestHandler() {
+  public newInfoRequestHandler(): RequestInfoFunc {
     const that = this;
     return <V extends keyof ModelInfoReqs>(req: ModelInfoReqs[V]["request"]): Promise<ModelInfoReqs[V]["response"]> => {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           resolve(that.model.requestModelInfo(req));
-        }, 500);
-      });
-    };
-  }
-
-  public newVersioningRequestHandler(): (req: ModelVersioningRequest) => Promise<boolean> {
-    const that = this;
-    return (req: ModelVersioningRequest) => {
-      return new Promise((resolve, reject) => {
-        that.model.requestVersioningChange(req);
-        setTimeout(() => {
-          resolve(true);
         }, 500);
       });
     };

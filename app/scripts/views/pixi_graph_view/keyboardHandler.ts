@@ -1,10 +1,6 @@
 import { SelectionManager } from "./selectionManager.js";
-import {
-  ModelChangeRequest,
-  ModelVersioningRequest,
-  ModelInfoReqs,
-} from "../../interfaces.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
 
 interface ShortcutDescription {
   eventKeyName: string; // must be lowercase!
@@ -96,9 +92,8 @@ export class KeyboardHandler {
     div: HTMLDivElement,
     dialogManager: DialogManager,
     selectionManager: SelectionManager,
-    sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly sendModelInfoRequests: RequestInfoFunc,
   ) {
     let divSelected = false;
     document.addEventListener("click", (ev) => {
@@ -131,15 +126,15 @@ export class KeyboardHandler {
         } else if (match === "escape") {
           selectionManager.clearSelection();
         } else if (match === "undo") {
-          sendModelVersioningRequest({type: "undo"});
+          sendModelChangeRequests({type: "undo"});
         } else if (match === "redo") {
-          sendModelVersioningRequest({type: "redo"});
+          sendModelChangeRequests({type: "redo"});
         } else if (match === "selectAll") {
           selectionManager.selectAll();
         } else if (match === "save") {
-          const openFileData = await sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
+          const openFileData = await sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"});
           if (openFileData.fileIsOpen) {
-            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
+            sendModelChangeRequests({ type: "saveFile", fileName: openFileData.fileName });
           } else {
             dialogManager.saveAsDialog();
           }

@@ -60,7 +60,6 @@ export interface ModelInterface {
   addGraphChangedListener(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): void;
   requestModelInfo<T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]): ModelInfoReqs[T]["response"];
-  requestVersioningChange(req: ModelVersioningRequest): void;
 }
 
 export type ModelChangeRequest = {
@@ -93,9 +92,7 @@ export type ModelChangeRequest = {
   fieldValues: {
     [key: string]: string;
   };
-};
-
-export type ModelVersioningRequest = {
+} | {
   type: "undo";
 } | {
   type: "redo";
@@ -245,12 +242,22 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
       fieldName: string;
     };
   }
-  "getUniqueEdgeId": {
+  "getUniqueEdgeIds": {
     "request": {
-      type: "getUniqueEdgeId";
+      type: "getUniqueEdgeIds";
+      count: number;
     };
     "response": {
-      edgeId: string;
+      edgeIds: string[];
     };
-  }
+  };
+  "getUniqueVertexIds": {
+    "request": {
+      type: "getUniqueVertexIds";
+      count: number;
+    };
+    "response":{
+      vertexIds: string[];
+    };
+  };
 }

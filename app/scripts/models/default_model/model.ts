@@ -2,7 +2,6 @@ import {
   ModelInterface,
   GraphData,
   ModelChangeRequest,
-  ModelVersioningRequest,
   DeepReadonly,
   ModelInfoReqs,
 } from "../../interfaces.js";
@@ -229,13 +228,7 @@ export class DefaultModel implements ModelInterface {
           req.fieldValues,
         );
       }
-    } else {
-      throw new Error(`Unimplemented request ${JSON.stringify(req)}`);
-    }
-  }
-
-  public requestVersioningChange(req: ModelVersioningRequest): void {
-    if (req.type === "undo") {
+    } else if (req.type === "undo") {
       VersioningUtils.undo(this.session);
     } else if (req.type === "redo") {
       VersioningUtils.redo(this.session);
@@ -324,8 +317,11 @@ export class DefaultModel implements ModelInterface {
         (req as ModelInfoReqs["validateLayerFields"]["request"]).layerId,
         (req as ModelInfoReqs["validateLayerFields"]["request"]).fieldValues,
       );
-    } else if (req.type === "getUniqueEdgeId") {
-      return GraphUtils.getUniqueEdgeId(this.session.data.graph);
+    } else if (req.type === "getUniqueEdgeIds") {
+      return GraphUtils.getUniqueEdgeIds(
+        this.session.data.graph,
+        (req as ModelInfoReqs["getUniqueEdgeIds"]["request"]).count,
+      );
     } else {
       throw new Error(`Unimplemented request ${req.type}`);
     }

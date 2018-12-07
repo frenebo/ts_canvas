@@ -1,9 +1,6 @@
 import {
   ViewInterface,
   GraphData,
-  ModelChangeRequest,
-  ModelVersioningRequest,
-  ModelInfoReqs,
 } from "../../interfaces.js";
 import {
   GraphManager,
@@ -12,6 +9,7 @@ import {
 import { HtmlMenuBar } from "./htmlMenuBar.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
 
 export class PixiView implements ViewInterface {
   private data: GraphData = {vertices: {}, edges: {}};
@@ -20,9 +18,8 @@ export class PixiView implements ViewInterface {
 
   constructor(
     div: HTMLDivElement,
-    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
-    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly sendModelInfoRequests: RequestInfoFunc,
   ) {
     document.body.style.margin = "0px";
     document.body.style.width = "100%";
@@ -53,26 +50,23 @@ export class PixiView implements ViewInterface {
 
     const dialogs = new DialogManager(
       div,
-      sendModelChangeRequest,
-      sendModelInfoRequest,
-      sendModelVersioningRequest,
+      sendModelChangeRequests,
+      sendModelInfoRequests,
     );
 
     this.graphManager = new GraphManager(
       graphDiv,
       dialogs,
-      sendModelChangeRequest,
-      sendModelInfoRequest,
-      sendModelVersioningRequest,
+      sendModelChangeRequests,
+      sendModelInfoRequests,
     );
 
     const keyboardHandler = new KeyboardHandler(
       div,
       dialogs,
       this.graphManager.getSelectionManager(),
-      sendModelChangeRequest,
-      sendModelInfoRequest,
-      sendModelVersioningRequest,
+      sendModelChangeRequests,
+      sendModelInfoRequests,
     );
 
     this.menuBar = new HtmlMenuBar(
@@ -80,9 +74,8 @@ export class PixiView implements ViewInterface {
       dialogs,
       keyboardHandler,
       this.graphManager.getSelectionManager(),
-      sendModelChangeRequest,
-      sendModelInfoRequest,
-      sendModelVersioningRequest,
+      sendModelChangeRequests,
+      sendModelInfoRequests,
     );
     onResize();
   }
@@ -156,7 +149,7 @@ export class PixiView implements ViewInterface {
 
 
     this.data = JSON.parse(JSON.stringify(newData));
-    const fileData = await this.sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"})
+    const fileData = await this.sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"})
     const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
     this.menuBar.setUnsavedChanges(unsavedChanges);
 

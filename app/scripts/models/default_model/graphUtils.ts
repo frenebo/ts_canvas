@@ -58,15 +58,24 @@ export class GraphUtils {
     }
   }
 
-  public static getUniqueEdgeId(graphData: GraphData): ModelInfoReqs["getUniqueEdgeId"]["response"] {
-    const randomVal = Math.random();
-    let multiple = 10;
-    let id: string;
-    while (graphData.edges[id = Math.floor(randomVal*multiple).toString()] !== undefined) {
-      multiple *= 10;
+  public static getUniqueEdgeIds(graphData: GraphData, count: number): ModelInfoReqs["getUniqueEdgeIds"]["response"] {
+    const ids = new Set<string>();
+
+    while (ids.size < count) {
+      const randomVal = Math.random();
+      let multiple = 10;
+      let id: string;
+      while (
+        graphData.edges[id = Math.floor(randomVal*multiple).toString()] !== undefined ||
+        ids.has(id)
+      ) {
+        multiple *= 10;
+      }
+      ids.add(id);
     }
+
     return {
-      edgeId: id,
+      edgeIds: Array.from(ids),
     };
   }
 

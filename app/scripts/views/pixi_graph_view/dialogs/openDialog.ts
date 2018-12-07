@@ -1,15 +1,16 @@
 import { Dialog } from "./dialog.js";
-import { ModelVersioningRequest, ModelInfoReqs } from "../../../interfaces.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
 
 export class OpenDialog extends Dialog {
   constructor(
     private readonly closeDialogFunc: () => void,
     width: number,
     height: number,
-    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
-    private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly sendModelInfoRequests: RequestInfoFunc,
   ) {
     super(closeDialogFunc, width, height);
+    this.root.style.overflowY = "scroll";
     this.init();
   }
 
@@ -18,7 +19,7 @@ export class OpenDialog extends Dialog {
     this.root.appendChild(saveAsTitle);
 
     this.addLoadIcon();
-    const requestData = await this.sendModelInfoRequest<"savedFileNames">({
+    const requestData = await this.sendModelInfoRequests<"savedFileNames">({
       type: "savedFileNames",
     });
     this.removeLoadIcon();
@@ -26,8 +27,7 @@ export class OpenDialog extends Dialog {
 
     const openFilesDiv = document.createElement("div");
     this.root.appendChild(openFilesDiv);
-    openFilesDiv.style.overflowY = "scroll";
-    openFilesDiv.style.height = "80%";
+    // openFilesDiv.style.height = "80%";
     openFilesDiv.style.marginLeft = "10px";
     openFilesDiv.style.marginRight = "10px";
 
@@ -57,8 +57,11 @@ export class OpenDialog extends Dialog {
         fileLabel.style.color = "black";
       });
 
-      fileLabel.addEventListener("click", () => {
-        this.sendModelVersioningRequest({type: "openFile", fileName: fileName});
+      fileLabel.addEventListener("click", async () => {
+        this.addLoadIcon();
+        await this.sendModelChangeRequests({type: "openFile", fileName: fileName});
+        this.removeLoadIcon();
+
         this.closeDialogFunc();
       });
 
@@ -70,10 +73,16 @@ export class OpenDialog extends Dialog {
       deleteFileButton.style.padding = "0px";
       deleteFileButton.style.display = "inline-block";
       deleteFileButton.textContent = "X";
-      deleteFileButton.addEventListener("click", () => {
+      deleteFileButton.addEventListener("click", async () => {
         if (confirm("Delete file?")) {
-          this.sendModelVersioningRequest({type: "deleteFile", fileName: fileName});
-          openFilesDiv.removeChild(fileRow);
+          this.addLoadIcon();
+          await this.sendModelChangeRequests({type: "deleteFile", fileName: fileName});
+          this.removeLoadIcon();
+
+          // if div still containers file row - User may have clicked delete button twice
+          if (openFilesDiv.contains(fileRow)) {
+            openFilesDiv.removeChild(fileRow);
+          }
         }
       });
     }

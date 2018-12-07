@@ -4,6 +4,7 @@ import {
   ModelChangeRequest, ModelInfoReqs, EdgeData,
 } from "../../interfaces.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
 
 export class SelectionManager {
   private static readonly ghostAlpha = 0.5;
@@ -22,8 +23,8 @@ export class SelectionManager {
   constructor(
     private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
-    private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly sendModelInfoRequests: RequestInfoFunc,
     private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
     private readonly background: BackgroundWrapper,
   ) {
@@ -186,7 +187,9 @@ export class SelectionManager {
 
     const vertexIds = Array.from(this.selectionDrag.ghosts.keys());
 
-    if (this.selectionDrag.isClone) {
+    const isClone = this.selectionDrag.isClone;
+    this.selectionDrag = null;
+    if (isClone) {
       const requests: ModelChangeRequest[] = [];
 
       const origToCloneIds: {[key: string]: string} = {};
@@ -211,7 +214,7 @@ export class SelectionManager {
       let requestIds: string[] = vertexIds.slice();
       let edgesToClone: {[key: string]: EdgeData} | null = null;
       while (edgesToClone === null) {
-        const requestData = await this.sendModelInfoRequest<"edgesBetweenVertices">({
+        const requestData = await this.sendModelInfoRequests<"edgesBetweenVertices">({
           type: "edgesBetweenVertices",
           vertexIds: requestIds,
         });
@@ -253,8 +256,6 @@ export class SelectionManager {
 
       this.sendModelChangeRequests(...requests);
     }
-
-    this.selectionDrag = null;
   }
 
   public selectAll(): void {

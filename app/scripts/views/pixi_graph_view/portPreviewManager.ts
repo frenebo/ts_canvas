@@ -1,7 +1,7 @@
 import { PortWrapper } from "./graphicWrappers/portWrapper";
 import { BackgroundWrapper } from "./backgroundWrapper";
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper";
-import { ModelInfoReqs } from "../../interfaces";
+import { RequestInfoFunc } from "../../messenger";
 
 export class PortPreviewManager {
   private static textPadding = 5;
@@ -15,7 +15,7 @@ export class PortPreviewManager {
   } | null = null;
   constructor(
     private readonly backgroundWrapper: BackgroundWrapper,
-    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
+    private readonly sendModelInfoRequests: RequestInfoFunc,
   ) {
 
   }

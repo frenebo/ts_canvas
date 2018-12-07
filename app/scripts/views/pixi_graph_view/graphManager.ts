@@ -3,9 +3,6 @@ import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import {
   VertexData,
   EdgeData,
-  ModelVersioningRequest,
-  ModelChangeRequest,
-  ModelInfoReqs,
 } from "../../interfaces.js";
 import { EditIconWrapper } from "./graphicWrappers/editIconWrapper.js";
 import { PortWrapper } from "./graphicWrappers/portWrapper.js";
@@ -15,6 +12,7 @@ import { SelectionManager } from "./selectionManager.js";
 import { CullingManager } from "./cullingManager.js";
 import { PortPreviewManager } from "./portPreviewManager.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
 
 export type GraphManagerCommand = {
   type: "removeEdge";
@@ -64,29 +62,27 @@ export class GraphManager {
   constructor(
     private readonly div: HTMLDivElement,
     private readonly dialogs: DialogManager,
-    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
-    sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly sendModelInfoRequests: RequestInfoFunc,
   ) {
     this.stageManager = new StageManager(div);
     this.selectionManager = new SelectionManager(
       () => this.vertexWrappers,
       () => this.edgeWrappers,
-      sendModelChangeRequest,
-      sendModelInfoRequest,
+      sendModelChangeRequests,
+      sendModelInfoRequests,
       this.stageManager.getRenderer(),
       this.stageManager.getBackgroundWrapper(),
     );
 
     this.portPreviewManager = new PortPreviewManager(
       this.stageManager.getBackgroundWrapper(),
-      sendModelInfoRequest,
+      sendModelInfoRequests,
     );
 
     this.dragRegistry = new DragRegistry(
-      sendModelChangeRequest,
-      sendModelInfoRequest,
-      sendModelVersioningRequest,
+      sendModelChangeRequests,
+      sendModelInfoRequests,
       () => this.vertexWrappers,
       () => this.edgeWrappers,
       () => this.ports,

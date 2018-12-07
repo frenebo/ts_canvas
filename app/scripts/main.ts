@@ -17,7 +17,6 @@ export function main(...divs: HTMLDivElement[]): void {
         pixiDiv,
         messenger.newRequestHandler(),
         messenger.newInfoRequestHandler(),
-        messenger.newVersioningRequestHandler(),
       ),
     );
   }

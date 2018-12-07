@@ -1,11 +1,7 @@
-import {
-  ModelChangeRequest,
-  ModelVersioningRequest,
-  ModelInfoReqs,
-} from "../../interfaces.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { SelectionManager } from "./selectionManager.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
 
 export class HtmlMenuBar {
   public static readonly menuHeight = 50;
@@ -23,9 +19,8 @@ export class HtmlMenuBar {
     fileMenu: DialogManager,
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
-    sendModelChangeRequest: (...reqs: ModelChangeRequest[]) => Promise<boolean>,
-    sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
+    sendModelChangeRequests: RequestModelChangesFunc,
+    sendModelInfoRequests: RequestInfoFunc,
   ) {
     div.style.backgroundColor = HtmlMenuBar.barBackground;
     div.style.overflow = "visible";
@@ -55,9 +50,9 @@ export class HtmlMenuBar {
         text: "Save",
         tooltip: keyboardHandler.saveShortcutString(),
         onclick: async () => {
-          const openFileData = await sendModelInfoRequest<"fileIsOpen">({type: "fileIsOpen"});
+          const openFileData = await sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"});
           if (openFileData.fileIsOpen) {
-            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
+            sendModelChangeRequests({ type: "saveFile", fileName: openFileData.fileName });
           } else {
             fileMenu.saveAsDialog();
           }
@@ -83,14 +78,14 @@ export class HtmlMenuBar {
         text: "Undo",
         tooltip: keyboardHandler.undoShortcutString(),
         onclick: () => {
-          sendModelVersioningRequest({type: "undo"});
+          sendModelChangeRequests({type: "undo"});
         },
       },
       {
         text: "Redo",
         tooltip: keyboardHandler.redoShortcutString(),
         onclick: () => {
-          sendModelVersioningRequest({type: "redo"});
+          sendModelChangeRequests({type: "redo"});
         },
       },
       {

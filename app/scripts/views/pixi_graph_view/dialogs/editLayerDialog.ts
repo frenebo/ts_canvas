@@ -3,14 +3,15 @@ import {
   ModelChangeRequest,
   ModelInfoReqs,
 } from "../../../interfaces.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
 
 export class EditLayerDialog extends Dialog {
   constructor(
     closeDialogFunc: () => void,
     width: number,
     height: number,
-    private readonly sendModelChangeRequests: (...reqs: ModelChangeRequest[]) => void,
-    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly sendModelInfoRequests: RequestInfoFunc,
     private readonly layerId: string,
   ) {
     super(closeDialogFunc, width, height);
@@ -46,7 +47,7 @@ export class EditLayerDialog extends Dialog {
     this.root.appendChild(editLayerTitle);
 
     this.addLoadIcon();
-    const layerInfoResponse = await this.sendModelInfoRequest<"getLayerInfo">({type: "getLayerInfo", layerId: this.layerId});
+    const layerInfoResponse = await this.sendModelInfoRequests<"getLayerInfo">({type: "getLayerInfo", layerId: this.layerId});
     this.removeLoadIcon();
     if (!layerInfoResponse.layerExists) {
       this.alertLayerNonexistent();
@@ -98,7 +99,7 @@ export class EditLayerDialog extends Dialog {
 
 
       input.addEventListener("input", async (ev) => {
-        const thisPromise = this.sendModelInfoRequest<"validateValue">({
+        const thisPromise = this.sendModelInfoRequests<"validateValue">({
           type: "validateValue",
           layerId: this.layerId,
           valueId: fieldId,
@@ -189,7 +190,7 @@ export class EditLayerDialog extends Dialog {
         }
       }
       this.addLoadIcon();
-      const validated = await this.sendModelInfoRequest<"validateLayerFields">({
+      const validated = await this.sendModelInfoRequests<"validateLayerFields">({
         type: "validateLayerFields",
         layerId: this.layerId,
         fieldValues: setFieldValues,
@@ -218,7 +219,7 @@ export class EditLayerDialog extends Dialog {
           fieldValues: setFieldValues,
         });
 
-        const newInfo = await this.sendModelInfoRequest<"getLayerInfo">({
+        const newInfo = await this.sendModelInfoRequests<"getLayerInfo">({
           type: "getLayerInfo",
           layerId: this.layerId
         });
