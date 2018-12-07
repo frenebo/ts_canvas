@@ -17,20 +17,26 @@ export class EditLayerDialog extends Dialog {
     this.init();
   }
 
+  private layerNonexistentDiv: HTMLDivElement | null = null;
   private alertLayerNonexistent() {
-    const layerNonexistentDiv = document.createElement("div");
-    this.root.appendChild(layerNonexistentDiv);
-    layerNonexistentDiv.style.textAlign = "center";
-    layerNonexistentDiv.style.marginTop = "10px";
-    layerNonexistentDiv.textContent = "Layer no longer exists";
+    if (this.layerNonexistentDiv === null) {
+      this.layerNonexistentDiv = document.createElement("div");
+      this.root.appendChild(this.layerNonexistentDiv);
+      this.layerNonexistentDiv.style.textAlign = "center";
+      this.layerNonexistentDiv.style.marginTop = "10px";
+      this.layerNonexistentDiv.textContent = "Layer no longer exists";
+    }
   }
 
+  private fieldNonexistentDiv: HTMLDivElement | null = null;
   private alertFieldNonexistent(fieldName: string) {
-    const fieldNonexistentDiv = document.createElement("div");
-    this.root.appendChild(fieldNonexistentDiv);
-    fieldNonexistentDiv.style.textAlign = "center";
-    fieldNonexistentDiv.style.marginTop = "10px";
-    fieldNonexistentDiv.textContent = `Field does ${fieldName} not exist`;
+    if (this.fieldNonexistentDiv === null) {
+      this.fieldNonexistentDiv = document.createElement("div");
+      this.root.appendChild(this.fieldNonexistentDiv);
+      this.fieldNonexistentDiv.style.textAlign = "center";
+      this.fieldNonexistentDiv.style.marginTop = "10px";
+      this.fieldNonexistentDiv.textContent = `Field does ${fieldName} not exist`;
+    }
   }
 
   private async init() {
@@ -39,7 +45,9 @@ export class EditLayerDialog extends Dialog {
     const editLayerTitle = Dialog.createTitle("Edit Layer");
     this.root.appendChild(editLayerTitle);
 
+    this.addLoadIcon();
     const layerInfoResponse = await this.sendModelInfoRequest<"getLayerInfo">({type: "getLayerInfo", layerId: this.layerId});
+    this.removeLoadIcon();
     if (!layerInfoResponse.layerExists) {
       this.alertLayerNonexistent();
       return;
@@ -82,13 +90,39 @@ export class EditLayerDialog extends Dialog {
       errorText.style.fontSize = "10px";
       errorText.style.marginLeft = "10px";
 
+      let currentValidation: {
+        promise: Promise<ModelInfoReqs["validateValue"]["response"]>;
+        loadIcon: HTMLDivElement;
+      } | null = null;
+
+
       input.addEventListener("input", async (ev) => {
-        const validateVal = await this.sendModelInfoRequest<"validateValue">({
+        const thisPromise = this.sendModelInfoRequest<"validateValue">({
           type: "validateValue",
           layerId: this.layerId,
           valueId: fieldId,
           newValue: input.value,
         });
+        if (currentValidation === null) {
+          const icon = Dialog.createSmallLoadIcon();
+          row.appendChild(icon);
+          icon.style.display = "inline-block";
+          errorText.textContent = "";
+          currentValidation = {
+            promise: thisPromise,
+            loadIcon: icon,
+          };
+        } else {
+          currentValidation.promise = thisPromise;
+        }
+
+        const validateVal = await thisPromise;
+
+        if (currentValidation.promise !== thisPromise) return; // if a new value has started validation during the await period
+
+        row.removeChild(currentValidation.loadIcon);
+
+        currentValidation = null; // setting to null
 
         if (validateVal.requestError === "layer_nonexistent") {
           this.alertLayerNonexistent();
@@ -149,7 +183,7 @@ export class EditLayerDialog extends Dialog {
           setFieldValues[fieldId] = inputFields[fieldId].value;
         }
       }
-
+      this.addLoadIcon();
       const validated = await this.sendModelInfoRequest<"validateLayerFields">({
         type: "validateLayerFields",
         layerId: this.layerId,
@@ -158,10 +192,12 @@ export class EditLayerDialog extends Dialog {
 
       if (validated.requestError === "layer_nonexistent") {
         this.alertLayerNonexistent();
+        this.removeLoadIcon();
         return;
       }
       if (validated.requestError === "field_nonexistent") {
         this.alertFieldNonexistent(validated.fieldName);
+        this.removeLoadIcon();
         return;
       }
 
@@ -181,6 +217,7 @@ export class EditLayerDialog extends Dialog {
           type: "getLayerInfo",
           layerId: this.layerId
         });
+        this.removeLoadIcon();
         if (!newInfo.layerExists) {
           this.alertLayerNonexistent();
           return;

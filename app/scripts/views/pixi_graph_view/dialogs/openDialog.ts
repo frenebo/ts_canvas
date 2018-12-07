@@ -1,18 +1,28 @@
 import { Dialog } from "./dialog.js";
-import { ModelVersioningRequest } from "../../../interfaces.js";
+import { ModelVersioningRequest, ModelInfoReqs } from "../../../interfaces.js";
 
 export class OpenDialog extends Dialog {
   constructor(
-    closeDialogFunc: () => void,
+    private readonly closeDialogFunc: () => void,
     width: number,
     height: number,
-    fileNames: string[],
-    sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
+    private readonly sendModelInfoRequest: <T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]) => Promise<ModelInfoReqs[T]["response"]>,
+    private readonly sendModelVersioningRequest: (req: ModelVersioningRequest) => Promise<boolean>,
   ) {
     super(closeDialogFunc, width, height);
+    this.init();
+  }
 
+  private async init() {
     const saveAsTitle = Dialog.createTitle("Open");
     this.root.appendChild(saveAsTitle);
+
+    this.addLoadIcon();
+    const requestData = await this.sendModelInfoRequest<"savedFileNames">({
+      type: "savedFileNames",
+    });
+    this.removeLoadIcon();
+    const fileNames = requestData.fileNames;
 
     const openFilesDiv = document.createElement("div");
     this.root.appendChild(openFilesDiv);
@@ -48,8 +58,8 @@ export class OpenDialog extends Dialog {
       });
 
       fileLabel.addEventListener("click", () => {
-        sendModelVersioningRequest({type: "openFile", fileName: fileName});
-        closeDialogFunc();
+        this.sendModelVersioningRequest({type: "openFile", fileName: fileName});
+        this.closeDialogFunc();
       });
 
       const deleteFileButton = document.createElement("button");
@@ -62,7 +72,7 @@ export class OpenDialog extends Dialog {
       deleteFileButton.textContent = "X";
       deleteFileButton.addEventListener("click", () => {
         if (confirm("Delete file?")) {
-          sendModelVersioningRequest({type: "deleteFile", fileName: fileName});
+          this.sendModelVersioningRequest({type: "deleteFile", fileName: fileName});
           openFilesDiv.removeChild(fileRow);
         }
       });

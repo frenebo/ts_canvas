@@ -9,7 +9,7 @@ import { OpenDialog } from "./openDialog.js";
 import { SaveAsDialog } from "./saveAsDialog.js";
 
 export class DialogManager {
-  private static readonly dialogWidth = 500;
+  private static readonly dialogWidth = 700;
   private static readonly dialogHeight = 500;
 
   private currentDialog: null | Dialog = null;
@@ -57,7 +57,7 @@ export class DialogManager {
       () => { this.closeDialog(); },
       DialogManager.dialogWidth,
       DialogManager.dialogHeight,
-      (await this.sendModelInfoRequest<"savedFileNames">({type: "savedFileNames"})).fileNames,
+      this.sendModelInfoRequest,
       this.sendModelVersioningRequest,
     );
     this.div.appendChild(dialog.root);

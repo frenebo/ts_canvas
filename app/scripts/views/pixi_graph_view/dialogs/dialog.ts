@@ -11,7 +11,43 @@ export class Dialog {
     return titleDiv;
   }
 
+  public static createSmallLoadIcon() {
+    const div = document.createElement("div");
+    const loadIcon = document.createElement("div");
+    div.appendChild(loadIcon);
+    // loadIcon.classList.add("loader");
+    loadIcon.style.width = `10px`;
+    loadIcon.style.height = `10px`;
+    loadIcon.style.margin = "0 auto";
+    loadIcon.style.border = "3px solid #f3f3f3"; /* Light grey */
+    loadIcon.style.borderTop = "3px solid #3498db"; /* Blue */
+    loadIcon.style.borderRadius = "50%";
+    loadIcon.style.animation = "spin 2s linear infinite"; // spin is from css file
+    loadIcon.style.marginTop = "0px";
+    loadIcon.style.marginBottom = "0px";
+    return div;
+  }
+
+  private static createLoadIcon() {
+    const div = document.createElement("div");
+    div.style.marginTop = "10px";
+    div.style.marginBottom = "10px";
+
+    const loadIcon = document.createElement("div");
+    div.appendChild(loadIcon);
+    // loadIcon.classList.add("loader");
+    loadIcon.style.width = `40px`;
+    loadIcon.style.height = `40px`;
+    loadIcon.style.margin = "0 auto";
+    loadIcon.style.border = "6px solid #f3f3f3"; /* Light grey */
+    loadIcon.style.borderTop = "6px solid #3498db"; /* Blue */
+    loadIcon.style.borderRadius = "50%";
+    loadIcon.style.animation = "spin 2s linear infinite"; // spin is from css file
+    return div;
+  }
+
   public readonly root: HTMLDivElement;
+  private loadIcon: HTMLDivElement | null = null;
 
   constructor(
     closeDialogFunc: () => void,
@@ -46,5 +82,18 @@ export class Dialog {
     closeButton.addEventListener("mousedown", () => {
       closeDialogFunc();
     });
+  }
+
+  protected addLoadIcon() {
+    if (this.loadIcon === null) {
+      this.loadIcon = Dialog.createLoadIcon();
+      this.root.appendChild(this.loadIcon);
+    }
+  }
+  protected removeLoadIcon() {
+    if (this.loadIcon !== null) {
+      this.root.removeChild(this.loadIcon);
+      this.loadIcon = null;
+    }
   }
 }

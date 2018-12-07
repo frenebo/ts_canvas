@@ -38,10 +38,12 @@ export class SaveAsDialog extends Dialog {
     saveButton.style.display = "inline-block";
     saveButton.style.height = "100%";
     saveButton.textContent = "Save";
-    saveButton.addEventListener("click", () => {
+    saveButton.addEventListener("click", async () => {
       if (textInput.value.trim() !== "") {
-        sendModelVersioningRequest({type: "saveFile", fileName: textInput.value});
+        this.addLoadIcon();
+        await sendModelVersioningRequest({type: "saveFile", fileName: textInput.value});
         closeDialogFunc();
+        this.removeLoadIcon();
       }
     });
   }
