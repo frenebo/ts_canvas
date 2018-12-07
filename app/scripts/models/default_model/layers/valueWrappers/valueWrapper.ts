@@ -109,8 +109,8 @@ export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperCon
     }
     for (let i = 0; i < val.length; i++) {
       if (val[i] <= 0) return `Dimension ${i} is not positive`;
-      if (!Number.isInteger(val[i])) return `Dimension ${i + 1} is not an integer`;
-      if (!Number.isSafeInteger(val[i])) return `Dimension ${i + 1} is too large`
+      if (!Number.isInteger(val[i])) return `Dimension #${i + 1} is not an integer`;
+      if (!Number.isSafeInteger(val[i])) return `Dimension #${i + 1} is too large`
     }
 
     return null;

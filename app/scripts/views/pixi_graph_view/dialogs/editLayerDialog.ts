@@ -58,6 +58,7 @@ export class EditLayerDialog extends Dialog {
     this.root.appendChild(fieldDiv);
 
     let invalidFields: string[] = [];
+    let pendingFields: string[] = [];
     const inputFields: {[key: string]: HTMLInputElement} = {};
     for (const fieldId in layerData.fields) {
       const row = document.createElement("div");
@@ -112,9 +113,12 @@ export class EditLayerDialog extends Dialog {
             promise: thisPromise,
             loadIcon: icon,
           };
+          pendingFields.push(fieldId);
         } else {
           currentValidation.promise = thisPromise;
         }
+
+        updateApplyButton();
 
         const validateVal = await thisPromise;
 
@@ -123,6 +127,7 @@ export class EditLayerDialog extends Dialog {
         row.removeChild(currentValidation.loadIcon);
 
         currentValidation = null; // setting to null
+        pendingFields.splice(pendingFields.indexOf(fieldId), 1);
 
         if (validateVal.requestError === "layer_nonexistent") {
           this.alertLayerNonexistent();
@@ -173,7 +178,7 @@ export class EditLayerDialog extends Dialog {
     applyButton.style.display = "block";
 
     function updateApplyButton() {
-      applyButton.disabled = invalidFields.length !== 0;
+      applyButton.disabled = (invalidFields.length !== 0) || (pendingFields.length !== 0);
     }
 
     applyButton.addEventListener("click", async () => {
