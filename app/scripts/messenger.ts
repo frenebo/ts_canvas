@@ -36,7 +36,7 @@ export class Messenger {
         setTimeout(() => {
           that.model.requestModelChanges(...reqs);
           resolve();
-        }, 500);
+        });
       });
     }
   }
@@ -48,7 +48,7 @@ export class Messenger {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           resolve(that.model.requestModelInfo(req));
-        }, 500);
+        });
       });
     };
   }
