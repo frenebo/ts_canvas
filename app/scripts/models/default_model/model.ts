@@ -26,6 +26,7 @@ import {
   SessionUtils,
   SessionDataJson,
 } from "./sessionUtils.js";
+import { HTTPRequestUtils } from "./httpRequestUtils.js";
 
 export interface ModelDataObj {
   graph: GraphData;
@@ -62,6 +63,10 @@ export class DefaultModel implements ModelInterface {
   };
 
   constructor() {
+    HTTPRequestUtils.getLayerParams<"Dense">("Dense", {input_shape: [100], units: 1}).then((result) => {
+      console.log(result);
+    });
+
     for (let i = 0; i < 3; i++) {
       const layer = Layer.getLayer("Repeat");
       LayerUtils.addLayer(
@@ -269,12 +274,19 @@ export class DefaultModel implements ModelInterface {
         (req as ModelInfoReqs["validateEdge"]["request"]).targetVertexId,
         (req as ModelInfoReqs["validateEdge"]["request"]).targetPortId,
       );
-      const response: ModelInfoReqs["validateEdge"]["response"] = validationMessage === null ? {
-        valid: true,
-      } : {
-        valid: false,
-        problem: validationMessage
-      };
+      let response: ModelInfoReqs["validateEdge"]["response"]
+
+      if (validationMessage === null) {
+        response = {
+          valid: true,
+        }
+      } else {
+        response = {
+          valid: false,
+          problem: validationMessage
+        };
+      }
+
       return response;
     } else if (req.type === "edgesBetweenVertices") {
       return GraphUtils.edgesBetweenVertices(
@@ -283,13 +295,19 @@ export class DefaultModel implements ModelInterface {
         (req as ModelInfoReqs["edgesBetweenVertices"]["request"]).vertexIds,
       );
     } else if (req.type === "fileIsOpen") {
-      const response: ModelInfoReqs["fileIsOpen"]["response"] = this.session.openFile === null ? {
+      let response: ModelInfoReqs["fileIsOpen"]["response"];
+
+      if (this.session.openFile === null) {
+        response = {
           fileIsOpen: false,
-        } : {
+        };
+      } else {
+        response = {
           fileIsOpen: true,
           fileName: this.session.openFile.fileName,
           fileIsUpToDate: this.session.openFile.fileIdxInHistory === 0,
-        };
+        }
+      }
 
       return response;
     } else if (req.type === "savedFileNames") {

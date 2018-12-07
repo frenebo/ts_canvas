@@ -20,6 +20,7 @@ export class EdgeWrapper extends GraphicWrapper {
   ): PIXI.Graphics {
     graphics.clear();
     graphics.lineColor = selected ? EdgeWrapper.selectedLineColor : EdgeWrapper.unselectedLineColor;
+    // @TODO make hitarea update with consistency? Show consistency differently?
     graphics.lineWidth = EdgeWrapper.lineWidth + (consistent === "consistent" ? 0 : 10);
 
     const topLeftX = Math.min(sourceX, targetX);
@@ -33,7 +34,7 @@ export class EdgeWrapper extends GraphicWrapper {
       (targetX - topLeftX) + EdgeWrapper.spriteLeftRightPadding,
       (targetY - topLeftY) + EdgeWrapper.spriteTopBottomPadding,
     );
-    // graphics.cacheAsBitmap = true;
+
     return graphics;
   }
 

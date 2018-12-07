@@ -4,6 +4,7 @@ var del = require("del");
 var connect = require('gulp-connect');
 var gulpTslint = require("gulp-tslint");
 var tslint = require("tslint");
+var shell = require('gulp-shell')
 
 gulp.task("clean", () => del(["build"]));
 
@@ -16,12 +17,7 @@ gulp.task("electron_copy_deps", () => {
   return gulp.src(["node_modules/pixi.js/dist/pixi.js"]).pipe(gulp.dest("electron_build/deps/pixi"));
 })
 
-gulp.task("start_server", function() {
-  return connect.server({
-    root: "build",
-    port: 3000,
-  });
-});
+gulp.task("start_server", shell.task('python3 python_server/tf_server.py build'));
 
 var project = ts.createProject('tsconfig.json');
 
