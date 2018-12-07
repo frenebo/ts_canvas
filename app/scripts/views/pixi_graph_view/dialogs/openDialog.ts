@@ -1,13 +1,13 @@
 import { Dialog } from "./dialog.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
+import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../../messenger.js";
 
 export class OpenDialog extends Dialog {
   constructor(
     private readonly closeDialogFunc: () => void,
     width: number,
     height: number,
-    private readonly sendModelChangeRequests: RequestModelChangesFunc,
     private readonly sendModelInfoRequests: RequestInfoFunc,
+    private readonly sendModelVersioningRequest: RequestVersioningChangeFunc,
   ) {
     super(closeDialogFunc, width, height);
     this.root.style.overflowY = "scroll";
@@ -59,7 +59,7 @@ export class OpenDialog extends Dialog {
 
       fileLabel.addEventListener("click", async () => {
         this.addLoadIcon();
-        await this.sendModelChangeRequests({type: "openFile", fileName: fileName});
+        await this.sendModelVersioningRequest({type: "openFile", fileName: fileName});
         this.removeLoadIcon();
 
         this.closeDialogFunc();
@@ -76,7 +76,7 @@ export class OpenDialog extends Dialog {
       deleteFileButton.addEventListener("click", async () => {
         if (confirm("Delete file?")) {
           this.addLoadIcon();
-          await this.sendModelChangeRequests({type: "deleteFile", fileName: fileName});
+          await this.sendModelVersioningRequest({type: "deleteFile", fileName: fileName});
           this.removeLoadIcon();
 
           // if div still containers file row - User may have clicked delete button twice

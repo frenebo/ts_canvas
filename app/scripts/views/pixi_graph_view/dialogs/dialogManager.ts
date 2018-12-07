@@ -2,7 +2,7 @@ import { Dialog } from "./dialog.js";
 import { EditLayerDialog } from "./editLayerDialog.js";
 import { OpenDialog } from "./openDialog.js";
 import { SaveAsDialog } from "./saveAsDialog.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
+import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../../messenger.js";
 
 export class DialogManager {
   private static readonly dialogWidth = 700;
@@ -14,6 +14,7 @@ export class DialogManager {
     private readonly div: HTMLDivElement,
     private readonly sendModelChangeRequests: RequestModelChangesFunc,
     private readonly sendModelInfoRequests: RequestInfoFunc,
+    private readonly sendModelVersioningRequest: RequestVersioningChangeFunc,
   ) {
     const that = this;
     document.addEventListener("keydown", (ev) => {
@@ -40,7 +41,7 @@ export class DialogManager {
       () => { this.closeDialog(); },
       DialogManager.dialogWidth,
       DialogManager.dialogHeight,
-      this.sendModelChangeRequests,
+      this.sendModelVersioningRequest,
     );
     this.div.appendChild(dialog.root);
 
@@ -54,8 +55,8 @@ export class DialogManager {
       () => { this.closeDialog(); },
       DialogManager.dialogWidth,
       DialogManager.dialogHeight,
-      this.sendModelChangeRequests,
       this.sendModelInfoRequests,
+      this.sendModelVersioningRequest,
     );
     this.div.appendChild(dialog.root);
 

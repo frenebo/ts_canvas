@@ -1,7 +1,7 @@
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { SelectionManager } from "./selectionManager.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
+import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../messenger.js";
 
 export class HtmlMenuBar {
   public static readonly menuHeight = 50;
@@ -21,6 +21,7 @@ export class HtmlMenuBar {
     selectionManager: SelectionManager,
     sendModelChangeRequests: RequestModelChangesFunc,
     sendModelInfoRequests: RequestInfoFunc,
+    sendModelVersioningRequest: RequestVersioningChangeFunc,
   ) {
     div.style.backgroundColor = HtmlMenuBar.barBackground;
     div.style.overflow = "visible";
@@ -52,7 +53,7 @@ export class HtmlMenuBar {
         onclick: async () => {
           const openFileData = await sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"});
           if (openFileData.fileIsOpen) {
-            sendModelChangeRequests({ type: "saveFile", fileName: openFileData.fileName });
+            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
           } else {
             fileMenu.saveAsDialog();
           }
@@ -78,14 +79,14 @@ export class HtmlMenuBar {
         text: "Undo",
         tooltip: keyboardHandler.undoShortcutString(),
         onclick: () => {
-          sendModelChangeRequests({type: "undo"});
+          sendModelVersioningRequest({type: "undo"});
         },
       },
       {
         text: "Redo",
         tooltip: keyboardHandler.redoShortcutString(),
         onclick: () => {
-          sendModelChangeRequests({type: "redo"});
+          sendModelVersioningRequest({type: "redo"});
         },
       },
       {

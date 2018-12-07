@@ -4,6 +4,7 @@ import {
   ModelChangeRequest,
   DeepReadonly,
   ModelInfoReqs,
+  ModelVersioningRequest,
 } from "../../interfaces.js";
 import {
   GraphUtils,
@@ -229,7 +230,13 @@ export class DefaultModel implements ModelInterface {
           req.fieldValues,
         );
       }
-    } else if (req.type === "undo") {
+    } else {
+      throw new Error("Unimplemented");
+    }
+  }
+
+  public requestModelVersioningChange(req: ModelVersioningRequest){
+    if (req.type === "undo") {
       VersioningUtils.undo(this.session);
     } else if (req.type === "redo") {
       VersioningUtils.redo(this.session);
@@ -242,11 +249,15 @@ export class DefaultModel implements ModelInterface {
     } else {
       throw new Error("unimplemented");
     }
+
+    for (const listener of this.graphChangedListeners) {
+      listener();
+    }
   }
 
   public requestModelInfo<T extends keyof ModelInfoReqs>(
     req: ModelInfoReqs[T]["request"],
-): ModelInfoReqs[T]["response"] {
+  ): ModelInfoReqs[T]["response"] {
     if (req.type === "validateEdge") {
       const validationMessage = SessionUtils.validateCreateEdge(
         this.session.data.graph,

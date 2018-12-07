@@ -1,12 +1,12 @@
 import { Dialog } from "./dialog.js";
-import { RequestModelChangesFunc } from "../../../messenger.js";
+import { RequestModelChangesFunc, RequestVersioningChangeFunc } from "../../../messenger.js";
 
 export class SaveAsDialog extends Dialog {
   constructor(
     closeDialogFunc: () => void,
     width: number,
     height: number,
-    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly sendModelVersioningRequest: RequestVersioningChangeFunc,
   ) {
     super(closeDialogFunc, width, height);
 
@@ -24,10 +24,13 @@ export class SaveAsDialog extends Dialog {
     textInput.placeholder = "Enter File name";
     textInput.style.width = "80%";
     textInput.style.display = "inline-block";
-    textInput.addEventListener("keydown", (ev) => {
+    textInput.addEventListener("keydown", async (ev) => {
       if (ev.key === "Enter") {
         if (textInput.value.trim() !== "") {
-          sendModelChangeRequests({type: "saveFile", fileName: textInput.value});
+          this.addLoadIcon();
+          await sendModelVersioningRequest({type: "saveFile", fileName: textInput.value});
+          this.removeLoadIcon(); // redundant?
+          closeDialogFunc(); // redundant?
           closeDialogFunc();
         }
       }
@@ -41,7 +44,7 @@ export class SaveAsDialog extends Dialog {
     saveButton.addEventListener("click", async () => {
       if (textInput.value.trim() !== "") {
         this.addLoadIcon();
-        await sendModelChangeRequests({type: "saveFile", fileName: textInput.value});
+        await sendModelVersioningRequest({type: "saveFile", fileName: textInput.value});
         this.removeLoadIcon(); // redundant?
         closeDialogFunc(); // redundant?
       }

@@ -59,6 +59,7 @@ export interface ModelInterface {
   getGraphData(): DeepReadonly<GraphData>;
   addGraphChangedListener(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): void;
+  requestModelVersioningChange(req: ModelVersioningRequest): void;
   requestModelInfo<T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]): ModelInfoReqs[T]["response"];
 }
 
@@ -92,7 +93,9 @@ export type ModelChangeRequest = {
   fieldValues: {
     [key: string]: string;
   };
-} | {
+}
+
+export type ModelVersioningRequest = {
   type: "undo";
 } | {
   type: "redo";

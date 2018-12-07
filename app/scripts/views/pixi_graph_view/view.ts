@@ -9,7 +9,7 @@ import {
 import { HtmlMenuBar } from "./htmlMenuBar.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
+import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../messenger.js";
 
 export class PixiView implements ViewInterface {
   private data: GraphData = {vertices: {}, edges: {}};
@@ -18,8 +18,9 @@ export class PixiView implements ViewInterface {
 
   constructor(
     div: HTMLDivElement,
-    private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    sendModelChangeRequests: RequestModelChangesFunc,
     private readonly sendModelInfoRequests: RequestInfoFunc,
+    sendModelVersioningRequest: RequestVersioningChangeFunc,
   ) {
     document.body.style.margin = "0px";
     document.body.style.width = "100%";
@@ -52,6 +53,7 @@ export class PixiView implements ViewInterface {
       div,
       sendModelChangeRequests,
       sendModelInfoRequests,
+      sendModelVersioningRequest,
     );
 
     this.graphManager = new GraphManager(
@@ -67,6 +69,7 @@ export class PixiView implements ViewInterface {
       this.graphManager.getSelectionManager(),
       sendModelChangeRequests,
       sendModelInfoRequests,
+      sendModelVersioningRequest,
     );
 
     this.menuBar = new HtmlMenuBar(
@@ -76,6 +79,7 @@ export class PixiView implements ViewInterface {
       this.graphManager.getSelectionManager(),
       sendModelChangeRequests,
       sendModelInfoRequests,
+      sendModelVersioningRequest,
     );
     onResize();
   }

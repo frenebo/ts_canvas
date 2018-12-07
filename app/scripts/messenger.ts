@@ -1,10 +1,12 @@
 import {
   ModelInterface, ViewInterface, ModelChangeRequest,
   ModelInfoReqs,
+  ModelVersioningRequest,
 } from "./interfaces.js";
 
 
 export type RequestModelChangesFunc = (...reqs: ModelChangeRequest[]) => Promise<void>;
+export type RequestVersioningChangeFunc = (req: ModelVersioningRequest) => Promise<void>;
 export type RequestInfoFunc = <V extends keyof ModelInfoReqs>(req: ModelInfoReqs[V]["request"]) => Promise<ModelInfoReqs[V]["response"]>;
 
 export class Messenger {
@@ -16,7 +18,7 @@ export class Messenger {
     this.views = [];
 
     this.model.addGraphChangedListener(() => {
-      console.log("Setting graph data");
+      // console.log("Setting graph data");
       for (const view of this.views) {
         view.setGraphData(this.model.getGraphData());
       }
@@ -32,12 +34,25 @@ export class Messenger {
     const that = this;
     return (...reqs: ModelChangeRequest[]) => {
       return new Promise((resolve, reject) => {
-        console.log(`Change requests: ${reqs.map(req => req.type).join(", ")}`);
+        // console.log(`Change requests: ${reqs.map(req => req.type).join(", ")}`);
         setTimeout(() => {
           that.model.requestModelChanges(...reqs);
           resolve();
         });
       });
+    }
+  }
+
+  public newVersioningRequestHandler(): RequestVersioningChangeFunc {
+    const that = this;
+    return (req: ModelVersioningRequest) => {
+      return new Promise((resolve, reject) => {
+        // console.log(`Versioning request: ${req.type}`);
+        setTimeout(() => {
+          that.model.requestModelVersioningChange(req);
+          resolve();
+        });
+      })
     }
   }
 

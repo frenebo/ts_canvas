@@ -1,6 +1,6 @@
 import { SelectionManager } from "./selectionManager.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
+import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../messenger.js";
 
 interface ShortcutDescription {
   eventKeyName: string; // must be lowercase!
@@ -94,6 +94,7 @@ export class KeyboardHandler {
     selectionManager: SelectionManager,
     sendModelChangeRequests: RequestModelChangesFunc,
     sendModelInfoRequests: RequestInfoFunc,
+    sendModelVersioningRequest: RequestVersioningChangeFunc,
   ) {
     let divSelected = false;
     document.addEventListener("click", (ev) => {
@@ -127,15 +128,15 @@ export class KeyboardHandler {
         } else if (match === "escape") {
           selectionManager.clearSelection();
         } else if (match === "undo") {
-          sendModelChangeRequests({type: "undo"});
+          sendModelVersioningRequest({type: "undo"});
         } else if (match === "redo") {
-          sendModelChangeRequests({type: "redo"});
+          sendModelVersioningRequest({type: "redo"});
         } else if (match === "selectAll") {
           selectionManager.selectAll();
         } else if (match === "save") {
           const openFileData = await sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"});
           if (openFileData.fileIsOpen) {
-            sendModelChangeRequests({ type: "saveFile", fileName: openFileData.fileName });
+            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
           } else {
             dialogManager.saveAsDialog();
           }
