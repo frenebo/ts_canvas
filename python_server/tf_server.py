@@ -1,7 +1,7 @@
 import sys
 import os
 from flask import Flask, send_from_directory, request
-from keras_layer_shape_utils import get_out_params, LayerComputeException
+from keras_layer_shape_utils import get_out_params, LayerComputeException, LayerParameterException
 import json
 
 def kerasZMEServer():
@@ -29,16 +29,28 @@ def kerasZMEServer():
         try:
             parsed_args = json.loads(request.data)
         except json.decoder.JSONDecodeError:
-            return
-
-        print(parsed_args)
+            return json.dumps({
+                "type": "request_parse_error",
+            })
 
         try:
             results = get_out_params(parsed_args["layer_type"], parsed_args["parameters"])
         except LayerComputeException as e:
-            return e.message
+            return json.dumps({
+                "type": "layer_compute_error",
+                "reason": e.message,
+            })
+        except LayerParameterException as e:
+            return json.dumps({
+                "type": "layer_parameter_error",
+                "parameter_name": e.field_name,
+                "reason": e.message,
+            })
 
-        return json.dumps(results)
+        return json.dumps({
+            "type": "success",
+            "output": results,
+        })
     app.run()
 
 if __name__ == "__main__":

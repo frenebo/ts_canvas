@@ -38,7 +38,11 @@ export class HTTPRequestUtils {
       [key in ServerLayers[T]["layerReturnParams"]]: string;
     }>((resolve, reject) => {
       http.onload = (ev) => {
-        resolve(JSON.parse(http.responseText));
+        try {
+          resolve(JSON.parse(http.responseText));
+        } catch {
+          reject();
+        }
       }
       http.onerror = (ev) => {
         reject();

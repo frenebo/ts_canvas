@@ -63,8 +63,10 @@ export class DefaultModel implements ModelInterface {
   };
 
   constructor() {
-    HTTPRequestUtils.getLayerParams<"Dense">("Dense", {input_shape: [100], units: 1}).then((result) => {
+    HTTPRequestUtils.getLayerParams<"Dense">("Dense", {input_shape: [1], units: 45}).then((result) => {
       console.log(result);
+    }, (reason) => {
+      console.log("Failed to get layer params: ", reason)
     });
 
     for (let i = 0; i < 3; i++) {

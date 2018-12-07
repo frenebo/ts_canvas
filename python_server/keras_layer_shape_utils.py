@@ -1,33 +1,36 @@
 from keras.layers import Dense, Conv2D
 
 class LayerComputeException(Exception):
+    """Raised when it isn't possible to compute the layer outputs"""
+
+class LayerParameterException(Exception):
     def __init__(self, message, field_name, *args):
         self.message = message
         self.field_name = field_name # optional
 
-        super(LayerShapeComputeException, self).__init__(message, field_name, *args)
+        super(LayerParameterException, self).__init__(message, field_name, *args)
 
 def dense_shape_func(
     input_shape,
     units):
     if not isinstance(input_shape, list):
-        raise LayerComputeException("Parameter must be list of numbers", "input_shape")
+        raise LayerParameterException("Parameter must be list of numbers", "input_shape")
 
     for input_dim in input_shape:
         if (not (isinstance(input_dim, int) or isinstance(input_dim, float))) or int(input_dim) != input_dim or input_dim <= 0:
-            raise LayerComputeException("Parameter must be a list of positive integers", "input_shape")
+            raise LayerParameterException("Parameter must be a list of positive integers", "input_shape")
 
     if len(input_shape) < 2:
-        raise LayerComputeException("Parameter must have at least two dimensions", "input_shape")
+        raise LayerParameterException("Parameter must have at least two dimensions", "input_shape")
 
     if not (isinstance(units, int) or isinstance(units, float)):
-        raise LayerComputeException("Argument must be a number", "units")
+        raise LayerParameterException("Argument must be a number", "units")
 
     if int(units) != units:
-        raise LayerComputeException("Argument must be an integer", "units")
+        raise LayerParameterException("Argument must be an integer", "units")
 
     if units <= 0:
-        raise LayerComputeException("Argument must be positive", "units")
+        raise LayerParameterException("Argument must be positive", "units")
 
     try:
         layer = Dense(units=units)
