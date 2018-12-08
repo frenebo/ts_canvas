@@ -63,22 +63,22 @@ export class DefaultModel implements ModelInterface {
   };
 
   constructor() {
-    const examples = [
-      {input_shape: [1], units: 2},
-      {input_shape: [100], units: 1},
-      {input_shape: [100, 300], units: 45},
-      {input_shape: [100, 3], units: -1},
-    ];
-    for (const example of examples) {
-      HTTPRequestUtils.getLayerParams<"Dense">("Dense", example).then(
-        (result) => {
-          console.log(example);
-          console.log(result);
-        }, (reason) => {
-          console.log("Failure: ", reason);
-        },
-      );
-    }
+    // const examples = [
+    //   {input_shape: [1], units: 2},
+    //   {input_shape: [100], units: 1},
+    //   {input_shape: [100, 300], units: 45},
+    //   {input_shape: [100, 3], units: -1},
+    // ];
+    // for (const example of examples) {
+    //   HTTPRequestUtils.getLayerParams<"Dense">("Dense", example).then(
+    //     (result) => {
+    //       console.log(example);
+    //       console.log(result);
+    //     }, (reason) => {
+    //       console.log("Failure: ", reason);
+    //     },
+    //   );
+    // }
 
     for (let i = 0; i < 3; i++) {
       const layer = Layer.getLayer("Repeat");
