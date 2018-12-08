@@ -21,7 +21,7 @@ export class EdgeDrawHandler {
     this.backgroundWrapper.addChild(graphics);
 
     graphics.lineColor = 0x000000;
-    graphics.lineWidth = 10;
+    graphics.lineStyle(10);
 
     this.dragData = {
       sourceVtx: sourceVertex,
@@ -45,8 +45,7 @@ export class EdgeDrawHandler {
     else if (validity === "invalid") this.dragData.graphics.lineColor = 0xCC0000;
     else throw new Error(`Unknown validity value ${validity}`);
 
-    this.dragData.graphics.lineWidth = 10;
-    // this.dragData.graphics.position.set(startX, startY);
+    this.dragData.graphics.lineStyle(10);
     this.dragData.graphics.moveTo(startX, startY);
     this.dragData.graphics.lineTo(endX, endY);
   }

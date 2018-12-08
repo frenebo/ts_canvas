@@ -125,7 +125,7 @@ export class BackgroundDragHandler {
       graphics.clear();
       graphics.lineColor = 0x000000;
       graphics.beginFill(0x000000, 0.2);
-      graphics.lineWidth = 2;
+      graphics.lineStyle(2);
       // graphics.position.set(
       // );
       graphics.drawRect(
