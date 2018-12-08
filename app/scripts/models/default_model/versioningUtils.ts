@@ -38,7 +38,7 @@ worker.onmessage = function(e) {
 worker.postMessage([123, 345]);
 
 export class VersioningUtils {
-  public static undo(session: SessionData): void {
+  public static async undo(session: SessionData): Promise<void> {
     if (session.pastDiffs.length === 0) return;
     const pastDiff = session.pastDiffs.pop()!;
 
@@ -55,7 +55,7 @@ export class VersioningUtils {
     }
   }
 
-  public static redo(session: SessionData): void {
+  public static async redo(session: SessionData): Promise<void> {
     if (session.futureDiffs.length === 0) return;
     const redoDiff = session.futureDiffs.splice(0, 1)[0];
 

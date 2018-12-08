@@ -56,11 +56,11 @@ export type DeepReadonly<T extends {}> = Readonly<{
 }>;
 
 export interface ModelInterface {
-  getGraphData(): DeepReadonly<GraphData>;
-  addGraphChangedListener(listener: () => void): void;
-  requestModelChanges(...reqs: ModelChangeRequest[]): void;
-  requestModelVersioningChange(req: ModelVersioningRequest): void;
-  requestModelInfo<T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]): ModelInfoReqs[T]["response"];
+  getGraphData(): Promise<DeepReadonly<GraphData>>;
+  onDataChanged(listener: () => void): void;
+  requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void>;
+  requestModelVersioningChange(req: ModelVersioningRequest): Promise<void>;
+  requestModelInfo<T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]): Promise<ModelInfoReqs[T]["response"]>;
 }
 
 export type ModelChangeRequest = {

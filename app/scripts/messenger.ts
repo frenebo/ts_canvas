@@ -17,50 +17,37 @@ export class Messenger {
     this.model = model;
     this.views = [];
 
-    this.model.addGraphChangedListener(() => {
+    this.model.onDataChanged(async () => {
+      const graphData = await this.model.getGraphData();
       for (const view of this.views) {
-        view.setGraphData(this.model.getGraphData());
+        view.setGraphData(graphData);
       }
     });
   }
 
-  public addView(view: ViewInterface): void {
+  public async addView(view: ViewInterface): Promise<void> {
     this.views.push(view);
-    view.setGraphData(this.model.getGraphData());
+    view.setGraphData(await this.model.getGraphData());
   }
 
   public newRequestHandler(): RequestModelChangesFunc {
     const that = this;
     return (...reqs: ModelChangeRequest[]) => {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          that.model.requestModelChanges(...reqs);
-          resolve();
-        });
-      });
-    }
+      return that.model.requestModelChanges(...reqs);
+    };
   }
 
   public newVersioningRequestHandler(): RequestVersioningChangeFunc {
     const that = this;
     return (req: ModelVersioningRequest) => {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          that.model.requestModelVersioningChange(req);
-          resolve();
-        });
-      })
-    }
+      return that.model.requestModelVersioningChange(req);
+    };
   }
 
   public newInfoRequestHandler(): RequestInfoFunc {
     const that = this;
     return <V extends keyof ModelInfoReqs>(req: ModelInfoReqs[V]["request"]): Promise<ModelInfoReqs[V]["response"]> => {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          resolve(that.model.requestModelInfo(req));
-        });
-      });
+      return that.model.requestModelInfo(req);
     };
   }
 }

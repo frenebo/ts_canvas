@@ -26,7 +26,6 @@ import {
   SessionUtils,
   SessionDataJson,
 } from "./sessionUtils.js";
-import { HTTPRequestUtils } from "./httpRequestUtils.js";
 
 export interface ModelDataObj {
   graph: GraphData;
@@ -46,7 +45,6 @@ export interface SessionData {
 
 export class DefaultModel implements ModelInterface {
   private readonly graphChangedListeners: Array<() => void> = [];
-  private readonly layerDataDictChangedListeners: Array<() => void> = [];
 
   private session: SessionData = {
     data: {
@@ -63,23 +61,6 @@ export class DefaultModel implements ModelInterface {
   };
 
   constructor() {
-    // const examples = [
-    //   {input_shape: [1], units: 2},
-    //   {input_shape: [100], units: 1},
-    //   {input_shape: [100, 300], units: 45},
-    //   {input_shape: [100, 3], units: -1},
-    // ];
-    // for (const example of examples) {
-    //   HTTPRequestUtils.getLayerParams<"Dense">("Dense", example).then(
-    //     (result) => {
-    //       console.log(example);
-    //       console.log(result);
-    //     }, (reason) => {
-    //       console.log("Failure: ", reason);
-    //     },
-    //   );
-    // }
-
     for (let i = 0; i < 3; i++) {
       const layer = Layer.getLayer("Repeat");
       LayerUtils.addLayer(
@@ -101,63 +82,101 @@ export class DefaultModel implements ModelInterface {
     }
   }
 
-  public getGraphData(): DeepReadonly<GraphData> {
+  public async getGraphData(): Promise<DeepReadonly<GraphData>> {
     return this.session.data.graph;
   }
 
-  public addGraphChangedListener(listener: () => void): void {
+  public onDataChanged(listener: () => void): void {
     this.graphChangedListeners.push(listener);
   }
 
-  public addLayerDataDictChangedListener(listener: () => void): void {
-    this.layerDataDictChangedListeners.push(listener);
-  }
-
-  public requestModelChanges(...reqs: ModelChangeRequest[]): void {
-
-    const beforeChange = SessionUtils.toJson(this.session.data) as unknown as Diffable;
-
-    for (const req of reqs) {
-      this.requestSingleModelChange(req);
+  private currentRequest: Promise<unknown> | null = null;
+  private pendingRequests: Array<{
+    startPromise: () => Promise<unknown>;
+  }> = [];
+  private addToQueue<T>(changeFunc: () => Promise<T>): Promise<T> {
+    const setUpCurrentChange = (info: {
+      startPromise: () => Promise<unknown>;
+    }) => {
+      this.currentRequest = info.startPromise();
+      this.currentRequest.then((val) => {
+        if (this.pendingRequests.length === 0) {
+          this.currentRequest = null;
+        } else {
+          const nextChangeFunc = this.pendingRequests.splice(0, 1)[0];
+          setUpCurrentChange(nextChangeFunc);
+        }
+      });
     }
 
-    const changeDiff = createDiff(beforeChange, SessionUtils.toJson(this.session.data) as unknown as Diffable);
+    return new Promise<T>(resolve => {
+      const modifiedChangeFunc = () => {
+        const promise = changeFunc();
+        promise.then((val: T) => {
+          resolve(val);
+        });
 
-    if (changeDiff !== null) {
-      this.session.pastDiffs.push(changeDiff as DiffType<SessionDataJson & Diffable>);
-
-      if (this.session.openFile !== null) {
-        // if the save file is ahead of the current data, set fileIdxInHistory to null
-        if (
-          this.session.futureDiffs.length !== 0 &&
-          this.session.openFile.fileIdxInHistory !== null &&
-          this.session.openFile.fileIdxInHistory < 0
-        ) {
-          this.session.openFile.fileIdxInHistory = null;
-        }
-
-        if (typeof this.session.openFile.fileIdxInHistory === "number") {
-          this.session.openFile.fileIdxInHistory++;
-        }
+        return promise;
       }
 
-      this.session.futureDiffs = []; // redos are lost when model is changed
-    }
+      const change = {
+        startPromise: modifiedChangeFunc,
+      };
 
-    for (const listener of this.graphChangedListeners) {
-      listener();
-    }
+      if (this.currentRequest === null) {
+        setUpCurrentChange(change);
+      } else {
+        this.pendingRequests.push(change);
+      }
+    });
   }
 
-  private requestSingleModelChange(req: ModelChangeRequest): void {
+  public async requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void> {
+    return this.addToQueue(async () => {
+      const beforeChange = SessionUtils.toJson(this.session.data) as unknown as Diffable;
+
+      for (const req of reqs) {
+        await this.requestSingleModelChange(req);
+      }
+
+      const changeDiff = createDiff(beforeChange, SessionUtils.toJson(this.session.data) as unknown as Diffable);
+
+      if (changeDiff !== null) {
+        this.session.pastDiffs.push(changeDiff as DiffType<SessionDataJson & Diffable>);
+
+        if (this.session.openFile !== null) {
+          // if the save file is ahead of the current data, set fileIdxInHistory to null
+          if (
+            this.session.futureDiffs.length !== 0 &&
+            this.session.openFile.fileIdxInHistory !== null &&
+            this.session.openFile.fileIdxInHistory < 0
+          ) {
+            this.session.openFile.fileIdxInHistory = null;
+          }
+
+          if (typeof this.session.openFile.fileIdxInHistory === "number") {
+            this.session.openFile.fileIdxInHistory++;
+          }
+        }
+
+        this.session.futureDiffs = []; // redos are lost when model is changed
+      }
+    }).then(() => {
+      this.graphChangedListeners.forEach(l => l())
+    });
+  }
+
+  private async requestSingleModelChange(req: ModelChangeRequest): Promise<void> {
     if (req.type === "moveVertex") {
-      if (GraphUtils.validateMoveVertex(
-        this.session.data.graph,
-        req.vertexId,
-        req.x,
-        req.y,
-      ) === null) {
-        GraphUtils.moveVertex(
+      if (
+        await GraphUtils.validateMoveVertex(
+          this.session.data.graph,
+          req.vertexId,
+          req.x,
+          req.y,
+        ) === null
+    ) {
+        await GraphUtils.moveVertex(
           this.session.data.graph,
           req.vertexId,
           req.x,
@@ -165,17 +184,19 @@ export class DefaultModel implements ModelInterface {
         );
       }
     } else if (req.type === "createEdge") {
-      if (SessionUtils.validateCreateEdge(
-        this.session.data.graph,
-        this.session.data.edgesByVertex,
-        this.session.data.layers,
-        req.newEdgeId,
-        req.sourceVertexId,
-        req.sourcePortId,
-        req.targetVertexId,
-        req.targetPortId,
-      ) === null) {
-        SessionUtils.createEdge(
+      if (
+        await SessionUtils.validateCreateEdge(
+          this.session.data.graph,
+          this.session.data.edgesByVertex,
+          this.session.data.layers,
+          req.newEdgeId,
+          req.sourceVertexId,
+          req.sourcePortId,
+          req.targetVertexId,
+          req.targetPortId,
+        ) === null
+      ) {
+        await SessionUtils.createEdge(
           this.session.data.graph,
           this.session.data.edgesByVertex,
           this.session.data.layers,
@@ -187,16 +208,18 @@ export class DefaultModel implements ModelInterface {
         );
       }
     } else if (req.type === "cloneVertex") {
-      if (SessionUtils.validateCloneVertex(
-        this.session.data.graph,
-        this.session.data.layers,
-        this.session.data.edgesByVertex,
-        req.newVertexId,
-        req.sourceVertexId,
-        req.x,
-        req.y,
-      ) === null) {
-        SessionUtils.cloneVertex(
+      if (
+        await SessionUtils.validateCloneVertex(
+          this.session.data.graph,
+          this.session.data.layers,
+          this.session.data.edgesByVertex,
+          req.newVertexId,
+          req.sourceVertexId,
+          req.x,
+          req.y,
+        ) === null
+      ) {
+        await SessionUtils.cloneVertex(
           this.session.data.graph,
           this.session.data.layers,
           this.session.data.edgesByVertex,
@@ -253,119 +276,121 @@ export class DefaultModel implements ModelInterface {
     }
   }
 
-  public requestModelVersioningChange(req: ModelVersioningRequest){
-    if (req.type === "undo") {
-      VersioningUtils.undo(this.session);
-    } else if (req.type === "redo") {
-      VersioningUtils.redo(this.session);
-    } else if (req.type === "saveFile") {
-      SaveUtils.saveFile(req.fileName, this.session);
-    } else if (req.type === "openFile") {
-      SaveUtils.openFile(req.fileName, this.session);
-    } else if (req.type === "deleteFile") {
-      SaveUtils.deleteFile(req.fileName, this.session);
-    } else {
-      throw new Error("unimplemented");
-    }
-
-    for (const listener of this.graphChangedListeners) {
-      listener();
-    }
+  public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
+    return this.addToQueue(async () => {
+      if (req.type === "undo") {
+        await VersioningUtils.undo(this.session);
+      } else if (req.type === "redo") {
+        await VersioningUtils.redo(this.session);
+      } else if (req.type === "saveFile") {
+        await SaveUtils.saveFile(req.fileName, this.session);
+      } else if (req.type === "openFile") {
+        await SaveUtils.openFile(req.fileName, this.session);
+      } else if (req.type === "deleteFile") {
+        await SaveUtils.deleteFile(req.fileName, this.session);
+      } else {
+        throw new Error("unimplemented");
+      }
+    }).then(() => {
+      this.graphChangedListeners.forEach(l => l());
+    });
   }
 
-  public requestModelInfo<T extends keyof ModelInfoReqs>(
+  public async requestModelInfo<T extends keyof ModelInfoReqs>(
     req: ModelInfoReqs[T]["request"],
-  ): ModelInfoReqs[T]["response"] {
-    if (req.type === "validateEdge") {
-      const validationMessage = SessionUtils.validateCreateEdge(
-        this.session.data.graph,
-        this.session.data.edgesByVertex,
-        this.session.data.layers,
-        (req as ModelInfoReqs["validateEdge"]["request"]).edgeId,
-        (req as ModelInfoReqs["validateEdge"]["request"]).sourceVertexId,
-        (req as ModelInfoReqs["validateEdge"]["request"]).sourcePortId,
-        (req as ModelInfoReqs["validateEdge"]["request"]).targetVertexId,
-        (req as ModelInfoReqs["validateEdge"]["request"]).targetPortId,
-      );
-      let response: ModelInfoReqs["validateEdge"]["response"]
+  ): Promise<ModelInfoReqs[T]["response"]> {
+    return this.addToQueue(async () => {
+      if (req.type === "validateEdge") {
+        const validationMessage = SessionUtils.validateCreateEdge(
+          this.session.data.graph,
+          this.session.data.edgesByVertex,
+          this.session.data.layers,
+          (req as ModelInfoReqs["validateEdge"]["request"]).edgeId,
+          (req as ModelInfoReqs["validateEdge"]["request"]).sourceVertexId,
+          (req as ModelInfoReqs["validateEdge"]["request"]).sourcePortId,
+          (req as ModelInfoReqs["validateEdge"]["request"]).targetVertexId,
+          (req as ModelInfoReqs["validateEdge"]["request"]).targetPortId,
+        );
+        let response: ModelInfoReqs["validateEdge"]["response"]
 
-      if (validationMessage === null) {
-        response = {
-          valid: true,
+        if (validationMessage === null) {
+          response = {
+            valid: true,
+          }
+        } else {
+          response = {
+            valid: false,
+            problem: validationMessage
+          };
         }
-      } else {
-        response = {
-          valid: false,
-          problem: validationMessage
-        };
-      }
 
-      return response;
-    } else if (req.type === "edgesBetweenVertices") {
-      return GraphUtils.edgesBetweenVertices(
-        this.session.data.graph,
-        this.session.data.edgesByVertex,
-        (req as ModelInfoReqs["edgesBetweenVertices"]["request"]).vertexIds,
-      );
-    } else if (req.type === "fileIsOpen") {
-      let response: ModelInfoReqs["fileIsOpen"]["response"];
+        return response;
+      } else if (req.type === "edgesBetweenVertices") {
+        return GraphUtils.edgesBetweenVertices(
+          this.session.data.graph,
+          this.session.data.edgesByVertex,
+          (req as ModelInfoReqs["edgesBetweenVertices"]["request"]).vertexIds,
+        );
+      } else if (req.type === "fileIsOpen") {
+        let response: ModelInfoReqs["fileIsOpen"]["response"];
 
-      if (this.session.openFile === null) {
-        response = {
-          fileIsOpen: false,
-        };
-      } else {
-        response = {
-          fileIsOpen: true,
-          fileName: this.session.openFile.fileName,
-          fileIsUpToDate: this.session.openFile.fileIdxInHistory === 0,
+        if (this.session.openFile === null) {
+          response = {
+            fileIsOpen: false,
+          };
+        } else {
+          response = {
+            fileIsOpen: true,
+            fileName: this.session.openFile.fileName,
+            fileIsUpToDate: this.session.openFile.fileIdxInHistory === 0,
+          }
         }
-      }
 
-      return response;
-    } else if (req.type === "savedFileNames") {
-      const response: ModelInfoReqs["savedFileNames"]["response"] = {
-        fileNames: SaveUtils.savedFileNames(),
-      };
-      return response;
-    } else if (req.type === "getPortInfo") {
-      return LayerUtils.getPortInfo(
-        this.session.data.layers,
-        (req as ModelInfoReqs["getPortInfo"]["request"]).portId,
-        (req as ModelInfoReqs["getPortInfo"]["request"]).vertexId,
-      );
-    } else if (req.type === "validateValue") {
-      return LayerUtils.validateValue(
-        this.session.data.layers,
-        (req as ModelInfoReqs["validateValue"]["request"]).layerId,
-        (req as ModelInfoReqs["validateValue"]["request"]).valueId,
-        (req as ModelInfoReqs["validateValue"]["request"]).newValue,
-      );
-    } else if (req.type === "getLayerInfo") {
-      return LayerUtils.getLayerInfo(
-        this.session.data.layers,
-        (req as ModelInfoReqs["getLayerInfo"]["request"]).layerId,
-      )
-    } else if (req.type === "compareValue") {
-      return LayerUtils.compareValue(
-        this.session.data.layers,
-        (req as ModelInfoReqs["compareValue"]["request"]).layerId,
-        (req as ModelInfoReqs["compareValue"]["request"]).valueId,
-        (req as ModelInfoReqs["compareValue"]["request"]).compareValue,
-      );
-    } else if (req.type === "validateLayerFields") {
-      return LayerUtils.validateLayerFields(
-        this.session.data.layers,
-        (req as ModelInfoReqs["validateLayerFields"]["request"]).layerId,
-        (req as ModelInfoReqs["validateLayerFields"]["request"]).fieldValues,
-      );
-    } else if (req.type === "getUniqueEdgeIds") {
-      return GraphUtils.getUniqueEdgeIds(
-        this.session.data.graph,
-        (req as ModelInfoReqs["getUniqueEdgeIds"]["request"]).count,
-      );
-    } else {
-      throw new Error(`Unimplemented request ${req.type}`);
-    }
+        return response;
+      } else if (req.type === "savedFileNames") {
+        const response: ModelInfoReqs["savedFileNames"]["response"] = {
+          fileNames: SaveUtils.savedFileNames(),
+        };
+        return response;
+      } else if (req.type === "getPortInfo") {
+        return LayerUtils.getPortInfo(
+          this.session.data.layers,
+          (req as ModelInfoReqs["getPortInfo"]["request"]).portId,
+          (req as ModelInfoReqs["getPortInfo"]["request"]).vertexId,
+        );
+      } else if (req.type === "validateValue") {
+        return LayerUtils.validateValue(
+          this.session.data.layers,
+          (req as ModelInfoReqs["validateValue"]["request"]).layerId,
+          (req as ModelInfoReqs["validateValue"]["request"]).valueId,
+          (req as ModelInfoReqs["validateValue"]["request"]).newValue,
+        );
+      } else if (req.type === "getLayerInfo") {
+        return LayerUtils.getLayerInfo(
+          this.session.data.layers,
+          (req as ModelInfoReqs["getLayerInfo"]["request"]).layerId,
+        )
+      } else if (req.type === "compareValue") {
+        return LayerUtils.compareValue(
+          this.session.data.layers,
+          (req as ModelInfoReqs["compareValue"]["request"]).layerId,
+          (req as ModelInfoReqs["compareValue"]["request"]).valueId,
+          (req as ModelInfoReqs["compareValue"]["request"]).compareValue,
+        );
+      } else if (req.type === "validateLayerFields") {
+        return LayerUtils.validateLayerFields(
+          this.session.data.layers,
+          (req as ModelInfoReqs["validateLayerFields"]["request"]).layerId,
+          (req as ModelInfoReqs["validateLayerFields"]["request"]).fieldValues,
+        );
+      } else if (req.type === "getUniqueEdgeIds") {
+        return GraphUtils.getUniqueEdgeIds(
+          this.session.data.graph,
+          (req as ModelInfoReqs["getUniqueEdgeIds"]["request"]).count,
+        );
+      } else {
+        throw new Error(`Unimplemented request ${req.type}`);
+      }
+    });
   }
 }
