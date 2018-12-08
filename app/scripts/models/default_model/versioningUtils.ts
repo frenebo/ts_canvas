@@ -9,6 +9,34 @@ import {
   SessionDataJson
 } from "./sessionUtils.js";
 
+interface VersioningWorkerReq {
+  id: string;
+}
+
+class VersioningWebWorkerInterface {
+  private worker: Worker;
+  private pendingRequests: Array<VersioningWorkerReq> = [];
+  constructor() {
+    this.worker = new Worker("scripts/models/default_model/worker/webWorker.js");
+    this.worker.onmessage = (ev) => {
+
+    }
+  }
+  private idCounter = 0;
+  private getNewReqId(): string {
+    return (this.idCounter++).toString();
+  }
+}
+
+if (!(window as any).Worker) {
+  alert("Browser does not support WebWorkers");
+}
+const worker = new Worker("scripts/models/default_model/worker/webWorker.js");
+worker.onmessage = function(e) {
+	console.log('Main (myWorker.onmessage): Message received from worker');
+}
+worker.postMessage([123, 345]);
+
 export class VersioningUtils {
   public static undo(session: SessionData): void {
     if (session.pastDiffs.length === 0) return;
