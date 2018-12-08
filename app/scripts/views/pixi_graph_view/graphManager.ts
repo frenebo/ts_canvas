@@ -62,8 +62,8 @@ export class GraphManager {
   constructor(
     private readonly div: HTMLDivElement,
     private readonly dialogs: DialogManager,
-    private readonly sendModelChangeRequests: RequestModelChangesFunc,
-    private readonly sendModelInfoRequests: RequestInfoFunc,
+    sendModelChangeRequests: RequestModelChangesFunc,
+    sendModelInfoRequests: RequestInfoFunc,
   ) {
     this.stageManager = new StageManager(div);
     this.selectionManager = new SelectionManager(

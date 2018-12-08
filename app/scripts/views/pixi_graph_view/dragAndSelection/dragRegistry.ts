@@ -232,6 +232,9 @@ export class DragRegistry {
         let targetHasChanged = false;
         const snapInfo = getSnapPortInfo(stageX, stageY);
         if (snapInfo === null) {
+          if (dragData.currentTarget !== null) {
+            this.portPreviewManager.portHoverEnd(dragData.currentTarget.port);
+          }
           dragData.currentTarget = null;
         } else {
           if (
@@ -261,6 +264,7 @@ export class DragRegistry {
           lineEndX = dragData.currentTarget.xPos;
           lineEndY = dragData.currentTarget.yPos;
           validity = dragData.currentTarget.validation.isValid ? "valid" : "invalid";
+
         }
 
         this.edgeDrawHandler.redrawLine(
@@ -330,6 +334,7 @@ export class DragRegistry {
             targetVertexId: dragData.currentTarget.vertexId,
             targetPortId: dragData.currentTarget.portId,
           });
+          this.portPreviewManager.portHoverEnd(dragData.currentTarget.port);
         }
         dragData = null;
         this.edgeDrawHandler.endDrag();

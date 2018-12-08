@@ -46,12 +46,18 @@ def kerasZMEServer():
                 "parameter_name": e.field_name,
                 "reason": e.message,
             })
+        except Exception as e:
+            return json.dumps({
+                "type": "layer_compute_error",
+                "reason": "Error computing layer outputs",
+            })
 
         return json.dumps({
             "type": "success",
             "output": results,
         })
-    app.run()
+    # app.debug = True
+    app.run(host='0.0.0.0')
 
 if __name__ == "__main__":
     kerasZMEServer()
