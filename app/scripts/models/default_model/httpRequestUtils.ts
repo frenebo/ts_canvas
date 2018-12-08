@@ -68,7 +68,7 @@ export class HTTPRequestUtils {
       }
       http.onerror = (ev) => {
         reject();
-        console.log("ERROR", http);
+        // console.log("ERROR", http);
       }
     });
 

@@ -18,7 +18,6 @@ export class Messenger {
     this.views = [];
 
     this.model.addGraphChangedListener(() => {
-      // console.log("Setting graph data");
       for (const view of this.views) {
         view.setGraphData(this.model.getGraphData());
       }
@@ -34,7 +33,6 @@ export class Messenger {
     const that = this;
     return (...reqs: ModelChangeRequest[]) => {
       return new Promise((resolve, reject) => {
-        // console.log(`Change requests: ${reqs.map(req => req.type).join(", ")}`);
         setTimeout(() => {
           that.model.requestModelChanges(...reqs);
           resolve();
@@ -47,7 +45,6 @@ export class Messenger {
     const that = this;
     return (req: ModelVersioningRequest) => {
       return new Promise((resolve, reject) => {
-        // console.log(`Versioning request: ${req.type}`);
         setTimeout(() => {
           that.model.requestModelVersioningChange(req);
           resolve();
@@ -59,7 +56,6 @@ export class Messenger {
   public newInfoRequestHandler(): RequestInfoFunc {
     const that = this;
     return <V extends keyof ModelInfoReqs>(req: ModelInfoReqs[V]["request"]): Promise<ModelInfoReqs[V]["response"]> => {
-      console.log(`Info request: ${req.type}`);
       return new Promise((resolve, reject) => {
         setTimeout(() => {
           resolve(that.model.requestModelInfo(req));

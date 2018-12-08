@@ -1,7 +1,10 @@
 import { GraphicWrapper } from "./graphicsWrapper.js";
 
 export class PortWrapper extends GraphicWrapper {
+  private static readonly texturePadding = 4;
   private static readonly borderWidth = 2;
+  public static width = 20;
+  public static height = 12;
 
   private static cachedPortTexture: PIXI.RenderTexture | null = null;
   private static createSprite(renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
@@ -17,10 +20,10 @@ export class PortWrapper extends GraphicWrapper {
     graphics.lineStyle(PortWrapper.borderWidth);
     graphics.beginFill(0x999999);
     graphics.drawRoundedRect(
-      0 + PortWrapper.borderWidth/2,
-      0 + PortWrapper.borderWidth/2,
-      20 + PortWrapper.borderWidth/2,
-      12 + PortWrapper.borderWidth/2,
+      0 + PortWrapper.texturePadding,
+      0 + PortWrapper.texturePadding,
+      PortWrapper.width + PortWrapper.texturePadding,
+      PortWrapper.height + PortWrapper.texturePadding,
       5,
     );
 
@@ -54,6 +57,7 @@ export class PortWrapper extends GraphicWrapper {
 
     this.sprite = PortWrapper.createSprite(renderer);
     this.addChild(this.sprite);
+    this.sprite.position.set(-PortWrapper.texturePadding);
   }
 
   public getIsOutput(): boolean {

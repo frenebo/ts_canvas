@@ -43,14 +43,6 @@ export abstract class GraphicWrapper {
     }
   }
 
-  public getBackgroundWidth(): number {
-    return this.container.width;
-  }
-
-  public getBackgroundHeight(): number {
-    return this.container.height;
-  }
-
   public addPositionChangedListener(listener: () => void): void {
     this.positionChangedListeners.push(listener);
   }

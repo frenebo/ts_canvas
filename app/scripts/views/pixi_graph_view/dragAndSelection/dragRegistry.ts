@@ -67,8 +67,8 @@ export class DragRegistry {
       const vertexWrapper = this.getVertexWrappers()[vertexKey];
       for (const portKey in this.getPortWrappers()[vertexKey]) {
         const portWrapper = this.getPortWrappers()[vertexKey][portKey];
-        const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + portWrapper.getBackgroundWidth()/2);
-        const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + portWrapper.getBackgroundHeight()/2);
+        const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + PortWrapper.width/2);
+        const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + PortWrapper.height/2);
         portDescriptions.push({
           portKey: portKey,
           port: portWrapper,
@@ -193,8 +193,8 @@ export class DragRegistry {
             targetPort: closestPort,
             targetVtxId: closestInfo.vtxKey,
             targetPortId: closestInfo.portKey,
-            xPos: closestPort.localX() + closestPort.getBackgroundWidth()/2 + closestPortVertex.localX(),
-            yPos: closestPort.localY() + closestPort.getBackgroundWidth()/2 + closestPortVertex.localY(),
+            xPos: closestPort.localX() + PortWrapper.width/2 + closestPortVertex.localX(),
+            yPos: closestPort.localY() + PortWrapper.width/2 + closestPortVertex.localY(),
           };
         } else {
           return null;

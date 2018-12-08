@@ -4,12 +4,14 @@ import { PortWrapper } from "./portWrapper.js";
 import { GraphicWrapper } from "./graphicsWrapper.js";
 
 export class VertexWrapper extends GraphicWrapper {
+  public static readonly width = 250;
+  public static readonly height = 80;
+  public static readonly backgroundSpritePadding = 5;
+
   private static readonly unselectedFillColor = 0xE6E6E6;
   private static readonly selectedFillColor = 0xFFFF00;
   private static readonly borderColor = 0x333333;
   private static readonly borderWidth = 5;
-  private static readonly defaultWidth = 250;
-  private static readonly defaultHeight = 80;
 
   private static readonly cachedTextures = new Map<string, PIXI.RenderTexture>();
   public static generateBoxTexture(
@@ -27,10 +29,10 @@ export class VertexWrapper extends GraphicWrapper {
       graphics.beginFill(fillColor, alpha);
       graphics.lineStyle(VertexWrapper.borderWidth, VertexWrapper.borderColor);
       graphics.drawRoundedRect(
-        0 + VertexWrapper.borderWidth/2,
-        0 + VertexWrapper.borderWidth/2,
-        VertexWrapper.defaultWidth + VertexWrapper.borderWidth/2,
-        VertexWrapper.defaultHeight + VertexWrapper.borderWidth/2,
+        VertexWrapper.backgroundSpritePadding,
+        VertexWrapper.backgroundSpritePadding,
+        VertexWrapper.width + VertexWrapper.backgroundSpritePadding,
+        VertexWrapper.height + VertexWrapper.backgroundSpritePadding,
         10,
       );
 
@@ -47,8 +49,6 @@ export class VertexWrapper extends GraphicWrapper {
   }
 
   private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
-  private readonly width: number;
-  private readonly height: number;
   private readonly label: PIXI.Text;
   private editIcon: EditIconWrapper | null = null;
   private isSelected = false;
@@ -60,9 +60,6 @@ export class VertexWrapper extends GraphicWrapper {
   ) {
     super({});
     this.renderer = renderer;
-    this.width = VertexWrapper.defaultWidth;
-    this.height = VertexWrapper.defaultHeight;
-
     this.background = new PIXI.Sprite(); // placeholder
     this.addChild(this.background);
     this.redrawBackground();
@@ -89,9 +86,6 @@ export class VertexWrapper extends GraphicWrapper {
 
     this.label = new PIXI.Text("", textStyle);
     this.addChild(this.label);
-
-
-    // this.positionChildren();
   }
 
   public addEditIcon(editIcon: EditIconWrapper): void {
@@ -111,22 +105,30 @@ export class VertexWrapper extends GraphicWrapper {
   private redrawBackground(): void {
     this.removeChild(this.background);
     this.background = new PIXI.Sprite(VertexWrapper.generateBoxTexture(1, this.isSelected, this.renderer));
+    this.background.position.set(-VertexWrapper.backgroundSpritePadding);
     this.addChildAt(this.background, 0); // insert behind other children
   }
 
   private positionChildren(): void {
     let widthForLabel: number;
     if (this.editIcon !== null) {
-      const padding = (VertexWrapper.defaultHeight - this.editIcon.getBackgroundHeight())/2;
-      this.editIcon.setPosition(VertexWrapper.defaultWidth - (this.editIcon.getBackgroundWidth() + padding), padding);
-      widthForLabel = VertexWrapper.defaultWidth - (this.editIcon.getBackgroundWidth() + padding);
+      const editIconPadding = (VertexWrapper.height - EditIconWrapper.height)/2
+      widthForLabel = VertexWrapper.width - EditIconWrapper.width - editIconPadding;
+      this.editIcon.setPosition(
+        widthForLabel,
+        editIconPadding,
+      );
+      // VertexWrapper.width
+      // const padding = (VertexWrapper.height - PortWrapper.height)/2;
+      // this.editIcon.setPosition(VertexWrapper.width - (PortWrapper.height + padding), padding);
+      // widthForLabel = VertexWrapper.width - (PortWrapper.height + padding);
     } else {
-      widthForLabel = VertexWrapper.defaultWidth;
+      widthForLabel = VertexWrapper.width;
     }
 
     this.label.position.set(
       (widthForLabel - this.label.width)/2,
-      this.label.y = (this.getBackgroundHeight() - this.label.height)/2,
+      this.label.y = (VertexWrapper.height - this.label.height)/2,
     );
   }
 
@@ -134,21 +136,21 @@ export class VertexWrapper extends GraphicWrapper {
     let portX: number;
     let portY: number;
     if (side === "top" || side === "bottom") {
-      portX = this.width*position - portWrapper.getBackgroundWidth()/2;
+      portX = VertexWrapper.width*position - PortWrapper.width/2;
     } else if (side === "left") {
-      portX = - portWrapper.getBackgroundWidth()/2 + VertexWrapper.borderWidth/2;
+      portX = - PortWrapper.width/2;
     } else if (side === "right") {
-      portX = this.width + VertexWrapper.borderWidth - portWrapper.getBackgroundWidth()/2;
+      portX = VertexWrapper.width - PortWrapper.width/2;
     } else {
       throw new Error(`Invalid side type ${side}`);
     }
 
     if (side === "left" || side === "right") {
-      portY = this.height*position - portWrapper.getBackgroundHeight()/2;
+      portY = VertexWrapper.height*position - PortWrapper.height/2;
     } else if (side === "top") {
-      portY = - portWrapper.getBackgroundHeight()/2 + VertexWrapper.borderWidth/2;
+      portY = - PortWrapper.height/2;
     } else if (side === "bottom") {
-      portY = this.height + VertexWrapper.borderWidth - portWrapper.getBackgroundHeight()/2;
+      portY = VertexWrapper.height - PortWrapper.height/2;
     } else {
       throw new Error(`Invalid side type ${side}`);
     }

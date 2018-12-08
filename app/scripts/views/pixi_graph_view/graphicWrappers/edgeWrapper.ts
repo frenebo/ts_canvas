@@ -73,10 +73,10 @@ export class EdgeWrapper extends GraphicWrapper {
   private previousIsSelected = false;
 
   public refresh(): void {
-    const sourceX = this.sourcePort.localX() + this.sourceVertex.localX() + this.sourcePort.getBackgroundWidth()/2;
-    const sourceY = this.sourcePort.localY() + this.sourceVertex.localY() + this.sourcePort.getBackgroundHeight()/2;
-    const targetX = this.targetPort.localX() + this.targetVertex.localX() + this.targetPort.getBackgroundWidth()/2;
-    const targetY = this.targetPort.localY() + this.targetVertex.localY() + this.targetPort.getBackgroundHeight()/2;
+    const sourceX = this.sourcePort.localX() + this.sourceVertex.localX() + PortWrapper.width/2;
+    const sourceY = this.sourcePort.localY() + this.sourceVertex.localY() + PortWrapper.height/2;
+    const targetX = this.targetPort.localX() + this.targetVertex.localX() + PortWrapper.width/2;
+    const targetY = this.targetPort.localY() + this.targetVertex.localY() + PortWrapper.height/2;
 
     if (
       sourceX === this.previousSourceX &&

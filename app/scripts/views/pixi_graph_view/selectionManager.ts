@@ -119,8 +119,8 @@ export class SelectionManager {
       if (
         vertexWrapper.localX() >= leftX &&
         vertexWrapper.localY() >= topY &&
-        vertexWrapper.localX() + vertexWrapper.getBackgroundWidth() <= leftX + w &&
-        vertexWrapper.localY() + vertexWrapper.getBackgroundHeight() <= topY + h
+        vertexWrapper.localX() + VertexWrapper.width <= leftX + w &&
+        vertexWrapper.localY() + VertexWrapper.height <= topY + h
       ) {
         this.selectVertex(vertexId);
       }
@@ -151,7 +151,10 @@ export class SelectionManager {
       ));
       ghost.cacheAsBitmap = true;
       ghostRoot.addChild(ghost);
-      ghost.position.set(selectedVertex.localX(), selectedVertex.localY());
+      ghost.position.set(
+        selectedVertex.localX() - VertexWrapper.backgroundSpritePadding,
+        selectedVertex.localY() - VertexWrapper.backgroundSpritePadding,
+      );
 
       this.selectionDrag.ghosts.set(selectedVertexId, ghost);
     }

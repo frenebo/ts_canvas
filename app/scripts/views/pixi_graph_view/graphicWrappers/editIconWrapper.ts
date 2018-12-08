@@ -1,6 +1,9 @@
 import { GraphicWrapper } from "./graphicsWrapper.js";
 
 export class EditIconWrapper extends GraphicWrapper {
+  public static height = 50;
+  public static width = 50;
+
   private static readonly texturePadding = 5;
   private static readonly outlinePoints = [
     [0, 50],
@@ -61,8 +64,8 @@ export class EditIconWrapper extends GraphicWrapper {
       new PIXI.Rectangle(
         0,
         0,
-        graphics.width + EditIconWrapper.texturePadding*2,
-        graphics.height + EditIconWrapper.texturePadding*2,
+        EditIconWrapper.width + EditIconWrapper.texturePadding*2,
+        EditIconWrapper.height + EditIconWrapper.texturePadding*2,
       ),
     );
 
@@ -84,8 +87,6 @@ export class EditIconWrapper extends GraphicWrapper {
     return new PIXI.Polygon(...points);
   }
 
-  private readonly width: number;
-  private readonly height: number;
   private readonly clickListeners: Array<() => void> = [];
   private sprite: PIXI.Sprite;
 
@@ -97,21 +98,24 @@ export class EditIconWrapper extends GraphicWrapper {
       hitArea: EditIconWrapper.getHitArea(),
     });
 
-    this.sprite = EditIconWrapper.draw(false, renderer);
+    this.sprite = new PIXI.Sprite(); // placeholder
     this.addChild(this.sprite);
+    this.redraw();
+  }
 
-    this.width = this.getBackgroundWidth();
-    this.height = this.getBackgroundHeight();
+  private redraw(): void {
+    this.removeChild(this.sprite);
+    this.sprite = EditIconWrapper.draw(this.isSelected, this.renderer);
+    this.sprite.position.set(-EditIconWrapper.texturePadding);
+    this.addChild(this.sprite);
   }
 
   private isSelected = false;
   public toggleSelected(selected: boolean) {
     if (selected !== this.isSelected) {
-      this.removeChild(this.sprite);
-      this.sprite = EditIconWrapper.draw(selected, this.renderer);
-      this.addChild(this.sprite);
+      this.isSelected = selected;
+      this.redraw();
     }
-    this.isSelected = selected;
   }
 
   public addClickListener(listener: () => void): void {

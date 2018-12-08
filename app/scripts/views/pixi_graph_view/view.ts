@@ -34,7 +34,6 @@ export class PixiView implements ViewInterface {
     // div.style.height = "100%";
     const onResize = () => {
       if (document.documentElement === null) return;
-      console.log()
       this.menuBar.setWidth(window.innerWidth);
       this.graphManager.setDimensions(window.innerWidth, window.innerHeight - HtmlMenuBar.menuHeight);
     }
