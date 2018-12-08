@@ -20,7 +20,7 @@ def kerasZMEServer():
 
     @app.route('/<path:path>')
     def send_file(path):
-        print(path)
+        # print(path)
         return send_from_directory(os.path.join(arg_directory), path)
 
     @app.route('/calculate_layer_output', methods = ['POST'])
