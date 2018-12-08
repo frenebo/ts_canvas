@@ -96,23 +96,22 @@ export function createDiff<T extends Diffable>(
   before: T,
   after: T,
 ): DiffType<T> {
-  console.log("NOTE: Using high-memory version of createDiff");
-  // if (typeof before === "object" && typeof after === "object" && before !== null && after !== null) {
-    // return createObjectDiff(
-      // before as DiffableObject,
-      // after as DiffableObject,
-    // ) as T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>;
-  // } else {
-  const beforeStr = JSON.stringify(before);
-  const afterStr = JSON.stringify(after);
+  if (typeof before === "object" && typeof after === "object" && before !== null && after !== null) {
+    return createObjectDiff(
+      before as DiffableObject,
+      after as DiffableObject,
+    ) as T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>;
+  } else {
+    const beforeStr = JSON.stringify(before);
+    const afterStr = JSON.stringify(after);
 
-  if (beforeStr === afterStr) return null;
+    if (beforeStr === afterStr) return null;
 
-  return {
-    before: JSON.parse(beforeStr),
-    after: JSON.parse(afterStr),
-  } as T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>;
-  // }
+    return {
+      before: JSON.parse(beforeStr),
+      after: JSON.parse(afterStr),
+    } as T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>;
+  }
 }
 
 function createObjectDiff<T extends DiffableObject>(
