@@ -1,6 +1,6 @@
 import { PortWrapper } from "./portWrapper.js";
 import { VertexWrapper } from "./vertexWrapper.js";
-import { GraphicWrapper } from "./graphicsWrapper.js";
+import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class EdgeWrapper extends GraphicWrapper {
   private static readonly spriteLeftRightPadding = 25;

@@ -1,7 +1,8 @@
 // import { VertexData, PortData } from "../../interfaces.js";
 import { EditIconWrapper } from "./editIconWrapper.js";
 import { PortWrapper } from "./portWrapper.js";
-import { GraphicWrapper } from "./graphicsWrapper.js";
+import { GraphicWrapper } from "./graphicWrapper.js";
+import { LabelWrapper } from "./labelWrapper.js";
 
 export class VertexWrapper extends GraphicWrapper {
   public static readonly width = 250;
@@ -49,10 +50,10 @@ export class VertexWrapper extends GraphicWrapper {
   }
 
   private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
-  private readonly label: PIXI.Text;
   private editIcon: EditIconWrapper | null = null;
   private isSelected = false;
   private background: PIXI.Sprite;
+  private label: LabelWrapper;
 
   constructor(
     // private readonly registerPort: (vtx: VertexWrapper, portId: string, port: PortWrapper) => void,
@@ -64,27 +65,12 @@ export class VertexWrapper extends GraphicWrapper {
     this.addChild(this.background);
     this.redrawBackground();
 
-    // this.sprite.buttonMode = true;
-    // this.graphics.hitArea = new PIXI.Rectangle(data.geo.w, data.geo.h);
-
     const textStyle = new PIXI.TextStyle({
       fontFamily: "Arial",
       fontSize: 30,
-      // fontStyle: 'italic',
-      // fontWeight: "bold",
-      // fill: "#ffffff",
-      // stroke: "#4a1850",
-      // strokeThickness: 5,
-      // dropShadow: true,
-      // dropShadowColor: "#000000",
-      // dropShadowBlur: 4,
-      // dropShadowAngle: Math.PI / 6,
-      // dropShadowDistance: 6,
-      // wordWrap: true,
-      // wordWrapWidth: 440,
     });
 
-    this.label = new PIXI.Text("", textStyle);
+    this.label = new LabelWrapper(renderer);
     this.addChild(this.label);
   }
 
@@ -118,17 +104,13 @@ export class VertexWrapper extends GraphicWrapper {
         widthForLabel,
         editIconPadding,
       );
-      // VertexWrapper.width
-      // const padding = (VertexWrapper.height - PortWrapper.height)/2;
-      // this.editIcon.setPosition(VertexWrapper.width - (PortWrapper.height + padding), padding);
-      // widthForLabel = VertexWrapper.width - (PortWrapper.height + padding);
     } else {
       widthForLabel = VertexWrapper.width;
     }
 
-    this.label.position.set(
-      (widthForLabel - this.label.width)/2,
-      this.label.y = (VertexWrapper.height - this.label.height)/2,
+    this.label.setPosition(
+      (widthForLabel - this.label.getWidth())/2,
+      (VertexWrapper.height - this.label.getHeight())/2,
     );
   }
 
@@ -159,9 +141,7 @@ export class VertexWrapper extends GraphicWrapper {
   }
 
   public setLabelText(text: string): void {
-    if (this.label.text !== text) {
-      this.label.text = text;
-      this.positionChildren();
-    }
+    this.label.setText(text);
+    this.positionChildren();
   }
 }

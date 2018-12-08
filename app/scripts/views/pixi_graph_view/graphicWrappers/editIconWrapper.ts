@@ -1,4 +1,4 @@
-import { GraphicWrapper } from "./graphicsWrapper.js";
+import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class EditIconWrapper extends GraphicWrapper {
   public static height = 50;

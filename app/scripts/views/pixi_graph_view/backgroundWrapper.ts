@@ -1,5 +1,5 @@
 import { BACKGROUND_TILE_PATH } from "../../constants.js";
-import { GraphicWrapper } from "./graphicWrappers/graphicsWrapper.js";
+import { GraphicWrapper } from "./graphicWrappers/graphicWrapper.js";
 
 export class BackgroundWrapper {
   private readonly sprite: PIXI.extras.TilingSprite;

@@ -1,4 +1,4 @@
-import { GraphicWrapper } from "./graphicsWrapper.js";
+import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class PortWrapper extends GraphicWrapper {
   private static readonly texturePadding = 4;
