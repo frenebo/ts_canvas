@@ -42,7 +42,11 @@ function undoObjectDiff<T extends DiffableObject>(
 ): T {
   const before: T = JSON.parse(JSON.stringify(after));
   if (diff.added !== undefined) for (const addedKey in diff.added) {
-    delete before[addedKey];
+    if (Array.isArray(before)) {
+      before.splice(parseInt(addedKey), 1); // for when a value was added to the end
+    } else {
+      delete before[addedKey];
+    }
   }
   if (diff.removed !== undefined) for (const removedKey in diff.removed) {
     before[removedKey] = JSON.parse(JSON.stringify(diff.removed[removedKey]));
@@ -78,7 +82,11 @@ function applyObjectDiff<T extends DiffableObject>(
     after[addedKey] = JSON.parse(JSON.stringify(diff.added[addedKey]));
   }
   if (diff.removed !== undefined) for (const removedKey in diff.removed) {
-    delete after[removedKey];
+    if (Array.isArray(after)) {
+      after.splice(parseInt(removedKey), 1); // for when a value has been removed from the end
+    } else {
+      delete after[removedKey];
+    }
   }
   if (diff.changed !== undefined) for (const changedKey in diff.changed) {
     const attrDiff = diff.changed[changedKey];
