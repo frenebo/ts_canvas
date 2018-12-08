@@ -10,7 +10,6 @@ export class PortWrapper extends GraphicWrapper {
   private static createSprite(renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
     if (PortWrapper.cachedPortTexture !== null) {
       const spriteFromCachedTexture = new PIXI.Sprite(PortWrapper.cachedPortTexture);
-      spriteFromCachedTexture.cacheAsBitmap = true;
       return spriteFromCachedTexture;
     }
 
@@ -37,7 +36,6 @@ export class PortWrapper extends GraphicWrapper {
     PortWrapper.cachedPortTexture = texture;
 
     const sprite = new PIXI.Sprite(texture);
-    sprite.cacheAsBitmap = true;
     return sprite;
   }
 

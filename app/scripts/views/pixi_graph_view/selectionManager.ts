@@ -5,6 +5,7 @@ import {
 } from "../../interfaces.js";
 import { BackgroundWrapper } from "./backgroundWrapper.js";
 import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
+import { VtxBackgroundWrapper } from "./graphicWrappers/vertexBackgroundWrapper.js";
 
 export class SelectionManager {
   private static readonly ghostAlpha = 0.5;
@@ -17,7 +18,7 @@ export class SelectionManager {
     dy: number;
     isClone: boolean;
     ghostRoot: PIXI.Container;
-    ghosts: Map<string, PIXI.Sprite>;
+    ghosts: Map<string, VtxBackgroundWrapper>;
   } = null;
 
   constructor(
@@ -49,7 +50,7 @@ export class SelectionManager {
     if (this.selectionDrag !== null && this.selectionDrag.ghosts.has(id)) {
       const ghost = this.selectionDrag.ghosts.get(id)!;
       this.selectionDrag.ghosts.delete(id);
-      this.selectionDrag.ghostRoot.removeChild(ghost);
+      this.selectionDrag.ghostRoot.removeChild(ghost.getDisplayObject());
     }
   }
 
@@ -144,16 +145,17 @@ export class SelectionManager {
 
     for (const selectedVertexId in this.selectedVertices) {
       const selectedVertex = this.selectedVertices[selectedVertexId];
-      const ghost = new PIXI.Sprite(VertexWrapper.generateBoxTexture(
-        SelectionManager.ghostAlpha,
+      const ghost = new VtxBackgroundWrapper(this.renderer);
+      ghost.redraw(
         false,
-        this.renderer,
-      ));
-      ghost.cacheAsBitmap = true;
-      ghostRoot.addChild(ghost);
-      ghost.position.set(
-        selectedVertex.localX() - VertexWrapper.backgroundSpritePadding,
-        selectedVertex.localY() - VertexWrapper.backgroundSpritePadding,
+        VertexWrapper.width,
+        VertexWrapper.height,
+        SelectionManager.ghostAlpha,
+      );
+      ghostRoot.addChild(ghost.getDisplayObject());
+      ghost.setPosition(
+        selectedVertex.localX(),
+        selectedVertex.localY(),
       );
 
       this.selectionDrag.ghosts.set(selectedVertexId, ghost);

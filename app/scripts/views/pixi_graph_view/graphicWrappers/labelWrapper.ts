@@ -1,14 +1,13 @@
 import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class LabelWrapper extends GraphicWrapper {
-  private static readonly cachedLabels = new Map<string, PIXI.Texture>();
+  private static readonly cachedLabels = new Map<string, PIXI.RenderTexture>();
   private static drawLabel(
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
     labelText: string,
   ): PIXI.Sprite {
     if (LabelWrapper.cachedLabels.has(labelText)) {
       const sprite = new PIXI.Sprite(LabelWrapper.cachedLabels.get(labelText)!);
-      sprite.cacheAsBitmap = true;
       return sprite;
     }
 

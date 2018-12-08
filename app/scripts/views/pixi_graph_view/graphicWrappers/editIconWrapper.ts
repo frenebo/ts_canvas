@@ -23,12 +23,10 @@ export class EditIconWrapper extends GraphicWrapper {
   private static draw(clicking: boolean, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
     if (clicking && EditIconWrapper.cachedClicking !== null) {
       const spriteFromCachedTexture = new PIXI.Sprite(EditIconWrapper.cachedClicking);
-      spriteFromCachedTexture.cacheAsBitmap = true;
       return spriteFromCachedTexture;
     }
     if (!clicking && EditIconWrapper.cachedNotClicking !== null) {
       const spriteFromCachedTexture = new PIXI.Sprite(EditIconWrapper.cachedNotClicking);
-      spriteFromCachedTexture.cacheAsBitmap = true;
       return spriteFromCachedTexture;
     }
 
@@ -73,7 +71,6 @@ export class EditIconWrapper extends GraphicWrapper {
     else EditIconWrapper.cachedNotClicking = texture;
 
     const sprite = new PIXI.Sprite(texture);
-    sprite.cacheAsBitmap = true;
     return sprite;
   }
 
