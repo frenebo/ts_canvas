@@ -19,8 +19,13 @@ export class EdgeWrapper extends GraphicWrapper {
     consistent: "consistent" | "inconsistent", // @TODO implement
   ): PIXI.Graphics {
     graphics.clear();
-    graphics.lineColor = selected ? EdgeWrapper.selectedLineColor : EdgeWrapper.unselectedLineColor;
-    graphics.lineStyle(EdgeWrapper.lineWidth);
+    let lineColor: number;
+    if (selected) {
+      lineColor = EdgeWrapper.selectedLineColor
+    } else {
+      lineColor = EdgeWrapper.unselectedLineColor;
+    }
+    graphics.lineStyle(EdgeWrapper.lineWidth, lineColor);
 
     const topLeftX = Math.min(sourceX, targetX);
     const topLeftY = Math.min(sourceY, targetY);

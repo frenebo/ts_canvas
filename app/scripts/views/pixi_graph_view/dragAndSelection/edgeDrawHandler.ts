@@ -40,12 +40,19 @@ export class EdgeDrawHandler {
 
     this.dragData.graphics.clear();
 
-    if (validity === undefined || validity === null) this.dragData.graphics.lineColor = 0x444444;
-    else if (validity === "valid") this.dragData.graphics.lineColor = 0x009933;
-    else if (validity === "invalid") this.dragData.graphics.lineColor = 0xCC0000;
-    else throw new Error(`Unknown validity value ${validity}`);
+    let lineColor: number;
 
-    this.dragData.graphics.lineStyle(10);
+    if (validity === undefined || validity === null) {
+      lineColor = 0x444444;
+    } else if (validity === "valid") {
+      lineColor = 0x009933;
+    } else if (validity === "invalid") {
+      lineColor = 0xCC0000;
+    } else {
+      throw new Error(`Unknown validity value ${validity}`);
+    }
+
+    this.dragData.graphics.lineStyle(10, lineColor);
     this.dragData.graphics.moveTo(startX, startY);
     this.dragData.graphics.lineTo(endX, endY);
   }
