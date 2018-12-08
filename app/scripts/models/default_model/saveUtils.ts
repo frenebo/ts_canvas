@@ -4,6 +4,10 @@ import {
 } from "./model.js";
 import { SessionUtils } from "./sessionUtils.js";
 
+function timeout(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export class SaveUtils {
   private static readonly saveFilePrefix = "GRAPH_FILE";
 
@@ -18,15 +22,16 @@ export class SaveUtils {
     return savedFileKeysWithoutPrefix;
   }
 
-  public static saveFile(fileName: string, session: SessionData): void {
+  public static async saveFile(fileName: string, session: SessionData): Promise<void> {
     window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(SessionUtils.toJson(session.data)));
     session.openFile = {
       fileName: fileName,
       fileIdxInHistory: 0,
     }
+    await timeout(1000);
   }
 
-  public static openFile(fileName: string, session: SessionData): void {
+  public static async openFile(fileName: string, session: SessionData): Promise<void> {
     const dataStringOrNull = window.localStorage.getItem(`${SaveUtils.saveFilePrefix}${fileName}`);
 
     if (dataStringOrNull !== null) {
@@ -39,6 +44,7 @@ export class SaveUtils {
         fileIdxInHistory: 0,
       };
     }
+    await timeout(1000);
   }
 
   public static deleteFile(fileName: string, session: SessionData): void {

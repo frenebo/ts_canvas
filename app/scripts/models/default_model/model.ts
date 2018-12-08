@@ -26,6 +26,7 @@ import {
   SessionUtils,
   SessionDataJson,
 } from "./sessionUtils.js";
+import { Queue } from "../../queue.js";
 
 export interface ModelDataObj {
   graph: GraphData;
@@ -59,8 +60,9 @@ export class DefaultModel implements ModelInterface {
     futureDiffs: [],
     openFile: null,
   };
-
+  private requestQueue: Queue;
   constructor() {
+    this.requestQueue = new Queue();
     for (let i = 0; i < 3; i++) {
       const layer = Layer.getLayer("Repeat");
       LayerUtils.addLayer(
@@ -90,49 +92,8 @@ export class DefaultModel implements ModelInterface {
     this.graphChangedListeners.push(listener);
   }
 
-  private currentRequest: Promise<unknown> | null = null;
-  private pendingRequests: Array<{
-    startPromise: () => Promise<unknown>;
-  }> = [];
-  private addToQueue<T>(changeFunc: () => Promise<T>): Promise<T> {
-    const setUpCurrentChange = (info: {
-      startPromise: () => Promise<unknown>;
-    }) => {
-      this.currentRequest = info.startPromise();
-      this.currentRequest.then((val) => {
-        if (this.pendingRequests.length === 0) {
-          this.currentRequest = null;
-        } else {
-          const nextChangeFunc = this.pendingRequests.splice(0, 1)[0];
-          setUpCurrentChange(nextChangeFunc);
-        }
-      });
-    }
-
-    return new Promise<T>(resolve => {
-      const modifiedChangeFunc = () => {
-        const promise = changeFunc();
-        promise.then((val: T) => {
-          resolve(val);
-        });
-
-        return promise;
-      }
-
-      const change = {
-        startPromise: modifiedChangeFunc,
-      };
-
-      if (this.currentRequest === null) {
-        setUpCurrentChange(change);
-      } else {
-        this.pendingRequests.push(change);
-      }
-    });
-  }
-
   public async requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void> {
-    return this.addToQueue(async () => {
+    return this.requestQueue.addToQueue(async () => {
       const beforeChange = SessionUtils.toJson(this.session.data) as unknown as Diffable;
 
       for (const req of reqs) {
@@ -277,7 +238,7 @@ export class DefaultModel implements ModelInterface {
   }
 
   public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
-    return this.addToQueue(async () => {
+    return this.requestQueue.addToQueue(async () => {
       if (req.type === "undo") {
         await VersioningUtils.undo(this.session);
       } else if (req.type === "redo") {
@@ -299,7 +260,7 @@ export class DefaultModel implements ModelInterface {
   public async requestModelInfo<T extends keyof ModelInfoReqs>(
     req: ModelInfoReqs[T]["request"],
   ): Promise<ModelInfoReqs[T]["response"]> {
-    return this.addToQueue(async () => {
+    return this.requestQueue.addToQueue(async () => {
       if (req.type === "validateEdge") {
         const validationMessage = SessionUtils.validateCreateEdge(
           this.session.data.graph,
