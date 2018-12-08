@@ -84,9 +84,14 @@ export class KeyboardHandler {
     eventKeyName: "o",
     ctrlMeta: true,
   }];
-  private readonly deleteSelectionShortcuts: ShortcutDescription[] = [{
-    eventKeyName: "delete",
-  }];
+  private readonly deleteSelectionShortcuts: ShortcutDescription[] = [
+    {
+      eventKeyName: "delete",
+    },
+    {
+      eventKeyName: "backspace",
+    }
+  ];
 
   constructor(
     div: HTMLDivElement,
