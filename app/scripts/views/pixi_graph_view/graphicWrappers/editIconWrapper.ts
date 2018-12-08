@@ -32,7 +32,7 @@ export class EditIconWrapper extends GraphicWrapper {
     const graphics = new PIXI.Graphics();
     graphics.beginFill(clicking ? 0x888888 : 0x555555);
     graphics.lineColor = 0x000000;
-    graphics.lineWidth = 5;
+    graphics.lineStyle(5);
 
     function graphPoints(origPts: number[][], loop=false) {
       graphics.moveTo(

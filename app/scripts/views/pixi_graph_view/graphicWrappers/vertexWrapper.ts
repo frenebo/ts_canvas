@@ -117,11 +117,11 @@ export class VertexWrapper extends GraphicWrapper {
   private positionChildren(): void {
     let widthForLabel: number;
     if (this.editIcon !== null) {
-      const padding = (this.getBackgroundHeight() - this.editIcon.getBackgroundHeight())/2;
-      this.editIcon.setPosition(this.getBackgroundWidth() - (this.editIcon.getBackgroundWidth() + padding), padding);
-      widthForLabel = this.getBackgroundWidth() - (this.editIcon.getBackgroundWidth() + padding);
+      const padding = (VertexWrapper.defaultHeight - this.editIcon.getBackgroundHeight())/2;
+      this.editIcon.setPosition(VertexWrapper.defaultWidth - (this.editIcon.getBackgroundWidth() + padding), padding);
+      widthForLabel = VertexWrapper.defaultWidth - (this.editIcon.getBackgroundWidth() + padding);
     } else {
-      widthForLabel = this.getBackgroundWidth();
+      widthForLabel = VertexWrapper.defaultWidth;
     }
 
     this.label.position.set(

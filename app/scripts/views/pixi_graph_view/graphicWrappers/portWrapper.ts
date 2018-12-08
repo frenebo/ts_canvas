@@ -14,7 +14,7 @@ export class PortWrapper extends GraphicWrapper {
     const graphics = new PIXI.Graphics();
 
     graphics.lineColor = 0x000000;
-    graphics.lineWidth =PortWrapper.borderWidth;
+    graphics.lineStyle(PortWrapper.borderWidth);
     graphics.beginFill(0x999999);
     graphics.drawRoundedRect(
       0 + PortWrapper.borderWidth/2,
