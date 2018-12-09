@@ -15,7 +15,7 @@ export class VersioningUtils {
     const pastDiff = session.pastDiffs.pop()!;
 
     const dataJson = SessionUtils.toJson(session.data);
-    const newData = undoDiff(dataJson as unknown as Diffable, pastDiff) as unknown as SessionDataJson;
+    const newData = await undoDiff(dataJson as unknown as Diffable, pastDiff) as unknown as SessionDataJson;
 
     session.futureDiffs.splice(0, 0, pastDiff);
 
@@ -32,7 +32,7 @@ export class VersioningUtils {
     const redoDiff = session.futureDiffs.splice(0, 1)[0];
 
     const dataJson = SessionUtils.toJson(session.data)
-    const newData = applyDiff(dataJson as unknown as Diffable, redoDiff) as unknown as SessionDataJson;
+    const newData = await applyDiff(dataJson as unknown as Diffable, redoDiff) as unknown as SessionDataJson;
 
     session.pastDiffs.push(redoDiff);
     session.data = SessionUtils.fromJson(newData);

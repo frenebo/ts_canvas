@@ -100,7 +100,7 @@ export class DefaultModel implements ModelInterface {
         await this.requestSingleModelChange(req);
       }
 
-      const changeDiff = createDiff(beforeChange, SessionUtils.toJson(this.session.data) as unknown as Diffable);
+      const changeDiff = await createDiff(beforeChange, SessionUtils.toJson(this.session.data) as unknown as Diffable);
 
       if (changeDiff !== null) {
         this.session.pastDiffs.push(changeDiff as DiffType<SessionDataJson & Diffable>);
