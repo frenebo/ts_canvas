@@ -19,7 +19,7 @@ gulp.task("electron_copy_deps", () => {
 gulp.task("start_server", () => {
   return connect.server({
     root: "build",
-    port: 3000,
+    port: 5000,
   });
 });
 
