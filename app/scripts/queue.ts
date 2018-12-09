@@ -20,7 +20,6 @@ export class Queue {
       const modifiedFunc = () => {
         const promise = addedFunc();
         promise.then((val: T) => {
-          console.log(val);
           resolve(val);
         });
 

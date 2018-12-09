@@ -15,7 +15,7 @@ export class LabelWrapper extends GraphicWrapper {
       fontFamily: "Arial",
       fontSize: 30,
       // fontStyle: 'italic',
-      // fontWeight: "bold",
+      fontWeight: "bold",
       // fill: "#ffffff",
       // stroke: "#4a1850",
       // strokeThickness: 5,
