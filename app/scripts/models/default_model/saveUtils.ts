@@ -20,10 +20,6 @@ export class SaveUtils {
 
   public static async saveFile(fileName: string, session: SessionData): Promise<void> {
     window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(SessionUtils.toJson(session.data)));
-    session.openFile = {
-      fileName: fileName,
-      fileIdxInHistory: 0,
-    }
   }
 
   public static async openFile(fileName: string, session: SessionData): Promise<void> {
@@ -34,18 +30,10 @@ export class SaveUtils {
 
       // @TODO type checking?
       session.data = modelData;
-      session.openFile = {
-        fileName: fileName,
-        fileIdxInHistory: 0,
-      };
     }
   }
 
   public static deleteFile(fileName: string, session: SessionData): void {
     window.localStorage.removeItem(`${SaveUtils.saveFilePrefix}${fileName}`);
-
-    if (session.openFile !== null && session.openFile.fileName === fileName) {
-      session.openFile = null;
-    }
   }
 }

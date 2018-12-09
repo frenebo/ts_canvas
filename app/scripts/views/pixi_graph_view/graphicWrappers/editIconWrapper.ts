@@ -77,9 +77,7 @@ export class EditIconWrapper extends GraphicWrapper {
   private static getHitArea(): PIXI.Polygon {
     const outlineFirstPoint = EditIconWrapper.outlinePoints[EditIconWrapper.outlinePoints.length - 1];
     const outlinePoints = EditIconWrapper.outlinePoints.concat([outlineFirstPoint]);
-    const points = outlinePoints.map(([x, y]) => {
-      return new PIXI.Point(x + EditIconWrapper.texturePadding, y + EditIconWrapper.texturePadding);
-    });
+    const points = outlinePoints.map(([x, y]) => new PIXI.Point(x, y));
 
     return new PIXI.Polygon(...points);
   }

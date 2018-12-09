@@ -10,11 +10,6 @@ import {
   GraphUtils,
   EdgesByVertex,
 } from "./graphUtils.js";
-import {
-  Diffable,
-  DiffType,
-  createDiff,
-} from "../../diff.js";
 import { SaveUtils } from "./saveUtils.js";
 import { VersioningManager } from "./versioningUtils.js";
 import {
@@ -36,10 +31,6 @@ export interface ModelDataObj {
 
 export interface SessionData {
   data: ModelDataObj;
-  openFile: null | {
-    fileName: string;
-    fileIdxInHistory: number | null;
-  }
 }
 
 export class DefaultModel implements ModelInterface {
@@ -54,13 +45,11 @@ export class DefaultModel implements ModelInterface {
       layers: {},
       edgesByVertex: {},
     },
-    openFile: null,
   };
   private requestQueue: Queue;
   private versioningManager: VersioningManager<SessionDataJson>;
   constructor() {
     this.requestQueue = new Queue();
-    this.versioningManager = new VersioningManager(SessionUtils.toJson(this.session.data));
     for (let i = 0; i < 3; i++) {
       const layer = Layer.getLayer("Repeat");
       LayerUtils.addLayer(
@@ -80,6 +69,7 @@ export class DefaultModel implements ModelInterface {
         vertex,
       );
     }
+    this.versioningManager = new VersioningManager(SessionUtils.toJson(this.session.data));
   }
 
   public async getGraphData(): Promise<DeepReadonly<GraphData>> {
@@ -100,7 +90,7 @@ export class DefaultModel implements ModelInterface {
 
       const newJson = SessionUtils.toJson(this.session.data);
 
-      this.versioningManager.recordChange(newJson)
+      this.versioningManager.recordChange(newJson);
     }).then(() => {
       this.graphChangedListeners.forEach(l => l())
     });
@@ -219,15 +209,18 @@ export class DefaultModel implements ModelInterface {
   public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
     return this.requestQueue.addToQueue(async () => {
       if (req.type === "undo") {
-        // await VersioningUtils.undo(this.session);
+        this.session.data = SessionUtils.fromJson(this.versioningManager.undo());
       } else if (req.type === "redo") {
-        // await VersioningUtils.redo(this.session);
+        this.session.data = SessionUtils.fromJson(this.versioningManager.redo());
       } else if (req.type === "saveFile") {
         await SaveUtils.saveFile(req.fileName, this.session);
+        this.versioningManager.onFileSave(req.fileName);
       } else if (req.type === "openFile") {
         await SaveUtils.openFile(req.fileName, this.session);
+        this.versioningManager.onFileOpen(req.fileName, SessionUtils.toJson(this.session.data));
       } else if (req.type === "deleteFile") {
         await SaveUtils.deleteFile(req.fileName, this.session);
+        this.versioningManager.onFileDelete(req.fileName);
       } else {
         throw new Error("unimplemented");
       }
@@ -274,15 +267,17 @@ export class DefaultModel implements ModelInterface {
       } else if (req.type === "fileIsOpen") {
         let response: ModelInfoReqs["fileIsOpen"]["response"];
 
-        if (this.session.openFile === null) {
+        const openFileName = this.versioningManager.getOpenFileName();
+
+        if (openFileName === null) {
           response = {
             fileIsOpen: false,
           };
         } else {
           response = {
             fileIsOpen: true,
-            fileName: this.session.openFile.fileName,
-            fileIsUpToDate: this.session.openFile.fileIdxInHistory === 0,
+            fileName: openFileName,
+            fileIsUpToDate: this.versioningManager.areAllChangesSaved(),
           }
         }
 
