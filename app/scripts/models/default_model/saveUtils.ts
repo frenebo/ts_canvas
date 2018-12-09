@@ -4,10 +4,6 @@ import {
 } from "./model.js";
 import { SessionUtils } from "./sessionUtils.js";
 
-function timeout(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export class SaveUtils {
   private static readonly saveFilePrefix = "GRAPH_FILE";
 
@@ -28,7 +24,6 @@ export class SaveUtils {
       fileName: fileName,
       fileIdxInHistory: 0,
     }
-    await timeout(1000);
   }
 
   public static async openFile(fileName: string, session: SessionData): Promise<void> {
@@ -44,7 +39,6 @@ export class SaveUtils {
         fileIdxInHistory: 0,
       };
     }
-    await timeout(1000);
   }
 
   public static deleteFile(fileName: string, session: SessionData): void {

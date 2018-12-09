@@ -4,6 +4,7 @@ import {
   ModelInfoReqs,
 } from "../../../interfaces.js";
 import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
+import { MONOSPACE_STYLE } from "../../../constants.js";
 
 export class EditLayerDialog extends Dialog {
   constructor(
@@ -87,6 +88,7 @@ export class EditLayerDialog extends Dialog {
 
       input.style.padding = "3px";
       input.style.border = "1px solid black";
+      input.style.fontFamily = MONOSPACE_STYLE;
 
       const errorText = document.createElement("div");
       row.appendChild(errorText);
@@ -186,13 +188,14 @@ export class EditLayerDialog extends Dialog {
     }
 
     applyButton.addEventListener("click", async () => {
+      this.addLoadIcon();
+      applyButton.disabled = true;
       const setFieldValues: {[key: string]: string} = {};
       for (const fieldId in inputFields) {
         if (!layerData.fields[fieldId].readonly) {
           setFieldValues[fieldId] = inputFields[fieldId].value;
         }
       }
-      this.addLoadIcon();
       const validated = await this.sendModelInfoRequests<"validateLayerFields">({
         type: "validateLayerFields",
         layerId: this.layerId,
@@ -201,44 +204,40 @@ export class EditLayerDialog extends Dialog {
 
       if (validated.requestError === "layer_nonexistent") {
         this.alertLayerNonexistent();
-        this.removeLoadIcon();
-        return;
-      }
-      if (validated.requestError === "field_nonexistent") {
+      } else if (validated.requestError === "field_nonexistent") {
         this.alertFieldNonexistent(validated.fieldName);
-        this.removeLoadIcon();
-        return;
-      }
+      } else {
+        let errorText = validated.errors.length === 0 ? "" : validated.errors.length === 1 ? "Error: " : "Errors: ";
+        errorText += validated.errors.join(", ");
 
-      let errorText = validated.errors.length === 0 ? "" : validated.errors.length === 1 ? "Error: " : "Errors: ";
-      errorText += validated.errors.join(", ");
+        updateErrorDiv.textContent = errorText;
 
-      updateErrorDiv.textContent = errorText;
+        if (validated.errors.length === 0) {
+          this.sendModelChangeRequests({
+            type: "setLayerFields",
+            layerId: this.layerId,
+            fieldValues: setFieldValues,
+          });
 
-      if (validated.errors.length === 0) {
-        this.sendModelChangeRequests({
-          type: "setLayerFields",
-          layerId: this.layerId,
-          fieldValues: setFieldValues,
-        });
+          const newInfo = await this.sendModelInfoRequests<"getLayerInfo">({
+            type: "getLayerInfo",
+            layerId: this.layerId,
+          });
 
-        const newInfo = await this.sendModelInfoRequests<"getLayerInfo">({
-          type: "getLayerInfo",
-          layerId: this.layerId,
-        });
-        this.removeLoadIcon();
-        if (!newInfo.layerExists) {
-          this.alertLayerNonexistent();
-          return;
-        }
+          if (!newInfo.layerExists) {
+            this.alertLayerNonexistent();
+          } else {
+            const newFields = newInfo.data.fields;
 
-        const newFields = newInfo.data.fields;
-
-        for (const fieldId in newFields) {
-          if (inputFields[fieldId].value !== newFields[fieldId].value) {
-            inputFields[fieldId].value = newFields[fieldId].value
+            for (const fieldId in newFields) {
+              if (inputFields[fieldId].value !== newFields[fieldId].value) {
+                inputFields[fieldId].value = newFields[fieldId].value
+              }
+            }
           }
         }
+        this.removeLoadIcon();
+        applyButton.disabled = false;
       }
     });
   }

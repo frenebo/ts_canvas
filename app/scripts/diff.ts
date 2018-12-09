@@ -1,4 +1,3 @@
-import { DIFF_WORKER_PATH } from "./constants.js";
 
 export type DiffableObject = {
   [key: string]: Diffable;
@@ -26,9 +25,9 @@ export interface ObjectDiffRecord<T extends DiffableObject> {
 export function undoDiff<T extends Diffable>(
   after: T,
   diff: null | (T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>),
+  worker: Worker,
 ): Promise<T> {
   return new Promise(resolve => {
-    const worker = new Worker(DIFF_WORKER_PATH);
     worker.postMessage({
       type: "undoDiff",
       after: after,
@@ -36,7 +35,6 @@ export function undoDiff<T extends Diffable>(
     });
     worker.onmessage = (ev) => {
       resolve(ev.data as T);
-      worker.terminate();
     }
   });
 }
@@ -44,9 +42,9 @@ export function undoDiff<T extends Diffable>(
 export function applyDiff<T extends Diffable>(
   before: T,
   diff: null | (T extends DiffableObject ? ObjectDiffRecord<T> : SimpleDiffRecord<T>),
+  worker: Worker,
 ): Promise<T> {
   return new Promise(resolve => {
-    const worker = new Worker(DIFF_WORKER_PATH);
     worker.postMessage({
       type: "applyDiff",
       before: before,
@@ -54,7 +52,6 @@ export function applyDiff<T extends Diffable>(
     });
     worker.onmessage = (ev) => {
       resolve(ev.data as T);
-      worker.terminate();
     }
   });
 }
@@ -67,9 +64,9 @@ export type DiffType<T extends Diffable> =
 export function createDiff<T extends Diffable>(
   before: T,
   after: T,
+  worker: Worker,
 ): Promise<DiffType<T>> {
   return new Promise(resolve => {
-    const worker = new Worker(DIFF_WORKER_PATH);
     worker.postMessage({
       type: "createDiff",
       before: before,
@@ -77,7 +74,6 @@ export function createDiff<T extends Diffable>(
     });
     worker.onmessage = (ev) => {
       resolve(ev.data as DiffType<T>);
-      worker.terminate();
     }
   });
 }

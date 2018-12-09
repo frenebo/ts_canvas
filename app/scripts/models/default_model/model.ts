@@ -16,7 +16,7 @@ import {
   createDiff,
 } from "../../diff.js";
 import { SaveUtils } from "./saveUtils.js";
-import { VersioningUtils } from "./versioningUtils.js";
+import { VersioningManager } from "./versioningUtils.js";
 import {
   LayerUtils,
   LayerClassDict,
@@ -36,8 +36,6 @@ export interface ModelDataObj {
 
 export interface SessionData {
   data: ModelDataObj;
-  pastDiffs: Array<DiffType<SessionDataJson & Diffable>>;
-  futureDiffs: Array<DiffType<SessionDataJson & Diffable>>;
   openFile: null | {
     fileName: string;
     fileIdxInHistory: number | null;
@@ -56,13 +54,13 @@ export class DefaultModel implements ModelInterface {
       layers: {},
       edgesByVertex: {},
     },
-    pastDiffs: [],
-    futureDiffs: [],
     openFile: null,
   };
   private requestQueue: Queue;
+  private versioningManager: VersioningManager<SessionDataJson>;
   constructor() {
     this.requestQueue = new Queue();
+    this.versioningManager = new VersioningManager(SessionUtils.toJson(this.session.data));
     for (let i = 0; i < 3; i++) {
       const layer = Layer.getLayer("Repeat");
       LayerUtils.addLayer(
@@ -94,34 +92,15 @@ export class DefaultModel implements ModelInterface {
 
   public async requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void> {
     return this.requestQueue.addToQueue(async () => {
-      const beforeChange = SessionUtils.toJson(this.session.data) as unknown as Diffable;
+      // const beforeChange = SessionUtils.toJson(this.session.data) as unknown as Diffable;
 
       for (const req of reqs) {
         await this.requestSingleModelChange(req);
       }
 
-      const changeDiff = await createDiff(beforeChange, SessionUtils.toJson(this.session.data) as unknown as Diffable);
+      const newJson = SessionUtils.toJson(this.session.data);
 
-      if (changeDiff !== null) {
-        this.session.pastDiffs.push(changeDiff as DiffType<SessionDataJson & Diffable>);
-
-        if (this.session.openFile !== null) {
-          // if the save file is ahead of the current data, set fileIdxInHistory to null
-          if (
-            this.session.futureDiffs.length !== 0 &&
-            this.session.openFile.fileIdxInHistory !== null &&
-            this.session.openFile.fileIdxInHistory < 0
-          ) {
-            this.session.openFile.fileIdxInHistory = null;
-          }
-
-          if (typeof this.session.openFile.fileIdxInHistory === "number") {
-            this.session.openFile.fileIdxInHistory++;
-          }
-        }
-
-        this.session.futureDiffs = []; // redos are lost when model is changed
-      }
+      this.versioningManager.recordChange(newJson)
     }).then(() => {
       this.graphChangedListeners.forEach(l => l())
     });
@@ -240,9 +219,9 @@ export class DefaultModel implements ModelInterface {
   public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
     return this.requestQueue.addToQueue(async () => {
       if (req.type === "undo") {
-        await VersioningUtils.undo(this.session);
+        // await VersioningUtils.undo(this.session);
       } else if (req.type === "redo") {
-        await VersioningUtils.redo(this.session);
+        // await VersioningUtils.redo(this.session);
       } else if (req.type === "saveFile") {
         await SaveUtils.saveFile(req.fileName, this.session);
       } else if (req.type === "openFile") {

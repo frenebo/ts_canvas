@@ -1,5 +1,6 @@
 import { Dialog } from "./dialog.js";
 import { RequestModelChangesFunc, RequestVersioningChangeFunc } from "../../../messenger.js";
+import { MONOSPACE_STYLE } from "../../../constants.js";
 
 export class SaveAsDialog extends Dialog {
   constructor(
@@ -24,6 +25,7 @@ export class SaveAsDialog extends Dialog {
     textInput.placeholder = "Enter File name";
     textInput.style.width = "80%";
     textInput.style.display = "inline-block";
+    textInput.style.fontFamily = MONOSPACE_STYLE;
     textInput.addEventListener("keydown", async (ev) => {
       if (ev.key === "Enter") {
         if (textInput.value.trim() !== "") {
@@ -44,9 +46,11 @@ export class SaveAsDialog extends Dialog {
     saveButton.addEventListener("click", async () => {
       if (textInput.value.trim() !== "") {
         this.addLoadIcon();
+        saveButton.disabled = true;
         await sendModelVersioningRequest({type: "saveFile", fileName: textInput.value});
-        this.removeLoadIcon(); // redundant?
-        closeDialogFunc(); // redundant?
+        this.removeLoadIcon();
+        saveButton.disabled = false;
+        closeDialogFunc();
       }
     });
   }

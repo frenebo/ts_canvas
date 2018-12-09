@@ -9,8 +9,9 @@ import {
   GraphUtils
 } from "./graphUtils.js";
 import { GraphData } from "../../interfaces.js";
+import { Diffable } from "../../diff.js";
 
-export type SessionDataJson = {
+export type SessionDataJson = Diffable & {
   edgesByVertex: EdgesByVertex,
   graph: GraphData,
   layers: LayerClassDictJson,
