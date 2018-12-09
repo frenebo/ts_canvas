@@ -47,7 +47,10 @@ export class EditLayerDialog extends Dialog {
     this.root.appendChild(editLayerTitle);
 
     this.addLoadIcon();
-    const layerInfoResponse = await this.sendModelInfoRequests<"getLayerInfo">({type: "getLayerInfo", layerId: this.layerId});
+    const layerInfoResponse = await this.sendModelInfoRequests<"getLayerInfo">({
+      type: "getLayerInfo",
+      layerId: this.layerId,
+    });
     this.removeLoadIcon();
     if (!layerInfoResponse.layerExists) {
       this.alertLayerNonexistent();
@@ -221,7 +224,7 @@ export class EditLayerDialog extends Dialog {
 
         const newInfo = await this.sendModelInfoRequests<"getLayerInfo">({
           type: "getLayerInfo",
-          layerId: this.layerId
+          layerId: this.layerId,
         });
         this.removeLoadIcon();
         if (!newInfo.layerExists) {

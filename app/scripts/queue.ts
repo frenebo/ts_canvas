@@ -19,7 +19,10 @@ export class Queue {
     return new Promise(resolve => {
       const modifiedFunc = () => {
         const promise = addedFunc();
-        promise.then((val: T) => resolve(val));
+        promise.then((val: T) => {
+          console.log(val);
+          resolve(val);
+        });
 
         return promise;
       }
@@ -27,7 +30,7 @@ export class Queue {
       if (this.currentPromise === null) {
         this.setAsCurrentPromise(modifiedFunc());
       } else {
-        this.queue.push(addedFunc);
+        this.queue.push(modifiedFunc);
       }
     });
   }
