@@ -123,7 +123,8 @@ export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperCon
     if (trimmedDims.length === 1 && trimmedDims[0] === "") trimmedDims = [];
 
     for (const trimmedDimStr of trimmedDims) {
-      if (!/^\d+$/.test(trimmedDimStr)) return null;
+      // optional plus/minus, 0 or more spaces, series of digits
+      if (!/(-|\+)?( )*^\d+$/.test(trimmedDimStr)) return null;
     }
 
     return trimmedDims.map((dim) => parseInt(dim));

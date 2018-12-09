@@ -1,3 +1,4 @@
+import { UNDO_HISTORY_SIZE } from "../../constants.js";
 
 export class VersioningManager<T> {
   private currentVal: string;
@@ -14,6 +15,9 @@ export class VersioningManager<T> {
   public recordChange(val: T) {
     this.futureVals = [];
     this.pastVals.push(this.currentVal);
+    if (this.pastVals.length > UNDO_HISTORY_SIZE) {
+      this.pastVals.splice(0, 1);
+    }
     this.currentVal = JSON.stringify(val);
     if (typeof this.historyPositionFromSave === "number") {
       if (this.historyPositionFromSave < 0) {
@@ -25,6 +29,7 @@ export class VersioningManager<T> {
   }
 
   public undo(): T {
+    console.log("undoing");
     const pastVal = this.pastVals.pop();
     if (pastVal !== undefined) {
       this.futureVals.splice(0, 0, this.currentVal);
