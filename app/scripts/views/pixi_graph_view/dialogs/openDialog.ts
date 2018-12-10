@@ -11,7 +11,9 @@ export class OpenDialog extends Dialog {
   ) {
     super(closeDialogFunc, width, height);
     this.root.style.overflowY = "scroll";
-    this.init();
+    this.init().catch((reason) => {
+      throw new Error(`Failed to init: ${reason}`);
+    });
   }
 
   private async init() {

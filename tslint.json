@@ -185,12 +185,14 @@
     "strict-type-predicates":false,
     "switch-default":true,
     "switch-final-break":true,
-    "trailing-comma":{
-      "options":{
+    "trailing-comma": [
+      true,
+      {
         "multiline":"always",
-        "singleline":"never"
+        "singleline":"never",
+        "esSpecCompliant": true
       }
-    },
+    ],
     "triple-equals":true,
     "type-literal-delimiter":true,
     "typedef":true,

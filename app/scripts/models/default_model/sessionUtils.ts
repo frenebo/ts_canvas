@@ -2,26 +2,27 @@ import { ModelDataObj } from "./model.js";
 import {
   LayerUtils,
   LayerClassDictJson,
-  LayerClassDict
+  LayerClassDict,
 } from "./layers/layerUtils.js";
 import {
   EdgesByVertex,
-  GraphUtils
+  GraphUtils,
 } from "./graphUtils.js";
 import { GraphData } from "../../interfaces.js";
 import { Layer } from "./layers/layers.js";
 
-export type SessionDataJson = {
-  edgesByVertex: EdgesByVertex,
-  graph: GraphData,
-  layers: LayerClassDictJson,
+export interface SessionDataJson {
+  edgesByVertex: EdgesByVertex;
+  graph: GraphData;
+  layers: LayerClassDictJson;
 }
+
 export class SessionUtils {
   public static toJson(data: ModelDataObj): SessionDataJson {
     const jsonData = {
       edgesByVertex: JSON.parse(JSON.stringify(data.edgesByVertex)),
       graph: JSON.parse(JSON.stringify(data.graph)),
-      layers: LayerUtils.toJson(data.layers)
+      layers: LayerUtils.toJson(data.layers),
     };
     return jsonData;
   }

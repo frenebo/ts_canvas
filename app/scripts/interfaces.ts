@@ -51,12 +51,8 @@ export interface ViewInterface {
   setGraphData(data: GraphData): void;
 }
 
-export type DeepReadonly<T extends {}> = Readonly<{
-  [P in keyof T]: T[P] extends {} ? DeepReadonly<T[P]> : T[P];
-}>;
-
 export interface ModelInterface {
-  getGraphData(): Promise<DeepReadonly<GraphData>>;
+  getGraphData(): Promise<GraphData>;
   onDataChanged(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void>;
   requestModelVersioningChange(req: ModelVersioningRequest): Promise<void>;
@@ -118,6 +114,7 @@ type ReqMapType<T extends string> = {
     response: unknown;
   };
 };
+
 export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
   "validateEdge": {
     "request": {

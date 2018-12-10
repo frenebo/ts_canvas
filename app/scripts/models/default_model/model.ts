@@ -2,7 +2,6 @@ import {
   ModelInterface,
   GraphData,
   ModelChangeRequest,
-  DeepReadonly,
   ModelInfoReqs,
   ModelVersioningRequest,
 } from "../../interfaces.js";
@@ -48,6 +47,7 @@ export class DefaultModel implements ModelInterface {
   };
   private readonly requestQueue: Queue;
   private readonly versioningManager: VersioningManager<SessionDataJson>;
+
   constructor() {
     this.requestQueue = new Queue();
     for (let i = 0; i < 3; i++) {
@@ -72,7 +72,7 @@ export class DefaultModel implements ModelInterface {
     this.versioningManager = new VersioningManager(SessionUtils.toJson(this.session.data));
   }
 
-  public async getGraphData(): Promise<DeepReadonly<GraphData>> {
+  public async getGraphData(): Promise<GraphData> {
     return this.session.data.graph;
   }
 
@@ -331,7 +331,7 @@ export class DefaultModel implements ModelInterface {
         return GraphUtils.getUniqueVertexIds(
           this.session.data.graph,
           (req as ModelInfoReqs["getUniqueVertexIds"]["request"]).count,
-        )
+        );
       } else {
         throw new Error(`Unimplemented request ${req.type}`);
       }

@@ -1,6 +1,6 @@
 import {
   ValueWrapper,
-  ShapeWrapper
+  ShapeWrapper,
 } from "./valueWrappers/valueWrapper.js";
 
 interface LayerPortInfo {
@@ -9,13 +9,13 @@ interface LayerPortInfo {
 }
 
 interface LayerTypes {
-  "Repeat": RepeatLayer
+  "Repeat": RepeatLayer;
 }
 
-export type LayerJsonInfo = {
+export interface LayerJsonInfo {
   layerType: string;
   valDict: {[key: string]: string};
-};
+}
 
 export abstract class Layer {
   private static layerConstructorDict: LayerTypes | null = null;
@@ -28,13 +28,15 @@ export abstract class Layer {
 
     return Object.keys(Layer.layerConstructorDict).indexOf(type) !== -1;
   }
+
   public static getLayer<T extends keyof LayerTypes>(type: T): LayerTypes[T] {
     if (type === "Repeat") {
       return new RepeatLayer();
     } else {
-      throw new Error("unimplemented layer")
+      throw new Error("unimplemented layer");
     }
   }
+
   public static toJson(layer: Layer): LayerJsonInfo {
     const info: LayerJsonInfo = {
       layerType: layer.getType(),
@@ -47,12 +49,14 @@ export abstract class Layer {
   }
 
   public static fromJson(info: LayerJsonInfo): Layer {
-    if (!Layer.isLayerType(info.layerType)) throw new Error(`Unknown layer type ${info.layerType}`)
+    if (!Layer.isLayerType(info.layerType)) throw new Error(`Unknown layer type ${info.layerType}`);
 
     const layer = Layer.getLayer(info.layerType);
 
     for (const valueKey in info.valDict) {
-      if (!layer.hasField(valueKey)) throw new Error(`${info.layerType} type layer does not have value named ${valueKey}`);
+      if (!layer.hasField(valueKey)) {
+        throw new Error(`${info.layerType} type layer does not have value named ${valueKey}`);
+      }
 
       layer.getValueWrapper(valueKey).setFromString(info.valDict[valueKey]);
     }
@@ -71,25 +75,27 @@ export abstract class Layer {
     [key: string]: {
       wrapper: ValueWrapper;
       readonly: boolean;
-    }
+    };
   };
   protected abstract type: string;
 
   constructor() {
-
+    // empty
   }
 
   public update(): void {
     const status = this.updateFunc();
 
-    if (status.errors.length !== 0) throw new Error(`Error updating: ${status.errors.join(",")}`);
+    if (status.errors.length !== 0) {
+      throw new Error(`Error updating: ${status.errors.join(",")}`);
+    }
   }
 
-  public validateUpdate(): {errors: string[], warnings: string[]} {
+  public validateUpdate(): {errors: string[]; warnings: string[]} {
     return Layer.clone(this).updateFunc();
   }
 
-  protected abstract updateFunc(): {errors: string[], warnings: string[]};
+  protected abstract updateFunc(): {errors: string[]; warnings: string[]};
 
   public getType(): string {
     return this.type;

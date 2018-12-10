@@ -55,7 +55,7 @@ export class LabelWrapper extends GraphicWrapper {
   }
 
   public getHeight(): number {
-    return this.sprite == null ? 0 : this.sprite.height;
+    return this.sprite === null ? 0 : this.sprite.height;
   }
 
   public setText(text: string): void {

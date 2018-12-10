@@ -81,7 +81,9 @@ export class EdgeDragHandler {
       const dy = mouseLocalY - clickData.mouseStartLocal.y;
 
       if (clickData.isDrag) {
-        selectionManager.endSelectionDrag(dx, dy);
+        selectionManager.endSelectionDrag(dx, dy).catch(() => {
+          // @TODO
+        });
       } else if (!clickData.selectionUpdated) {
         if (clickData.isCtrlOrMetaClick) {
           if (selectionManager.edgeIsSelected(id)) {

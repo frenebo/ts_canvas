@@ -1,17 +1,17 @@
 import {
   Layer,
-  LayerJsonInfo
+  LayerJsonInfo,
 } from "./layers.js";
 import {
   LayerData,
-  ModelInfoReqs
+  ModelInfoReqs,
 } from "../../../interfaces.js";
 
-export type LayerClassDict = {
+export interface LayerClassDict {
   [key: string]: Layer;
 }
 
-export type LayerClassDictJson = {
+export interface LayerClassDictJson {
   [key: string]: LayerJsonInfo;
 }
 
@@ -114,7 +114,7 @@ export class LayerUtils {
       requestError: null,
       errors: validated.errors,
       warnings: validated.warnings,
-    }
+    };
   }
 
   public static validateValue(
@@ -131,7 +131,7 @@ export class LayerUtils {
     return {
       requestError: null,
       invalidError: layer.getValueWrapper(valueId).validateString(newValueString),
-    }
+    };
   }
 
   public static compareValue(
@@ -148,7 +148,7 @@ export class LayerUtils {
     return {
       requestError: null,
       isEqual: layer.getValueWrapper(valueId).compareToString(compareString),
-    }
+    };
   }
 
   public static cloneLayer(

@@ -106,7 +106,9 @@ export class VertexDragHandler {
     const dy = mouseLocalY - this.clickData.mouseStartLocal.y;
 
     if (this.clickData.isDrag) {
-      this.selectionManager.endSelectionDrag(dx, dy);
+      this.selectionManager.endSelectionDrag(dx, dy).catch(() => {
+        // @TODO
+      });
     } else if (!this.clickData.selectionUpdated) {
       if (this.clickData.isCtrlOrMetaClick) {
         if (this.selectionManager.vertexIsSelected(this.vertexId)) {

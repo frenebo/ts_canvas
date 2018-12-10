@@ -257,7 +257,9 @@ export class SelectionManager {
         });
       }
 
-      this.sendModelChangeRequests(...requests);
+      this.sendModelChangeRequests(...requests).catch((reason) => {
+        throw new Error(`Failed to send model change requests: ${reason}`);
+      });
     } else {
       const requests: ModelChangeRequest[] = [];
 
@@ -274,7 +276,9 @@ export class SelectionManager {
         });
       }
 
-      this.sendModelChangeRequests(...requests);
+      this.sendModelChangeRequests(...requests).catch((reason) => {
+        throw new Error(`Failed to send model change requests: ${reason}`);
+      });
     }
   }
 
@@ -304,6 +308,8 @@ export class SelectionManager {
       });
     }
 
-    this.sendModelChangeRequests(...requests);
+    this.sendModelChangeRequests(...requests).catch((reason) => {
+      throw new Error(`Failed to send model change requests: ${reason}`);
+    });
   }
 }

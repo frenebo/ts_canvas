@@ -48,7 +48,7 @@ export class PortWrapper extends GraphicWrapper {
     isOutput: boolean,
   ) {
     super({
-      buttonMode: true
+      buttonMode: true,
     });
 
     this.isOutput = isOutput;

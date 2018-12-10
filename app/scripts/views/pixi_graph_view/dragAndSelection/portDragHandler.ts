@@ -2,20 +2,20 @@ import { DragListeners } from "./dragRegistry.js";
 import { PortWrapper } from "../graphicWrappers/portWrapper.js";
 
 interface PortListenerTypes {
-  dragStart: (x: number, y: number) => void;
-  dragMove: (x: number, y: number) => void;
-  dragEnd: (x: number, y: number) => void;
-  dragAbort: () => void;
-  click: () => void;
-  hover: () => void;
-  hoverend: () => void;
+  dragStart(x: number, y: number): void;
+  dragMove(x: number, y: number): void;
+  dragEnd(x: number, y: number): void;
+  dragAbort(): void;
+  click(): void;
+  hover(): void;
+  hoverend(): void;
 }
 
-type ArgumentTypes<F extends Function> = F extends (...args: infer A) => unknown ? A : never
+type ArgumentTypes<F extends Function> = F extends (...args: infer A) => unknown ? A : never;
 
 export class PortDragHandler {
-  private static hoverTimeWait = 500; // milliseconds
-  private static dragThreshold = 8;
+  private static readonly hoverTimeWait = 500; // milliseconds
+  private static readonly dragThreshold = 8;
   private readonly listenerDict: {[key in keyof PortListenerTypes]: Array<PortListenerTypes[key]>} = {
     dragStart: [],
     dragMove: [],
@@ -97,7 +97,10 @@ export class PortDragHandler {
     });
   }
 
-  private callListeners<T extends keyof PortListenerTypes>(evName: T, ...listenerArgs: ArgumentTypes<PortListenerTypes[T]>) {
+  private callListeners<T extends keyof PortListenerTypes>(
+    evName: T,
+    ...listenerArgs: ArgumentTypes<PortListenerTypes[T]>
+  ) {
     const listeners = this.listenerDict[evName] as Array<PortListenerTypes[T]>;
     for (const listener of listeners) {
       (listener as (...args: ArgumentTypes<PortListenerTypes[T]>) => unknown)(...listenerArgs);

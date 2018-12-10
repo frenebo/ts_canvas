@@ -4,14 +4,14 @@ export abstract class GraphicWrapper {
   private readonly positionChangedListeners: Array<() => void> = [];
 
   constructor(config: {
-    buttonMode?: boolean,
-    hitArea?: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle | PIXI.HitArea
+    buttonMode?: boolean;
+    hitArea?: PIXI.Rectangle | PIXI.Circle | PIXI.Ellipse | PIXI.Polygon | PIXI.RoundedRectangle | PIXI.HitArea;
   }) {
     this.container = new PIXI.Container();
     this.container.interactive = true;
     this.container.buttonMode = config.buttonMode === undefined ? false : config.buttonMode;
     if (config.hitArea !== undefined) {
-      this.container.hitArea = config.hitArea
+      this.container.hitArea = config.hitArea;
     }
   }
 
@@ -60,7 +60,7 @@ export abstract class GraphicWrapper {
   }
 
   public addChild(obj: PIXI.DisplayObject | GraphicWrapper): void {
-    this.container.addChild(obj instanceof GraphicWrapper ? obj.container : obj)
+    this.container.addChild(obj instanceof GraphicWrapper ? obj.container : obj);
   }
 
   public addChildAt(obj: PIXI.DisplayObject | GraphicWrapper, position: number): void {

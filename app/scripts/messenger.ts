@@ -4,7 +4,6 @@ import {
   ModelVersioningRequest,
 } from "./interfaces.js";
 
-
 export type RequestModelChangesFunc = (...reqs: ModelChangeRequest[]) => Promise<void>;
 export type RequestVersioningChangeFunc = (req: ModelVersioningRequest) => Promise<void>;
 export type RequestInfoFunc = <V extends keyof ModelInfoReqs>(

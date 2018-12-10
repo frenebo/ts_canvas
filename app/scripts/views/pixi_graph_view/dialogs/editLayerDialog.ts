@@ -16,7 +16,9 @@ export class EditLayerDialog extends Dialog {
     private readonly layerId: string,
   ) {
     super(closeDialogFunc, width, height);
-    this.init();
+    this.init().catch((reason) => {
+      throw new Error(`Failed to init dialog: ${reason}`);
+    });
   }
 
   private layerNonexistentDiv: HTMLDivElement | null = null;
@@ -62,8 +64,8 @@ export class EditLayerDialog extends Dialog {
     const fieldDiv = document.createElement("div");
     this.root.appendChild(fieldDiv);
 
-    let invalidFields: string[] = [];
-    let pendingFields: string[] = [];
+    const invalidFields: string[] = [];
+    const pendingFields: string[] = [];
     const inputFields: {[key: string]: HTMLInputElement} = {};
     for (const fieldId in layerData.fields) {
       const row = document.createElement("div");
@@ -102,7 +104,6 @@ export class EditLayerDialog extends Dialog {
         loadIcon: HTMLDivElement;
       } | null = null;
 
-
       input.addEventListener("input", async (ev) => {
         const thisPromise = this.sendModelInfoRequests<"validateValue">({
           type: "validateValue",
@@ -128,7 +129,10 @@ export class EditLayerDialog extends Dialog {
 
         const validateVal = await thisPromise;
 
-        if (currentValidation.promise !== thisPromise) return; // if a new value has started validation during the await period
+        // if a new value has started validation during the await period
+        if (currentValidation.promise !== thisPromise) {
+          return;
+        }
 
         row.removeChild(currentValidation.loadIcon);
 
@@ -217,6 +221,8 @@ export class EditLayerDialog extends Dialog {
             type: "setLayerFields",
             layerId: this.layerId,
             fieldValues: setFieldValues,
+          }).catch(() => {
+            // @TODO
           });
 
           const newInfo = await this.sendModelInfoRequests<"getLayerInfo">({
@@ -231,7 +237,7 @@ export class EditLayerDialog extends Dialog {
 
             for (const fieldId in newFields) {
               if (inputFields[fieldId].value !== newFields[fieldId].value) {
-                inputFields[fieldId].value = newFields[fieldId].value
+                inputFields[fieldId].value = newFields[fieldId].value;
               }
             }
           }

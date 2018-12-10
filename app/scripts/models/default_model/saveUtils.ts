@@ -1,6 +1,6 @@
 import {
   ModelDataObj,
-  SessionData
+  SessionData,
 } from "./model.js";
 import { SessionUtils } from "./sessionUtils.js";
 
@@ -19,7 +19,10 @@ export class SaveUtils {
   }
 
   public static saveFile(fileName: string, session: SessionData): void {
-    window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(SessionUtils.toJson(session.data)));
+    window.localStorage.setItem(
+      `${SaveUtils.saveFilePrefix}${fileName}`,
+      JSON.stringify(SessionUtils.toJson(session.data)),
+    );
   }
 
   public static openFile(fileName: string, session: SessionData): void {

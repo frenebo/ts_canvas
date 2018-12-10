@@ -10,7 +10,10 @@ import { EditIconWrapper } from "../graphicWrappers/editIconWrapper.js";
 import { SelectionManager } from "../selectionManager.js";
 import { EdgeDragHandler } from "./edgeDragHandler.js";
 import { PortPreviewManager } from "../portPreviewManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
+import {
+  RequestModelChangesFunc,
+  RequestInfoFunc,
+} from "../../../messenger.js";
 import { ModelInfoReqs } from "../../../interfaces.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
@@ -163,7 +166,11 @@ export class DragRegistry {
       if (this.portPreviewManager.currentShowingIs(port)) return;
       isHovering = true;
 
-      const portInfo = await this.sendModelInfoRequests<"getPortInfo">({type: "getPortInfo", vertexId: vertexId, portId: portId});
+      const portInfo = await this.sendModelInfoRequests<"getPortInfo">({
+        type: "getPortInfo",
+        vertexId: vertexId,
+        portId: portId,
+      });
 
       if (!portInfo.couldFindPort) return;
       if (!isHovering) return; // if the mouse has left by the time the model info is gotten
@@ -239,7 +246,8 @@ export class DragRegistry {
         } else {
           if (
             dragData.currentTarget === null ||
-            (dragData.currentTarget.portId !== snapInfo.targetPortId || dragData.currentTarget.vertexId !== snapInfo.targetVtxId)
+            dragData.currentTarget.portId !== snapInfo.targetPortId ||
+            dragData.currentTarget.vertexId !== snapInfo.targetVtxId
           ) {
             targetHasChanged = true;
             dragData.currentTarget = {
@@ -278,16 +286,20 @@ export class DragRegistry {
           snapInfo !== null && targetHasChanged
         ) {
           this.sendModelInfoRequests<"getUniqueEdgeIds">({
-            type: "getUniqueEdgeIds", count: 1
-          }).then((response) => {
-            return Promise.all([this.sendModelInfoRequests<"validateEdge">({
-              type: "validateEdge",
-              edgeId: response.edgeIds[0],
-              sourceVertexId: vertexId,
-              sourcePortId: portId,
-              targetVertexId: snapInfo.targetVtxId,
-              targetPortId: snapInfo.targetPortId,
-            }), response.edgeIds[0]]) as Promise<[ModelInfoReqs["validateEdge"]["response"], string]>;
+            type: "getUniqueEdgeIds",
+            count: 1,
+          }).then(async ({ edgeIds }) => {
+            return [
+              await this.sendModelInfoRequests<"validateEdge">({
+                type: "validateEdge",
+                edgeId: edgeIds[0],
+                sourceVertexId: vertexId,
+                sourcePortId: portId,
+                targetVertexId: snapInfo.targetVtxId,
+                targetPortId: snapInfo.targetPortId,
+              }),
+              edgeIds[0],
+            ] as [ModelInfoReqs["validateEdge"]["response"], string];
           }).then(([response, edgeId]) => {
             // do nothing if the current target has changed by the time the edge has been validated
             if (
@@ -302,12 +314,14 @@ export class DragRegistry {
               } : {
                 isValid: false,
                 message: response.problem,
-              }
+              };
+
               this.edgeDrawHandler.redrawLine(
                 snapInfo.xPos,
                 snapInfo.yPos,
                 dragData.currentTarget.validation.isValid ? "valid" : "invalid",
               );
+
               this.portPreviewManager.portHover(
                 snapInfo.targetPort,
                 snapInfo.targetVtx,
@@ -316,9 +330,12 @@ export class DragRegistry {
                 dragData.currentTarget.validation.isValid ? "Valid target" : dragData.currentTarget.validation.message,
               );
             }
+          }).catch(() => {
+            // @TODO
           });
         }
       });
+
       portDragHandler.addListener("dragEnd", () => {
         if (
           dragData !== null &&
@@ -333,7 +350,10 @@ export class DragRegistry {
             sourcePortId: portId,
             targetVertexId: dragData.currentTarget.vertexId,
             targetPortId: dragData.currentTarget.portId,
+          }).catch((reason) => {
+            // @TODO
           });
+
           this.portPreviewManager.portHoverEnd(dragData.currentTarget.port);
         }
         dragData = null;

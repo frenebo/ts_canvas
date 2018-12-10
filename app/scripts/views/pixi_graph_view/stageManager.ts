@@ -18,7 +18,7 @@ export class StageManager {
 
   public setDimensions(width: number, height: number): void {
     this.background.setDimensions(width, height);
-    this.app.renderer.resize(width, height)
+    this.app.renderer.resize(width, height);
   }
 
   public getBackgroundWrapper() {

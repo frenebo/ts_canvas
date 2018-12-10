@@ -21,7 +21,7 @@ export class EdgeWrapper extends GraphicWrapper {
     graphics.clear();
     let lineColor: number;
     if (selected) {
-      lineColor = EdgeWrapper.selectedLineColor
+      lineColor = EdgeWrapper.selectedLineColor;
     } else {
       lineColor = EdgeWrapper.unselectedLineColor;
     }

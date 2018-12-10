@@ -12,8 +12,8 @@ export class VertexWrapper extends GraphicWrapper {
   private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
   private editIcon: EditIconWrapper | null = null;
   private isSelected = false;
-  private label: LabelWrapper;
-  private background: VtxBackgroundWrapper;
+  private readonly label: LabelWrapper;
+  private readonly background: VtxBackgroundWrapper;
 
   constructor(
     renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
@@ -59,7 +59,7 @@ export class VertexWrapper extends GraphicWrapper {
   private positionChildren(): void {
     let widthForLabel: number;
     if (this.editIcon !== null) {
-      const editIconPadding = (VertexWrapper.height - EditIconWrapper.height)/2
+      const editIconPadding = (VertexWrapper.height - EditIconWrapper.height)/2;
       widthForLabel = VertexWrapper.width - EditIconWrapper.width - editIconPadding;
       this.editIcon.setPosition(
         widthForLabel,

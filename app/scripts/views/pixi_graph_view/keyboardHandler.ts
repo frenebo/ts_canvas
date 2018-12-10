@@ -90,7 +90,7 @@ export class KeyboardHandler {
     },
     {
       eventKeyName: "backspace",
-    }
+    },
   ];
 
   constructor(
@@ -133,15 +133,21 @@ export class KeyboardHandler {
         } else if (match === "escape") {
           selectionManager.clearSelection();
         } else if (match === "undo") {
-          sendModelVersioningRequest({type: "undo"});
+          sendModelVersioningRequest({type: "undo"}).catch((reason) => {
+            throw new Error(`Failed to undo: ${reason}`);
+          });
         } else if (match === "redo") {
-          sendModelVersioningRequest({type: "redo"});
+          sendModelVersioningRequest({type: "redo"}).catch((reason) => {
+            throw new Error(`Failed to redo: ${reason}`);
+          });
         } else if (match === "selectAll") {
           selectionManager.selectAll();
         } else if (match === "save") {
           const openFileData = await sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"});
           if (openFileData.fileIsOpen) {
-            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
+            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName }).catch((reason) => {
+              throw new Error(`Failed to save file: ${reason}`);
+            });
           } else {
             dialogManager.saveAsDialog();
           }

@@ -36,7 +36,7 @@ export class PixiView implements ViewInterface {
       if (document.documentElement === null) return;
       this.menuBar.setWidth(window.innerWidth);
       this.graphManager.setDimensions(window.innerWidth, window.innerHeight - HtmlMenuBar.menuHeight);
-    }
+    };
 
     window.addEventListener("resize", onResize);
 
@@ -157,7 +157,7 @@ export class PixiView implements ViewInterface {
     // updates
     this.graphManager.applyCommands(graphManagerCommands);
 
-    const fileData = await this.sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"})
+    const fileData = await this.sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"});
     const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
     this.menuBar.setUnsavedChanges(unsavedChanges);
   }

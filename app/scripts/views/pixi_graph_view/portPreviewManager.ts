@@ -4,8 +4,8 @@ import { VertexWrapper } from "./graphicWrappers/vertexWrapper";
 import { RequestInfoFunc } from "../../messenger";
 
 export class PortPreviewManager {
-  private static textPadding = 5;
-  private static cornerRadius = 3;
+  private static readonly textPadding = 5;
+  private static readonly cornerRadius = 3;
 
   private previewData: {
     port: PortWrapper;
@@ -17,7 +17,7 @@ export class PortPreviewManager {
     private readonly backgroundWrapper: BackgroundWrapper,
     private readonly sendModelInfoRequests: RequestInfoFunc,
   ) {
-
+    // empty
   }
 
   public currentShowingIs(port: PortWrapper): boolean {
@@ -39,8 +39,9 @@ export class PortPreviewManager {
       port: port,
       portId: portId,
       vertexId: vertexId,
-      overlay: new PIXI.Container,
+      overlay: new PIXI.Container(),
     };
+
     this.backgroundWrapper.addOverlayObject(this.previewData.overlay);
     this.previewData.overlay.scale.set(1/this.backgroundWrapper.getScale());
 
@@ -54,8 +55,6 @@ export class PortPreviewManager {
       fontSize: 15,
     });
     text.position.set(PortPreviewManager.textPadding, PortPreviewManager.textPadding);
-
-
 
     const previewX = this.backgroundWrapper.getMousePos().x;
     const previewY = this.backgroundWrapper.getMousePos().y;
