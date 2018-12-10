@@ -2,7 +2,7 @@ import {
   GraphData,
   EdgeData,
   VertexData,
-  ModelInfoReqs
+  ModelInfoReqs,
 } from "../../interfaces.js";
 import { Layer } from "./layers/layers.js";
 
@@ -55,7 +55,7 @@ export class GraphUtils {
     return {
       verticesExist: true,
       edges: edgesBetween,
-    }
+    };
   }
 
   public static getUniqueEdgeIds(graphData: GraphData, count: number): ModelInfoReqs["getUniqueEdgeIds"]["response"] {
@@ -79,7 +79,10 @@ export class GraphUtils {
     };
   }
 
-  public static getUniqueVertexIds(graphData: GraphData, count: number): ModelInfoReqs["getUniqueVertexIds"]["response"] {
+  public static getUniqueVertexIds(
+    graphData: GraphData,
+    count: number,
+  ): ModelInfoReqs["getUniqueVertexIds"]["response"] {
     const ids = new Set<string>();
 
     while (ids.size < count) {
@@ -225,8 +228,8 @@ export class GraphUtils {
       geo: { x: x, y: y },
       ports: {},
     };
-    let inputPortCount = layer.getPortIds().filter((id) => layer.getPortInfo(id).type === "input").length;
-    let outputPortCount = layer.getPortIds().filter((id) => layer.getPortInfo(id).type === "output").length;
+    const inputPortCount = layer.getPortIds().filter((id) => layer.getPortInfo(id).type === "input").length;
+    const outputPortCount = layer.getPortIds().filter((id) => layer.getPortInfo(id).type === "output").length;
 
     let inputPortIdx = 0;
     let outputPortIdx = 0;
@@ -240,7 +243,7 @@ export class GraphUtils {
         ) : (
           1/(outputPortCount + 1)*++outputPortIdx
         ),
-      }
+      };
     }
     return vtxData;
   }
@@ -291,13 +294,13 @@ export class GraphUtils {
   public static validateCreateEdge(
     graphData: GraphData,
     edgesByVertex: EdgesByVertex,
-    edgeId: string,
+    validatedEdgeId: string,
     sourceVtxId: string,
     sourcePortId: string,
     targetVtxId: string,
     targetPortId: string,
   ): string | null {
-    if (graphData.edges[edgeId] !== undefined) return `Edge with id ${edgeId} already exists`;
+    if (graphData.edges[validatedEdgeId] !== undefined) return `Edge with id ${validatedEdgeId} already exists`;
 
     const sourceVertex = graphData.vertices[sourceVtxId];
     const targetVertex = graphData.vertices[targetVtxId];

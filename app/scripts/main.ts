@@ -19,6 +19,8 @@ export function main(...divs: HTMLDivElement[]): void {
         messenger.newInfoRequestHandler(),
         messenger.newVersioningRequestHandler(),
       ),
-    );
+    ).catch((reason) => {
+      throw new Error(`Could not add view: ${reason}`);
+    });
   }
 }

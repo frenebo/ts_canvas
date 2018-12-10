@@ -43,8 +43,8 @@ export interface LayerData {
     [key: string]: {
       value: string;
       readonly: boolean;
-    }
-  }
+    };
+  };
 }
 
 export interface ViewInterface {
@@ -60,7 +60,9 @@ export interface ModelInterface {
   onDataChanged(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void>;
   requestModelVersioningChange(req: ModelVersioningRequest): Promise<void>;
-  requestModelInfo<T extends keyof ModelInfoReqs>(req: ModelInfoReqs[T]["request"]): Promise<ModelInfoReqs[T]["response"]>;
+  requestModelInfo<T extends keyof ModelInfoReqs>(
+    req: ModelInfoReqs[T]["request"],
+  ): Promise<ModelInfoReqs[T]["response"]>;
 }
 
 export type ModelChangeRequest = {
@@ -93,7 +95,7 @@ export type ModelChangeRequest = {
   fieldValues: {
     [key: string]: string;
   };
-}
+};
 
 export type ModelVersioningRequest = {
   type: "undo";
@@ -114,8 +116,8 @@ type ReqMapType<T extends string> = {
   [key in T]: {
     request: unknown;
     response: unknown;
-  }
-}
+  };
+};
 export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
   "validateEdge": {
     "request": {
@@ -137,7 +139,7 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
     "request": {
       type: "edgesBetweenVertices";
       vertexIds: string[];
-    }
+    };
     "response": {
       verticesExist: true;
       edges: {
@@ -191,7 +193,7 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
       data: LayerData;
     } | {
       layerExists: false;
-    }
+    };
   };
   "validateValue": {
     "request": {
@@ -223,9 +225,9 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
     } | {
       requestError: "layer_nonexistent";
     } | {
-      requestError: "field_nonexistent"
+      requestError: "field_nonexistent";
     };
-  }
+  };
   "validateLayerFields": {
     "request": {
       type: "validateLayerFields";
@@ -234,7 +236,7 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
         [key: string]: string;
       };
     };
-    "response":{
+    "response": {
       requestError: null;
       errors: string[];
       warnings: string[];
@@ -244,7 +246,7 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
       requestError: "field_nonexistent";
       fieldName: string;
     };
-  }
+  };
   "getUniqueEdgeIds": {
     "request": {
       type: "getUniqueEdgeIds";
@@ -259,7 +261,7 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
       type: "getUniqueVertexIds";
       count: number;
     };
-    "response":{
+    "response": {
       vertexIds: string[];
     };
   };

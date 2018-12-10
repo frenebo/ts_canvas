@@ -53,7 +53,9 @@ export class HtmlMenuBar {
         onclick: async () => {
           const openFileData = await sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"});
           if (openFileData.fileIsOpen) {
-            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName });
+            sendModelVersioningRequest({ type: "saveFile", fileName: openFileData.fileName }).catch((reason) => {
+              throw new Error(`Error saving file: ${reason}`);
+            });
           } else {
             fileMenu.saveAsDialog();
           }
@@ -79,14 +81,18 @@ export class HtmlMenuBar {
         text: "Undo",
         tooltip: keyboardHandler.undoShortcutString(),
         onclick: () => {
-          sendModelVersioningRequest({type: "undo"});
+          sendModelVersioningRequest({type: "undo"}).catch((reason) => {
+            throw new Error(`Error undoing: ${reason}`);
+          });
         },
       },
       {
         text: "Redo",
         tooltip: keyboardHandler.redoShortcutString(),
         onclick: () => {
-          sendModelVersioningRequest({type: "redo"});
+          sendModelVersioningRequest({type: "redo"}).catch((reason) => {
+            throw new Error(`Error redoing: ${reason}`);
+          });
         },
       },
       {

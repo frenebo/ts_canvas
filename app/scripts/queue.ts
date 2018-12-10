@@ -1,6 +1,6 @@
 
 export class Queue {
-  private queue: Array<() => Promise<unknown>> = [];
+  private readonly queue: Array<() => Promise<unknown>> = [];
   private currentPromise: Promise<unknown> | null = null;
 
   private setAsCurrentPromise(promise: Promise<unknown>): void {
@@ -12,19 +12,23 @@ export class Queue {
         const nextPromise = this.queue.splice(0, 1)[0];
         this.setAsCurrentPromise(nextPromise());
       }
+    }).catch((reason) => {
+      throw new Error(`Item in queue failed to run: ${reason}`);
     });
   }
 
-  public addToQueue<T>(addedFunc: () => Promise<T>): Promise<T> {
-    return new Promise(resolve => {
-      const modifiedFunc = () => {
+  public async addToQueue<T>(addedFunc: () => Promise<T>): Promise<T> {
+    return new Promise<T>((resolve) => {
+      const modifiedFunc = async () => {
         const promise = addedFunc();
         promise.then((val: T) => {
           resolve(val);
+        }).catch((reason) => {
+          throw new Error(`Item in queue failed to run: ${reason}`);
         });
 
         return promise;
-      }
+      };
 
       if (this.currentPromise === null) {
         this.setAsCurrentPromise(modifiedFunc());

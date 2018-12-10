@@ -48,7 +48,7 @@ export class DialogManager {
     this.currentDialog = dialog;
   }
 
-  public async openDialog(): Promise<void> {
+  public openDialog(): void {
     if (this.currentDialog !== null) this.closeDialog();
 
     const dialog = new OpenDialog(

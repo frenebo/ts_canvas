@@ -7,7 +7,9 @@ import {
 
 export type RequestModelChangesFunc = (...reqs: ModelChangeRequest[]) => Promise<void>;
 export type RequestVersioningChangeFunc = (req: ModelVersioningRequest) => Promise<void>;
-export type RequestInfoFunc = <V extends keyof ModelInfoReqs>(req: ModelInfoReqs[V]["request"]) => Promise<ModelInfoReqs[V]["response"]>;
+export type RequestInfoFunc = <V extends keyof ModelInfoReqs>(
+  req: ModelInfoReqs[V]["request"],
+) => Promise<ModelInfoReqs[V]["response"]>;
 
 export class Messenger {
   private readonly model: ModelInterface;
@@ -32,21 +34,23 @@ export class Messenger {
 
   public newRequestHandler(): RequestModelChangesFunc {
     const that = this;
-    return (...reqs: ModelChangeRequest[]) => {
+    return async (...reqs: ModelChangeRequest[]) => {
       return that.model.requestModelChanges(...reqs);
     };
   }
 
   public newVersioningRequestHandler(): RequestVersioningChangeFunc {
     const that = this;
-    return (req: ModelVersioningRequest) => {
+    return async (req: ModelVersioningRequest) => {
       return that.model.requestModelVersioningChange(req);
     };
   }
 
   public newInfoRequestHandler(): RequestInfoFunc {
     const that = this;
-    return <V extends keyof ModelInfoReqs>(req: ModelInfoReqs[V]["request"]): Promise<ModelInfoReqs[V]["response"]> => {
+    return async <V extends keyof ModelInfoReqs>(
+      req: ModelInfoReqs[V]["request"],
+    ): Promise<ModelInfoReqs[V]["response"]> => {
       return that.model.requestModelInfo(req);
     };
   }

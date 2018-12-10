@@ -36,7 +36,7 @@ export interface SessionData {
 export class DefaultModel implements ModelInterface {
   private readonly graphChangedListeners: Array<() => void> = [];
 
-  private session: SessionData = {
+  private readonly session: SessionData = {
     data: {
       graph: {
         vertices: {},
@@ -46,8 +46,8 @@ export class DefaultModel implements ModelInterface {
       edgesByVertex: {},
     },
   };
-  private requestQueue: Queue;
-  private versioningManager: VersioningManager<SessionDataJson>;
+  private readonly requestQueue: Queue;
+  private readonly versioningManager: VersioningManager<SessionDataJson>;
   constructor() {
     this.requestQueue = new Queue();
     for (let i = 0; i < 3; i++) {
@@ -92,21 +92,23 @@ export class DefaultModel implements ModelInterface {
 
       this.versioningManager.recordChange(newJson);
     }).then(() => {
-      this.graphChangedListeners.forEach(l => l())
+      this.graphChangedListeners.forEach((l) => {
+        l();
+      });
     });
   }
 
   private async requestSingleModelChange(req: ModelChangeRequest): Promise<void> {
     if (req.type === "moveVertex") {
       if (
-        await GraphUtils.validateMoveVertex(
+        GraphUtils.validateMoveVertex(
           this.session.data.graph,
           req.vertexId,
           req.x,
           req.y,
         ) === null
     ) {
-        await GraphUtils.moveVertex(
+        GraphUtils.moveVertex(
           this.session.data.graph,
           req.vertexId,
           req.x,
@@ -115,7 +117,7 @@ export class DefaultModel implements ModelInterface {
       }
     } else if (req.type === "createEdge") {
       if (
-        await SessionUtils.validateCreateEdge(
+        SessionUtils.validateCreateEdge(
           this.session.data.graph,
           this.session.data.edgesByVertex,
           this.session.data.layers,
@@ -126,7 +128,7 @@ export class DefaultModel implements ModelInterface {
           req.targetPortId,
         ) === null
       ) {
-        await SessionUtils.createEdge(
+        SessionUtils.createEdge(
           this.session.data.graph,
           this.session.data.edgesByVertex,
           this.session.data.layers,
@@ -139,7 +141,7 @@ export class DefaultModel implements ModelInterface {
       }
     } else if (req.type === "cloneVertex") {
       if (
-        await SessionUtils.validateCloneVertex(
+        SessionUtils.validateCloneVertex(
           this.session.data.graph,
           this.session.data.layers,
           this.session.data.edgesByVertex,
@@ -149,7 +151,7 @@ export class DefaultModel implements ModelInterface {
           req.y,
         ) === null
       ) {
-        await SessionUtils.cloneVertex(
+        SessionUtils.cloneVertex(
           this.session.data.graph,
           this.session.data.layers,
           this.session.data.edgesByVertex,
@@ -213,19 +215,21 @@ export class DefaultModel implements ModelInterface {
       } else if (req.type === "redo") {
         this.session.data = SessionUtils.fromJson(this.versioningManager.redo());
       } else if (req.type === "saveFile") {
-        await SaveUtils.saveFile(req.fileName, this.session);
+        SaveUtils.saveFile(req.fileName, this.session);
         this.versioningManager.onFileSave(req.fileName);
       } else if (req.type === "openFile") {
-        await SaveUtils.openFile(req.fileName, this.session);
+        SaveUtils.openFile(req.fileName, this.session);
         this.versioningManager.onFileOpen(req.fileName, SessionUtils.toJson(this.session.data));
       } else if (req.type === "deleteFile") {
-        await SaveUtils.deleteFile(req.fileName, this.session);
+        SaveUtils.deleteFile(req.fileName, this.session);
         this.versioningManager.onFileDelete(req.fileName);
       } else {
         throw new Error("unimplemented");
       }
     }).then(() => {
-      this.graphChangedListeners.forEach(l => l());
+      this.graphChangedListeners.forEach((l) => {
+        l();
+      });
     });
   }
 
@@ -244,16 +248,16 @@ export class DefaultModel implements ModelInterface {
           (req as ModelInfoReqs["validateEdge"]["request"]).targetVertexId,
           (req as ModelInfoReqs["validateEdge"]["request"]).targetPortId,
         );
-        let response: ModelInfoReqs["validateEdge"]["response"]
+        let response: ModelInfoReqs["validateEdge"]["response"];
 
         if (validationMessage === null) {
           response = {
             valid: true,
-          }
+          };
         } else {
           response = {
             valid: false,
-            problem: validationMessage
+            problem: validationMessage,
           };
         }
 
@@ -278,7 +282,7 @@ export class DefaultModel implements ModelInterface {
             fileIsOpen: true,
             fileName: openFileName,
             fileIsUpToDate: this.versioningManager.areAllChangesSaved(),
-          }
+          };
         }
 
         return response;
@@ -304,7 +308,7 @@ export class DefaultModel implements ModelInterface {
         return LayerUtils.getLayerInfo(
           this.session.data.layers,
           (req as ModelInfoReqs["getLayerInfo"]["request"]).layerId,
-        )
+        );
       } else if (req.type === "compareValue") {
         return LayerUtils.compareValue(
           this.session.data.layers,

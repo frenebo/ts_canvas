@@ -60,9 +60,12 @@ export class BackgroundWrapper {
     obj.addChild(this.sprite);
   }
 
-  public getMousePos(): {x: number, y: number} {
-    const mouseX: number = this.renderer.plugins.interaction.mouse.global.x/this.getScale() - this.localX()/this.getScale();
-    const mouseY: number = this.renderer.plugins.interaction.mouse.global.y/this.getScale() - this.localY()/this.getScale();
+  public getMousePos(): {x: number; y: number} {
+    const mouseX: number =
+      this.renderer.plugins.interaction.mouse.global.x/this.getScale() - this.localX()/this.getScale();
+
+    const mouseY: number =
+      this.renderer.plugins.interaction.mouse.global.y/this.getScale() - this.localY()/this.getScale();
 
     return {
       x: mouseX,

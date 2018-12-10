@@ -18,11 +18,11 @@ export class SaveUtils {
     return savedFileKeysWithoutPrefix;
   }
 
-  public static async saveFile(fileName: string, session: SessionData): Promise<void> {
+  public static saveFile(fileName: string, session: SessionData): void {
     window.localStorage.setItem(`${SaveUtils.saveFilePrefix}${fileName}`, JSON.stringify(SessionUtils.toJson(session.data)));
   }
 
-  public static async openFile(fileName: string, session: SessionData): Promise<void> {
+  public static openFile(fileName: string, session: SessionData): void {
     const dataStringOrNull = window.localStorage.getItem(`${SaveUtils.saveFilePrefix}${fileName}`);
 
     if (dataStringOrNull !== null) {
