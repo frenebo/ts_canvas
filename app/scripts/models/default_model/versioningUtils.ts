@@ -29,7 +29,6 @@ export class VersioningManager<T> {
   }
 
   public undo(): T {
-    console.log("undoing");
     const pastVal = this.pastVals.pop();
     if (pastVal !== undefined) {
       this.futureVals.splice(0, 0, this.currentVal);
