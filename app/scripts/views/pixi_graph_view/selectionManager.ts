@@ -197,19 +197,25 @@ export class SelectionManager {
     if (isClone) {
       const requests: ModelChangeRequest[] = [];
 
+      const newVertexIds = await this.sendModelInfoRequests<"getUniqueVertexIds">({
+        type: "getUniqueVertexIds",
+        count: vertexIds.length,
+      });
+
       const origToCloneIds: {[key: string]: string} = {};
 
-      for (const vertexId of vertexIds) {
-        const vertexWrapper = this.getVertexWrappers()[vertexId];
+      for (let i = 0; i < vertexIds.length; i++) {
+        const vertexIdToClone = vertexIds[i];
+        const vertexWrapper = this.getVertexWrappers()[vertexIdToClone];
         const newX = vertexWrapper.localX() + dx;
         const newY = vertexWrapper.localY() + dy;
 
-        const uniqueId = this.uniqueVtxId();
-        origToCloneIds[vertexId] = uniqueId;
+        const uniqueId = newVertexIds.vertexIds[i];
+        origToCloneIds[vertexIdToClone] = uniqueId;
 
         requests.push({
           type: "cloneVertex",
-          sourceVertexId: vertexId,
+          sourceVertexId: vertexIdToClone,
           newVertexId: uniqueId,
           x: newX,
           y: newY,
@@ -230,11 +236,20 @@ export class SelectionManager {
         }
       }
 
-      for (const edgeId in edgesToClone) {
-        const edgeData = edgesToClone[edgeId];
+      const edgesToCloneIds = Object.keys(edgesToClone);
+      const newEdgeIds = await this.sendModelInfoRequests<"getUniqueEdgeIds">({
+        type: "getUniqueEdgeIds",
+        count: edgesToCloneIds.length,
+      });
+
+      for (let i = 0; i < edgesToCloneIds.length; i++) {
+        const edgeToCloneId = edgesToCloneIds[i];
+        const edgeData = edgesToClone[edgeToCloneId];
+        const newEdgeId = newEdgeIds.edgeIds[i];
+
         requests.push({
           type: "createEdge",
-          newEdgeId: this.uniqueEdgeId(),
+          newEdgeId: newEdgeId,
           sourceVertexId: origToCloneIds[edgeData.sourceVertexId],
           sourcePortId: edgeData.sourcePortId,
           targetVertexId: origToCloneIds[edgeData.targetVertexId],
@@ -290,23 +305,5 @@ export class SelectionManager {
     }
 
     this.sendModelChangeRequests(...requests);
-  }
-
-  private static vtxIdCounter = 0;
-  private uniqueVtxId(): string {
-    while (true) {
-      const id = `vertex${SelectionManager.vtxIdCounter.toString()}`;
-      SelectionManager.vtxIdCounter++;
-      if (this.getVertexWrappers()[id] === undefined) return id;
-    }
-  }
-
-  private static edgeIdCounter = 0;
-  private uniqueEdgeId(): string {
-    while (true) {
-      const id = `edge${SelectionManager.edgeIdCounter.toString()}`;
-      SelectionManager.edgeIdCounter++;
-      if (this.getEdgeWrappers()[id] === undefined) return id;
-    }
   }
 }

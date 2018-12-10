@@ -69,13 +69,34 @@ export class GraphUtils {
         graphData.edges[id = Math.floor(randomVal*multiple).toString()] !== undefined ||
         ids.has(id)
       ) {
-        multiple *= 10;
+        multiple *= 100;
       }
       ids.add(id);
     }
 
     return {
       edgeIds: Array.from(ids),
+    };
+  }
+
+  public static getUniqueVertexIds(graphData: GraphData, count: number): ModelInfoReqs["getUniqueVertexIds"]["response"] {
+    const ids = new Set<string>();
+
+    while (ids.size < count) {
+      const randomVal = Math.random();
+      let multiple = 100;
+      let id: string;
+      while (
+        graphData.vertices[id = Math.floor(randomVal*multiple).toString()] !== undefined ||
+        ids.has(id)
+      ) {
+        multiple *= 10;
+      }
+      ids.add(id);
+    }
+
+    return {
+      vertexIds: Array.from(ids),
     };
   }
 

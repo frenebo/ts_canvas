@@ -323,6 +323,11 @@ export class DefaultModel implements ModelInterface {
           this.session.data.graph,
           (req as ModelInfoReqs["getUniqueEdgeIds"]["request"]).count,
         );
+      } else if (req.type === "getUniqueVertexIds") {
+        return GraphUtils.getUniqueVertexIds(
+          this.session.data.graph,
+          (req as ModelInfoReqs["getUniqueVertexIds"]["request"]).count,
+        )
       } else {
         throw new Error(`Unimplemented request ${req.type}`);
       }
