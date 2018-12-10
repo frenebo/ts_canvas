@@ -36,220 +36,197 @@ export class SessionUtils {
     return modelData;
   }
 
-  public static validateCreateEdge(
-    graph: GraphData,
-    edgesByVertex: EdgesByVertex,
-    layers: LayerClassDict,
-    edgeId: string,
-    sourceVtxId: string,
-    sourcePortId: string,
-    targetVtxId: string,
-    targetPortId: string,
-  ): string | null {
-    const graphValidated = GraphUtils.validateCreateEdge(
-      graph,
-      edgesByVertex,
-      edgeId,
-      sourceVtxId,
-      sourcePortId,
-      targetVtxId,
-      targetPortId,
-    );
+  public static validateCreateEdge(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    layers: LayerClassDict;
+    edgeId: string;
+    sourceVtxId: string;
+    sourcePortId: string;
+    targetVtxId: string;
+    targetPortId: string;
+  }): string | null {
+    const graphValidated = GraphUtils.validateCreateEdge({
+      graphData: args.graphData,
+      edgesByVertex: args.edgesByVertex,
+      newEdgeId: args.edgeId,
+      sourceVtxId: args.sourceVtxId,
+      sourcePortId: args.sourcePortId,
+      targetVtxId: args.targetVtxId,
+      targetPortId: args.targetPortId,
+    });
 
     if (graphValidated !== null) return graphValidated;
 
     return null;
   }
 
-  public static createEdge(
-    graph: GraphData,
-    edgesByVertex: EdgesByVertex,
-    layers: LayerClassDict,
-    edgeId: string,
-    sourceVtxId: string,
-    sourcePortId: string,
-    targetVtxId: string,
-    targetPortId: string,
-  ): void {
+  public static createEdge(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    layers: LayerClassDict;
+    edgeId: string;
+    sourceVtxId: string;
+    sourcePortId: string;
+    targetVtxId: string;
+    targetPortId: string;
+  }): void {
 
-    GraphUtils.createEdge(
-      graph,
-      edgesByVertex,
-      edgeId,
-      sourceVtxId,
-      sourcePortId,
-      targetVtxId,
-      targetPortId,
-    );
-    SessionUtils.propagateEdge(
-      graph,
-      layers,
-      edgeId,
-    );
+    GraphUtils.createEdge({
+      graphData: args.graphData,
+      edgesByVertex: args.edgesByVertex,
+      newEdgeId: args.edgeId,
+      sourceVtxId: args.sourceVtxId,
+      sourcePortId: args.sourcePortId,
+      targetVtxId: args.targetVtxId,
+      targetPortId: args.targetPortId,
+    });
+    SessionUtils.propagateEdge(args);
   }
 
-  public static setLayerFields(
-    graph: GraphData,
-    edgesByVertex: EdgesByVertex,
-    layers: LayerClassDict,
-    layerId: string,
-    fieldValues: {[key: string]: string},
-  ): void {
-    LayerUtils.setLayerFields(
-      layers,
-      layerId,
-      fieldValues,
-    );
-    SessionUtils.propagateEdgesFrom(
-      graph,
-      edgesByVertex,
-      layers,
-      layerId,
-    );
+  public static setLayerFields(args: {
+    graph: GraphData;
+    edgesByVertex: EdgesByVertex;
+    layers: LayerClassDict;
+    layerId: string;
+    fieldValues: {[key: string]: string};
+  }): void {
+    LayerUtils.setLayerFields({
+      layers: args.layers,
+      layerId: args.layerId,
+      fieldValues: args.fieldValues,
+    });
+    SessionUtils.propagateEdgesFrom({
+      graphData: args.graph,
+      edgesByVertex: args.edgesByVertex,
+      layers: args.layers,
+      vertexId: args.layerId,
+    });
   }
 
-  public static propagateEdgesFrom(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    layers: LayerClassDict,
-    vertexId: string,
-  ): void {
-    const vertex = graphData.vertices[vertexId];
-    if (vertex === undefined) throw new Error(`Could not find vertex ${vertexId}`);
+  public static propagateEdgesFrom(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    layers: LayerClassDict;
+    vertexId: string;
+  }): void {
+    const vertex = args.graphData.vertices[args.vertexId];
+    if (vertex === undefined) throw new Error(`Could not find vertex ${args.vertexId}`);
 
-    const edgeIdsOut: string[] = edgesByVertex[vertexId].out;
+    const edgeIdsOut: string[] = args.edgesByVertex[args.vertexId].out;
 
     for (const edgeId of edgeIdsOut) {
-      SessionUtils.propagateEdge(graphData, layers, edgeId);
+      SessionUtils.propagateEdge({
+        graphData: args.graphData,
+        layers: args.layers,
+        edgeId: edgeId,
+      });
     }
   }
 
-  public static validateCloneVertex(
-    graphData: GraphData,
-    layers: LayerClassDict,
-    edgesByVertex: EdgesByVertex,
-    newVtxId: string,
-    oldVtxId: string,
-    x: number,
-    y: number,
-  ): string | null {
-    const graphValidate = GraphUtils.validateCloneVertex(
-      graphData,
-      edgesByVertex,
-      newVtxId,
-      oldVtxId,
-      x,
-      y,
-    );
+  public static validateCloneVertex(args: {
+    graphData: GraphData;
+    layers: LayerClassDict;
+    edgesByVertex: EdgesByVertex;
+    newVtxId: string;
+    oldVtxId: string;
+    x: number;
+    y: number;
+  }): string | null {
+    const graphValidate = GraphUtils.validateCloneVertex(args);
     return graphValidate;
   }
 
-  public static validateDeleteVertex(
-    graph: GraphData,
-    edgesByVertex: EdgesByVertex,
-    layers: LayerClassDict,
-    vertexId: string,
-  ): string | null {
-    const graphValidation = GraphUtils.validateDeleteVertex(
-      graph,
-      edgesByVertex,
-      vertexId,
-    );
+  public static validateDeleteVertex(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    layers: LayerClassDict;
+    vertexId: string;
+  }): string | null {
+    const graphValidation = GraphUtils.validateDeleteVertex(args);
 
     return graphValidation;
   }
 
-  public static deleteEdge(
-    graph: GraphData,
-    edgesByVertex: EdgesByVertex,
-    edgeId: string,
-  ): void {
-    GraphUtils.deleteEdge(
-      graph,
-      edgesByVertex,
-      edgeId,
-    );
+  public static deleteEdge(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    edgeId: string;
+  }): void {
+    GraphUtils.deleteEdge(args);
   }
 
-  public static validateSetLayerFields(
-    graph: GraphData,
-    edgesByVertex: EdgesByVertex,
-    layers: LayerClassDict,
-    layerId: string,
-    fieldValues: {[key: string]: string},
-  ): string | null {
-    const validated = LayerUtils.validateLayerFields(
-      layers,
-      layerId,
-      fieldValues,
-    );
+  public static validateSetLayerFields(args: {
+    graph: GraphData;
+    edgesByVertex: EdgesByVertex;
+    layers: LayerClassDict;
+    layerId: string;
+    fieldValues: {[key: string]: string};
+  }): string | null {
+    const validated = LayerUtils.validateLayerFields(args);
     if (validated.requestError !== null) return validated.requestError;
     if (validated.errors.length === 0) return null;
     else return validated.errors.join(", ");
   }
 
-  public static validateDeleteEdge(
-    graph: GraphData,
-    edgesByVertex: EdgesByVertex,
-    edgeId: string,
-  ): string | null {
-    return GraphUtils.validateDeleteEdge(
-      graph,
-      edgesByVertex,
-      edgeId,
-    );
+  public static validateDeleteEdge(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    edgeId: string;
+  }): string | null {
+    return GraphUtils.validateDeleteEdge(args);
   }
 
-  public static deleteVertex(
-    graph: GraphData,
-    edgesByVertex: EdgesByVertex,
-    layers: LayerClassDict,
-    vertexId: string,
-  ): void {
-    GraphUtils.deleteVertex(
-      graph,
-      edgesByVertex,
-      vertexId,
-    );
-    LayerUtils.deleteLayer(
-      layers,
-      vertexId,
-    );
+  public static deleteVertex(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    layers: LayerClassDict;
+    vertexId: string;
+  }): void {
+    GraphUtils.deleteVertex({
+      graphData: args.graphData,
+      edgesByVertex: args.edgesByVertex,
+      vertexId: args.vertexId,
+    });
+    LayerUtils.deleteLayer({
+      layers: args.layers,
+      layerId: args.vertexId,
+    });
   }
 
-  public static cloneVertex(
-    graph: GraphData,
-    layers: LayerClassDict,
-    edgesByVertex: EdgesByVertex,
-    newVtxId: string,
-    oldVtxId: string,
-    x: number,
-    y: number,
-  ): void {
+  public static cloneVertex(args: {
+    graphData: GraphData;
+    layers: LayerClassDict;
+    edgesByVertex: EdgesByVertex;
+    newVtxId: string;
+    oldVtxId: string;
+    x: number;
+    y: number;
+  }): void {
 
-    GraphUtils.cloneVertex(
-      graph,
-      edgesByVertex,
-      newVtxId,
-      oldVtxId,
-      x,
-      y,
-    );
-    LayerUtils.cloneLayer(
-      layers,
-      oldVtxId,
-      newVtxId,
-    );
+    GraphUtils.cloneVertex({
+      graphData: args.graphData,
+      edgesByVertex: args.edgesByVertex,
+      newVtxId: args.newVtxId,
+      oldVtxId: args.oldVtxId,
+      x: args.x,
+      y: args.y,
+    });
+    LayerUtils.cloneLayer({
+      layers: args.layers,
+      layerId: args.oldVtxId,
+      newLayerId: args.newVtxId,
+    });
   }
 
-  public static propagateEdge(
-    graphData: GraphData,
-    layers: LayerClassDict,
-    edgeId: string,
-  ): void {
-    const edge = graphData.edges[edgeId];
-    const sourceLayer = layers[edge.sourceVertexId];
-    const targetLayer = layers[edge.targetVertexId];
+  public static propagateEdge(args: {
+    graphData: GraphData;
+    layers: LayerClassDict;
+    edgeId: string;
+  }): void {
+    const edge = args.graphData.edges[args.edgeId];
+    const sourceLayer = args.layers[edge.sourceVertexId];
+    const targetLayer = args.layers[edge.targetVertexId];
 
     const sourcePortId = edge.sourcePortId;
     const targetPortId = edge.targetPortId;

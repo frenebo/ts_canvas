@@ -14,14 +14,14 @@ export interface EdgesByVertex {
 }
 
 export class GraphUtils {
-  public static edgesBetweenVertices(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    vtxIds: string[],
-  ): ModelInfoReqs["edgesBetweenVertices"]["response"] {
+  public static edgesBetweenVertices(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    vtxIds: string[];
+  }): ModelInfoReqs["edgesBetweenVertices"]["response"] {
     const nonexistentVertices: string[] = [];
-    for (const vtxId of vtxIds) {
-      if (graphData.vertices[vtxId] === undefined) {
+    for (const vtxId of args.vtxIds) {
+      if (args.graphData.vertices[vtxId] === undefined) {
         nonexistentVertices.push(vtxId);
       }
     }
@@ -35,11 +35,11 @@ export class GraphUtils {
     const vtxOutputEdges = new Set<string>();
     const vtxInputEdges = new Set<string>();
 
-    for (const vtxId of vtxIds) {
-      for (const outEdgeId of edgesByVertex[vtxId].out) {
+    for (const vtxId of args.vtxIds) {
+      for (const outEdgeId of args.edgesByVertex[vtxId].out) {
         vtxOutputEdges.add(outEdgeId);
       }
-      for (const inEdgeId of edgesByVertex[vtxId].in) {
+      for (const inEdgeId of args.edgesByVertex[vtxId].in) {
         vtxInputEdges.add(inEdgeId);
       }
     }
@@ -48,7 +48,7 @@ export class GraphUtils {
 
     for (const edgeId of vtxOutputEdges) {
       if (vtxInputEdges.has(edgeId)) {
-        edgesBetween[edgeId] = graphData.edges[edgeId];
+        edgesBetween[edgeId] = args.graphData.edges[edgeId];
       }
     }
 
@@ -58,15 +58,18 @@ export class GraphUtils {
     };
   }
 
-  public static getUniqueEdgeIds(graphData: GraphData, count: number): ModelInfoReqs["getUniqueEdgeIds"]["response"] {
+  public static getUniqueEdgeIds(args: {
+    graphData: GraphData;
+    count: number;
+  }): ModelInfoReqs["getUniqueEdgeIds"]["response"] {
     const ids = new Set<string>();
 
-    while (ids.size < count) {
+    while (ids.size < args.count) {
       const randomVal = Math.random();
       let multiple = 10;
       let id: string;
       while (
-        graphData.edges[id = Math.floor(randomVal*multiple).toString()] !== undefined ||
+        args.graphData.edges[id = Math.floor(randomVal*multiple).toString()] !== undefined ||
         ids.has(id)
       ) {
         multiple *= 100;
@@ -79,18 +82,18 @@ export class GraphUtils {
     };
   }
 
-  public static getUniqueVertexIds(
-    graphData: GraphData,
-    count: number,
-  ): ModelInfoReqs["getUniqueVertexIds"]["response"] {
+  public static getUniqueVertexIds(args: {
+    graphData: GraphData;
+    count: number;
+  }): ModelInfoReqs["getUniqueVertexIds"]["response"] {
     const ids = new Set<string>();
 
-    while (ids.size < count) {
+    while (ids.size < args.count) {
       const randomVal = Math.random();
       let multiple = 100;
       let id: string;
       while (
-        graphData.vertices[id = Math.floor(randomVal*multiple).toString()] !== undefined ||
+        args.graphData.vertices[id = Math.floor(randomVal*multiple).toString()] !== undefined ||
         ids.has(id)
       ) {
         multiple *= 10;
@@ -103,138 +106,164 @@ export class GraphUtils {
     };
   }
 
-  public static validateMoveVertex(
-    graphData: GraphData,
-    vtxId: string,
-    x: number,
-    y: number,
-  ): null | string {
-    if (graphData.vertices[vtxId] === undefined) return `Vertex with id ${vtxId} does not exist`;
+  public static validateMoveVertex(args: {
+    graphData: GraphData;
+    vtxId: string;
+    x: number;
+    y: number;
+  }): null | string {
+    if (args.graphData.vertices[args.vtxId] === undefined) return `Vertex with id ${args.vtxId} does not exist`;
 
     return null;
   }
 
-  public static moveVertex(
-    graphData: GraphData,
-    vtxId: string,
-    x: number,
-    y: number,
-  ): void {
-    const vtx = graphData.vertices[vtxId];
-    if (vtx === undefined) throw new Error(`Could not find vertex with id ${vtxId}`);
+  public static moveVertex(args: {
+    graphData: GraphData;
+    vtxId: string;
+    x: number;
+    y: number;
+  }): void {
+    const vtx = args.graphData.vertices[args.vtxId];
+    if (vtx === undefined) throw new Error(`Could not find vertex with id ${args.vtxId}`);
 
-    vtx.geo.x = x;
-    vtx.geo.y = y;
+    vtx.geo.x = args.x;
+    vtx.geo.y = args.y;
   }
 
-  public static validateDeleteVertex(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    vertexId: string,
-  ): string | null {
-    if (graphData.vertices[vertexId] === undefined) return `Could not find vertex with id ${vertexId}`;
+  public static validateDeleteVertex(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    vertexId: string;
+  }): string | null {
+    if (args.graphData.vertices[args.vertexId] === undefined) return `Could not find vertex with id ${args.vertexId}`;
 
     return null;
   }
 
-  public static deleteVertex(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    vertexId: string,
-  ): void {
-    if (graphData.vertices[vertexId] === undefined) throw new Error(`Could not find vertex with id ${vertexId}`);
+  public static deleteVertex(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    vertexId: string;
+  }): void {
+    if (args.graphData.vertices[args.vertexId] === undefined) {
+      throw new Error(`Could not find vertex with id ${args.vertexId}`);
+    }
 
     const connectedEdges: string[] = [];
-    for (const edgeId in graphData.edges) {
+    for (const edgeId in args.graphData.edges) {
       if (
-        graphData.edges[edgeId].sourceVertexId === vertexId ||
-        graphData.edges[edgeId].targetVertexId === vertexId
+        args.graphData.edges[edgeId].sourceVertexId === args.vertexId ||
+        args.graphData.edges[edgeId].targetVertexId === args.vertexId
       ) {
         connectedEdges.push(edgeId);
       }
     }
     for (const connectedEdge of connectedEdges) {
-      this.deleteEdge(graphData, edgesByVertex, connectedEdge);
+      this.deleteEdge({
+        graphData: args.graphData,
+        edgesByVertex: args.edgesByVertex,
+        edgeId: connectedEdge,
+      });
     }
 
-    delete graphData.vertices[vertexId];
-    delete edgesByVertex[vertexId];
+    delete args.graphData.vertices[args.vertexId];
+    delete args.edgesByVertex[args.vertexId];
   }
 
-  public static deleteEdge(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    edgeId: string,
-  ): void {
-    if (graphData.edges[edgeId] === undefined) throw new Error(`Could not find edge with id ${edgeId}`);
+  public static deleteEdge(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    edgeId: string;
+  }): void {
+    if (args.graphData.edges[args.edgeId] === undefined) {
+      throw new Error(`Could not find edge with id ${args.edgeId}`);
+    }
 
-    const edge = graphData.edges[edgeId];
-    const inIdx = edgesByVertex[edge.sourceVertexId].out.indexOf(edgeId);
-    edgesByVertex[edge.sourceVertexId].out.splice(inIdx, 1);
-    const outIdx = edgesByVertex[edge.targetVertexId].in.indexOf(edgeId);
-    edgesByVertex[edge.targetVertexId].in.splice(outIdx, 1);
+    const edge = args.graphData.edges[args.edgeId];
+    const inIdx = args.edgesByVertex[edge.sourceVertexId].out.indexOf(args.edgeId);
+    args.edgesByVertex[edge.sourceVertexId].out.splice(inIdx, 1);
+    const outIdx = args.edgesByVertex[edge.targetVertexId].in.indexOf(args.edgeId);
+    args.edgesByVertex[edge.targetVertexId].in.splice(outIdx, 1);
 
-    delete graphData.edges[edgeId];
+    delete args.graphData.edges[args.edgeId];
   }
 
-  public static validateDeleteEdge(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    edgeId: string,
-  ): string | null {
-    if (graphData.edges[edgeId] === undefined) return `Could not find edge with id ${edgeId}`;
+  public static validateDeleteEdge(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    edgeId: string;
+  }): string | null {
+    if (args.graphData.edges[args.edgeId] === undefined) {
+      return `Could not find edge with id ${args.edgeId}`;
+    }
 
     return null;
   }
 
-  public static validateCloneVertex(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    newVtxId: string,
-    oldVtxId: string,
-    x: number,
-    y: number,
-  ): string | null {
-    if (graphData.vertices[oldVtxId] === undefined) return `Vertex with id ${oldVtxId} does not exist`;
-    if (graphData.vertices[newVtxId] !== undefined) return `Vertex with id ${newVtxId} already exists`;
-    const oldVtx = graphData.vertices[oldVtxId];
-    if (oldVtx === undefined) return `Could not find vertex with id ${oldVtxId}`;
+  public static validateCloneVertex(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    newVtxId: string;
+    oldVtxId: string;
+    x: number;
+    y: number;
+  }): string | null {
+    if (args.graphData.vertices[args.oldVtxId] === undefined) return `Vertex with id ${args.oldVtxId} does not exist`;
+    if (args.graphData.vertices[args.newVtxId] !== undefined) return `Vertex with id ${args.newVtxId} already exists`;
+
+    const oldVtx = args.graphData.vertices[args.oldVtxId];
+    if (oldVtx === undefined) return `Could not find vertex with id ${args.oldVtxId}`;
 
     return null;
   }
 
-  public static cloneVertex(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    newVtxId: string,
-    oldVtxId: string,
-    x: number,
-    y: number,
-  ): void {
-    if (graphData.vertices[newVtxId] !== undefined) throw new Error(`Vertex with id ${newVtxId} already exists`);
-    const oldVtx = graphData.vertices[oldVtxId];
-    if (oldVtx === undefined) throw new Error(`Coudl not find vertex with id ${oldVtxId}`);
+  public static cloneVertex(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    newVtxId: string;
+    oldVtxId: string;
+    x: number;
+    y: number;
+  }): void {
+    if (args.graphData.vertices[args.newVtxId] !== undefined) {
+      throw new Error(`Vertex with id ${args.newVtxId} already exists`);
+    }
+
+    const oldVtx = args.graphData.vertices[args.oldVtxId];
+    if (oldVtx === undefined) throw new Error(`Coudl not find vertex with id ${args.oldVtxId}`);
 
     const newVtx: VertexData = JSON.parse(JSON.stringify(oldVtx));
-    newVtx.geo.x = x;
-    newVtx.geo.y = y;
+    newVtx.geo.x = args.x;
+    newVtx.geo.y = args.y;
 
-    this.addVertex(graphData, edgesByVertex, newVtxId, newVtx);
+    this.addVertex({
+      graphData: args.graphData,
+      edgesByVertex: args.edgesByVertex,
+      id: args.newVtxId,
+      vtxData: newVtx,
+    });
   }
 
-  public static createVertexFromLayer(layer: Layer, x = 0, y = 0): VertexData {
+  public static createVertexFromLayer(args: {
+    layer: Layer;
+    x?: number;
+    y?: number;
+  }): VertexData {
     const vtxData: VertexData = {
-      label: layer.getType(),
-      geo: { x: x, y: y },
+      label: args.layer.getType(),
+      geo: {
+        x: args.x === undefined ? 0 : args.x,
+        y: args.y === undefined ? 0 : args.y,
+      },
       ports: {},
     };
-    const inputPortCount = layer.getPortIds().filter((id) => layer.getPortInfo(id).type === "input").length;
-    const outputPortCount = layer.getPortIds().filter((id) => layer.getPortInfo(id).type === "output").length;
+    const inputPortCount = args.layer.getPortIds().filter((id) => args.layer.getPortInfo(id).type === "input").length;
+    const outputPortCount = args.layer.getPortIds().filter((id) => args.layer.getPortInfo(id).type === "output").length;
 
     let inputPortIdx = 0;
     let outputPortIdx = 0;
-    for (const portId of layer.getPortIds()) {
-      const portInfo = layer.getPortInfo(portId);
+    for (const portId of args.layer.getPortIds()) {
+      const portInfo = args.layer.getPortInfo(portId);
       vtxData.ports[portId] = {
         portType: portInfo.type,
         side: portInfo.type === "input" ? "top" : "bottom",
@@ -248,67 +277,59 @@ export class GraphUtils {
     return vtxData;
   }
 
-  public static addVertex(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    id: string,
-    vtxData: VertexData,
-  ): void {
-    graphData.vertices[id] = vtxData;
-    edgesByVertex[id] = {in: [], out: []};
+  public static addVertex(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    id: string;
+    vtxData: VertexData;
+  }): void {
+    args.graphData.vertices[args.id] = args.vtxData;
+    args.edgesByVertex[args.id] = {in: [], out: []};
   }
 
-  public static createEdge(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    edgeId: string,
-    sourceVtxId: string,
-    sourcePortId: string,
-    targetVtxId: string,
-    targetPortId: string,
-  ): void {
-    const edgeValidationMessage = this.validateCreateEdge(
-      graphData,
-      edgesByVertex,
-      edgeId,
-      sourceVtxId,
-      sourcePortId,
-      targetVtxId,
-      targetPortId,
-    );
+  public static createEdge(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    newEdgeId: string;
+    sourceVtxId: string;
+    sourcePortId: string;
+    targetVtxId: string;
+    targetPortId: string;
+  }): void {
+    const edgeValidationMessage = this.validateCreateEdge(args);
 
     if (edgeValidationMessage !== null) throw new Error(`Invalid edge: ${edgeValidationMessage}`);
 
     const edge: EdgeData = {
-      sourceVertexId: sourceVtxId,
-      sourcePortId: sourcePortId,
-      targetVertexId: targetVtxId,
-      targetPortId: targetPortId,
+      sourceVertexId: args.sourceVtxId,
+      sourcePortId: args.sourcePortId,
+      targetVertexId: args.targetVtxId,
+      targetPortId: args.targetPortId,
       consistency: "consistent",
     };
-    graphData.edges[edgeId] = edge;
-    edgesByVertex[edge.sourceVertexId].out.push(edgeId);
-    edgesByVertex[edge.targetVertexId].in.push(edgeId);
+    args.graphData.edges[args.newEdgeId] = edge;
+    args.edgesByVertex[edge.sourceVertexId].out.push(args.newEdgeId);
+    args.edgesByVertex[edge.targetVertexId].in.push(args.newEdgeId);
   }
 
-  public static validateCreateEdge(
-    graphData: GraphData,
-    edgesByVertex: EdgesByVertex,
-    validatedEdgeId: string,
-    sourceVtxId: string,
-    sourcePortId: string,
-    targetVtxId: string,
-    targetPortId: string,
-  ): string | null {
-    if (graphData.edges[validatedEdgeId] !== undefined) return `Edge with id ${validatedEdgeId} already exists`;
+  public static validateCreateEdge(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+    newEdgeId: string;
+    sourceVtxId: string;
+    sourcePortId: string;
+    targetVtxId: string;
+    targetPortId: string;
+  }): string | null {
+    if (args.graphData.edges[args.newEdgeId] !== undefined) return `Edge with id ${args.newEdgeId} already exists`;
 
-    const sourceVertex = graphData.vertices[sourceVtxId];
-    const targetVertex = graphData.vertices[targetVtxId];
+    const sourceVertex = args.graphData.vertices[args.sourceVtxId];
+    const targetVertex = args.graphData.vertices[args.targetVtxId];
     if (sourceVertex === undefined) return "Source does not exist";
     if (targetVertex === undefined) return "Target does not exist";
 
-    const sourcePort = sourceVertex.ports[sourcePortId];
-    const targetPort = targetVertex.ports[targetPortId];
+    const sourcePort = sourceVertex.ports[args.sourcePortId];
+    const targetPort = targetVertex.ports[args.targetPortId];
 
     if (sourcePort === undefined) return "Source port does not exist";
     if (targetPort === undefined) return "Target port does not exist";
@@ -317,14 +338,14 @@ export class GraphUtils {
     if (targetPort.portType !== "input") return "Target is not an input port";
 
     // check that there isn't an identical edge present
-    const sourceOutEdges = edgesByVertex[sourceVtxId].out;
-    const targetInEdges = edgesByVertex[targetVtxId].in;
+    const sourceOutEdges = args.edgesByVertex[args.sourceVtxId].out;
+    const targetInEdges = args.edgesByVertex[args.targetVtxId].in;
     const edgesFromSourceToTarget = sourceOutEdges.filter((edgeId) => targetInEdges.indexOf(edgeId) !== -1);
     for (const edgeId of edgesFromSourceToTarget) {
-      const edge = graphData.edges[edgeId];
+      const edge = args.graphData.edges[edgeId];
 
       // check if the edge is identical
-      if (edge.sourcePortId === sourcePortId && edge.targetPortId === targetPortId) {
+      if (edge.sourcePortId === args.sourcePortId && edge.targetPortId === args.targetPortId) {
         return "Identical connection already exists";
       }
     }
@@ -332,13 +353,13 @@ export class GraphUtils {
     // Loop detection
     const sourceAncestorIds: string[] = [];
 
-    const vertexIdsToInvestigate: string[] = [sourceVtxId];
+    const vertexIdsToInvestigate: string[] = [args.sourceVtxId];
     while (vertexIdsToInvestigate.length > 0) {
       const vtxIdToInvestigate = vertexIdsToInvestigate.pop() as string;
       sourceAncestorIds.push(vtxIdToInvestigate);
 
-      for (const edgeId of edgesByVertex[vtxIdToInvestigate].in) {
-        const edgeData = graphData.edges[edgeId];
+      for (const edgeId of args.edgesByVertex[vtxIdToInvestigate].in) {
+        const edgeData = args.graphData.edges[edgeId];
         // check if the edge's source has not been seen before
         if (
           vertexIdsToInvestigate.indexOf(edgeData.sourceVertexId) === -1 &&
@@ -350,7 +371,7 @@ export class GraphUtils {
     }
 
     // return true if the target vertex is not an ancestor of the source vertex
-    if (sourceAncestorIds.indexOf(targetVtxId) === -1) {
+    if (sourceAncestorIds.indexOf(args.targetVtxId) === -1) {
       return null;
     } else {
       return "Loop detected";
