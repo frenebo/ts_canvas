@@ -9,6 +9,7 @@ import {
   GraphUtils
 } from "./graphUtils.js";
 import { GraphData } from "../../interfaces.js";
+import { Layer } from "./layers/layers.js";
 
 export type SessionDataJson = {
   edgesByVertex: EdgesByVertex,
@@ -79,7 +80,7 @@ export class SessionUtils {
       targetVtxId,
       targetPortId,
     );
-    SessionUtils.updateEdgeConsistency(
+    SessionUtils.propagateEdge(
       graph,
       layers,
       edgeId,
@@ -98,7 +99,7 @@ export class SessionUtils {
       layerId,
       fieldValues,
     );
-    SessionUtils.updateEdgeConsistenciesFrom(
+    SessionUtils.propagateEdgesFrom(
       graph,
       edgesByVertex,
       layers,
@@ -106,7 +107,7 @@ export class SessionUtils {
     );
   }
 
-  public static updateEdgeConsistenciesFrom(
+  public static propagateEdgesFrom(
     graphData: GraphData,
     edgesByVertex: EdgesByVertex,
     layers: LayerClassDict,
@@ -115,12 +116,10 @@ export class SessionUtils {
     const vertex = graphData.vertices[vertexId];
     if (vertex === undefined) throw new Error(`Could not find vertex ${vertexId}`);
 
-    const sourceLayer = layers[vertexId];
-
     const edgeIdsOut: string[] = edgesByVertex[vertexId].out;
 
     for (const edgeId of edgeIdsOut) {
-      SessionUtils.updateEdgeConsistency(graphData, layers, edgeId);
+      SessionUtils.propagateEdge(graphData, layers, edgeId);
     }
   }
 
@@ -242,7 +241,7 @@ export class SessionUtils {
     );
   }
 
-  public static updateEdgeConsistency(
+  public static propagateEdge(
     graphData: GraphData,
     layers: LayerClassDict,
     edgeId: string,
@@ -259,6 +258,25 @@ export class SessionUtils {
     const targetValue = targetLayer.getValueWrapper(targetValueId);
     const isConsistent: boolean = sourceValue.compareTo(targetValue.getValue());
 
-    edge.consistency = isConsistent ? "consistent" : "inconsistent";
+    if (!isConsistent) {
+      const validateSetValue = targetValue.validateValue(sourceValue.getValue());
+
+      if (validateSetValue !== null) {
+        edge.consistency = "inconsistent";
+      } else {
+        const testClone = Layer.clone(targetLayer);
+        testClone.getValueWrapper(targetValueId).setValue(sourceValue.getValue());
+        const validatedUpdate = testClone.validateUpdate();
+        if (validatedUpdate.errors.length !== 0) {
+          edge.consistency = "inconsistent";
+        } else {
+          targetValue.setValue(sourceValue.getValue());
+          targetLayer.update();
+          edge.consistency = "consistent";
+        }
+      }
+    } else {
+      edge.consistency = "consistent";
+    }
   }
 }
