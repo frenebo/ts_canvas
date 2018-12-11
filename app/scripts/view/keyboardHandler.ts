@@ -1,6 +1,6 @@
 import { SelectionManager } from "./selectionManager.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../messenger.js";
+import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../messenger.js";
 
 interface ShortcutDescription {
   eventKeyName: string; // must be lowercase!

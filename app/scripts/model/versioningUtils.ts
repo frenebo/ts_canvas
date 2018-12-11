@@ -1,4 +1,4 @@
-import { UNDO_HISTORY_SIZE } from "../../constants.js";
+import { UNDO_HISTORY_SIZE } from "../constants.js";
 
 export class VersioningManager<T> {
   private currentVal: string;

@@ -1,6 +1,6 @@
 import { Dialog } from "./dialog.js";
-import { RequestModelChangesFunc, RequestVersioningChangeFunc } from "../../../messenger.js";
-import { MONOSPACE_STYLE } from "../../../constants.js";
+import { RequestModelChangesFunc, RequestVersioningChangeFunc } from "../../messenger.js";
+import { MONOSPACE_STYLE } from "../../constants.js";
 
 export class SaveAsDialog extends Dialog {
   constructor(

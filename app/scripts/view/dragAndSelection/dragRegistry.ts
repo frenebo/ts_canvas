@@ -13,8 +13,8 @@ import { PortPreviewManager } from "../portPreviewManager.js";
 import {
   RequestModelChangesFunc,
   RequestInfoFunc,
-} from "../../../messenger.js";
-import { ModelInfoReqs } from "../../../interfaces.js";
+} from "../../messenger.js";
+import { ModelInfoReqs } from "../../interfaces.js";
 import { BackgroundWrapper } from "../graphicWrappers/backgroundWrapper.js";
 import { StageInterface } from "../stageInterface.js";
 

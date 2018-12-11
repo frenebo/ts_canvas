@@ -1,6 +1,6 @@
 import { PortWrapper } from "./graphicWrappers/portWrapper";
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper";
-import { RequestInfoFunc } from "../../messenger";
+import { RequestInfoFunc } from "../messenger";
 import { StageInterface } from "./stageInterface";
 
 export class PortPreviewManager {

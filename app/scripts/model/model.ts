@@ -4,7 +4,7 @@ import {
   ModelChangeRequest,
   ModelInfoReqs,
   ModelVersioningRequest,
-} from "../../interfaces.js";
+} from "../interfaces.js";
 import {
   GraphUtils,
   EdgesByVertex,
@@ -20,7 +20,7 @@ import {
   SessionUtils,
   SessionDataJson,
 } from "./sessionUtils.js";
-import { Queue } from "../../queue.js";
+import { Queue } from "../queue.js";
 
 export interface ModelDataObj {
   graph: GraphData;
@@ -32,7 +32,7 @@ export interface SessionData {
   data: ModelDataObj;
 }
 
-export class DefaultModel implements ModelInterface {
+export class Model implements ModelInterface {
   private readonly graphChangedListeners: Array<() => void> = [];
 
   private readonly session: SessionData = {

@@ -1,7 +1,7 @@
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { SelectionManager } from "./selectionManager.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../messenger.js";
+import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../messenger.js";
 
 export class HtmlMenuBar {
   public static readonly menuHeight = 50;

@@ -1,7 +1,7 @@
 import {
   ViewInterface,
   GraphData,
-} from "../../interfaces.js";
+} from "../interfaces.js";
 import {
   GraphManager,
   GraphManagerCommand,
@@ -9,9 +9,9 @@ import {
 import { HtmlMenuBar } from "./htmlMenuBar.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../messenger.js";
+import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../messenger.js";
 
-export class PixiView implements ViewInterface {
+export class View implements ViewInterface {
   private data: GraphData = {vertices: {}, edges: {}};
   private readonly graphManager: GraphManager;
   private readonly menuBar: HtmlMenuBar;

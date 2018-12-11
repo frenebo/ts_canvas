@@ -3,7 +3,7 @@ import {
   EdgeData,
   VertexData,
   ModelInfoReqs,
-} from "../../interfaces.js";
+} from "../interfaces.js";
 import { Layer } from "./layers/layers.js";
 
 export interface EdgesByVertex {

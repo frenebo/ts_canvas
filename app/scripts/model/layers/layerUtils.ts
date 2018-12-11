@@ -5,7 +5,7 @@ import {
 import {
   LayerData,
   ModelInfoReqs,
-} from "../../../interfaces.js";
+} from "../../interfaces.js";
 
 export interface LayerClassDict {
   [key: string]: Layer;

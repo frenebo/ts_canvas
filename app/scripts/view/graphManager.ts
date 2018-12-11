@@ -3,7 +3,7 @@ import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import {
   VertexData,
   EdgeData,
-} from "../../interfaces.js";
+} from "../interfaces.js";
 import { EditIconWrapper } from "./graphicWrappers/editIconWrapper.js";
 import { PortWrapper } from "./graphicWrappers/portWrapper.js";
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
@@ -11,7 +11,7 @@ import { SelectionManager } from "./selectionManager.js";
 import { CullingManager } from "./cullingManager.js";
 import { PortPreviewManager } from "./portPreviewManager.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../messenger.js";
 import { StageManager } from "./stageManager.js";
 
 export type GraphManagerCommand = {

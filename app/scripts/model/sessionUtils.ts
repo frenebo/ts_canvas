@@ -8,7 +8,7 @@ import {
   EdgesByVertex,
   GraphUtils,
 } from "./graphUtils.js";
-import { GraphData } from "../../interfaces.js";
+import { GraphData } from "../interfaces.js";
 import { Layer } from "./layers/layers.js";
 
 export interface SessionDataJson {

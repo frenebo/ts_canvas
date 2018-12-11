@@ -2,9 +2,9 @@ import { Dialog } from "./dialog.js";
 import {
   ModelChangeRequest,
   ModelInfoReqs,
-} from "../../../interfaces.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../../messenger.js";
-import { MONOSPACE_STYLE } from "../../../constants.js";
+} from "../../interfaces.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
+import { MONOSPACE_STYLE } from "../../constants.js";
 
 export class EditLayerDialog extends Dialog {
   constructor(

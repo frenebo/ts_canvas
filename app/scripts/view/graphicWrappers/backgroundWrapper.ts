@@ -1,4 +1,4 @@
-import { BACKGROUND_TILE_PATH } from "../../../constants.js";
+import { BACKGROUND_TILE_PATH } from "../../constants.js";
 
 export class BackgroundWrapper {
   private readonly tilingBackground: PIXI.extras.TilingSprite;

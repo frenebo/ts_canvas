@@ -2,8 +2,8 @@ import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import {
   ModelChangeRequest, ModelInfoReqs, EdgeData,
-} from "../../interfaces.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
+} from "../interfaces.js";
+import { RequestModelChangesFunc, RequestInfoFunc } from "../messenger.js";
 import { VtxBackgroundWrapper } from "./graphicWrappers/vertexBackgroundWrapper.js";
 import { StageInterface } from "./stageInterface.js";
 
