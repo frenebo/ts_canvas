@@ -129,7 +129,7 @@ export class LayerUtils {
 
     return {
       requestError: null,
-      invalidError: layer.getValueWrapper(args.valueId).validateString(args.newValueString),
+      fieldValidationError: layer.getValueWrapper(args.valueId).validateString(args.newValueString),
     };
   }
 

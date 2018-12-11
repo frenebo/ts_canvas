@@ -15,7 +15,7 @@ export class EditLayerDialog extends Dialog {
   private readonly pendingFields = new Set<string>();
 
   private readonly fieldsReadonlyDict: {
-    [key: string]: boolean
+    [key: string]: {isReadonly: boolean};
   } = {};
 
 
@@ -91,112 +91,10 @@ export class EditLayerDialog extends Dialog {
         break;
       }
 
-      this.fieldsReadonlyDict[fieldId] = fieldReadonlyInfo.isReadonly;
-    }
-    for (const fieldId in layerData.fields) {
-      const row = document.createElement("div");
+      this.fieldsReadonlyDict[fieldId] = {isReadonly: fieldReadonlyInfo.isReadonly};
+
+      const row = await this.createFieldRow(fieldId, layerData.fields[fieldId].value);
       fieldDiv.appendChild(row);
-      row.style.marginLeft = "10px";
-      row.style.marginTop = "10px";
-
-      const label = document.createElement("div");
-      row.appendChild(label);
-      label.style.display = "inline-block";
-      label.textContent = fieldId;
-      label.style.width = "25%";
-      label.style.marginLeft = "10%";
-
-      const input = document.createElement("input");
-      row.appendChild(input);
-      this.inputFields[fieldId] = input;
-      input.style.display = "inline-block";
-      input.value = layerData.fields[fieldId].value;
-      input.style.width = "10em";
-
-
-      input.disabled = this.fieldsReadonlyDict[fieldId];
-
-      input.style.padding = "3px";
-      input.style.border = "1px solid black";
-      input.style.fontFamily = MONOSPACE_STYLE;
-
-      const errorText = document.createElement("div");
-      row.appendChild(errorText);
-      errorText.style.display = "inline-block";
-      errorText.style.color = "red";
-      errorText.style.fontSize = "10px";
-      errorText.style.marginLeft = "10px";
-
-      let currentValidation: {
-        promise: Promise<ModelInfoReqs["validateValue"]["response"]>;
-        loadIcon: HTMLDivElement;
-      } | null = null;
-
-      input.addEventListener("input", async (ev) => {
-        const thisPromise = this.sendModelInfoRequests<"validateValue">({
-          type: "validateValue",
-          layerId: this.layerId,
-          valueId: fieldId,
-          newValue: input.value,
-        });
-        if (currentValidation === null) {
-          const icon = Dialog.createSmallLoadIcon();
-          row.appendChild(icon);
-          icon.style.display = "inline-block";
-          errorText.textContent = "";
-          currentValidation = {
-            promise: thisPromise,
-            loadIcon: icon,
-          };
-          this.pendingFields.add(fieldId);
-        } else {
-          currentValidation.promise = thisPromise;
-        }
-
-        this.updateApplyButton();
-
-        const validateVal = await thisPromise;
-
-        // if a new value has started validation during the await period
-        if (currentValidation.promise !== thisPromise) {
-          return;
-        }
-
-        row.removeChild(currentValidation.loadIcon);
-
-        currentValidation = null; // setting to null
-        this.pendingFields.delete(fieldId);
-
-        if (validateVal.requestError === "layer_nonexistent") {
-          this.alertLayerNonexistent();
-          return;
-        } else if (validateVal.requestError === "field_nonexistent") {
-          this.alertFieldNonexistent(validateVal.fieldName);
-          return;
-        }
-
-        if (validateVal.invalidError === null) {
-          input.style.border = "1px solid black";
-          input.style.padding = "3px";
-
-          errorText.textContent = "";
-
-          if (this.invalidFields.has(fieldId)) {
-            this.invalidFields.delete(fieldId);
-          }
-        } else {
-          input.style.border = "3px solid red";
-          input.style.padding = "1px";
-
-          errorText.textContent = validateVal.invalidError;
-
-          if (!this.invalidFields.has(fieldId)) {
-            this.invalidFields.add(fieldId);
-          }
-        }
-
-        this.updateApplyButton();
-      });
     }
 
     this.updateErrorDiv = document.createElement("div");
@@ -218,6 +116,127 @@ export class EditLayerDialog extends Dialog {
     this.applyButton.addEventListener("click", () => this.applyValues());
   }
 
+  private createFieldRow(fieldId: string, value: string): HTMLDivElement {
+    const row = document.createElement("div");
+    row.style.marginLeft = "10px";
+    row.style.marginTop = "10px";
+
+    const label = document.createElement("div");
+    row.appendChild(label);
+
+    const input = document.createElement("input");
+    row.appendChild(input);
+    this.inputFields[fieldId] = input;
+
+    const errorText = document.createElement("div");
+    row.appendChild(errorText);
+
+    label.style.display = "inline-block";
+    label.textContent = fieldId;
+    label.style.width = "25%";
+    label.style.marginLeft = "10%";
+    input.style.display = "inline-block";
+    input.style.width = "10em";
+    input.value = value;
+
+    if (this.fieldsReadonlyDict[fieldId].isReadonly) {
+      input.disabled = true;
+      input.style.backgroundColor = "#999999"
+    }
+
+    input.style.padding = "3px";
+    input.style.border = "1px solid black";
+    input.style.fontFamily = MONOSPACE_STYLE;
+    errorText.style.display = "inline-block";
+    errorText.style.color = "red";
+    errorText.style.fontSize = "10px";
+    errorText.style.marginLeft = "10px";
+
+    let currentValidation: {
+      promise: Promise<ModelInfoReqs["validateValue"]["response"]>;
+      loadIcon: HTMLDivElement;
+    } | null = null;
+
+    const beginOrReplaceValidation = (promise: Promise<ModelInfoReqs["validateValue"]["response"]>) => {
+      if (currentValidation === null) {
+        const icon = Dialog.createSmallLoadIcon();
+        row.appendChild(icon);
+        icon.style.display = "inline-block";
+        errorText.textContent = "";
+        this.pendingFields.add(fieldId);
+        currentValidation = {
+          promise: promise,
+          loadIcon: icon,
+        };
+      } else {
+        currentValidation.promise = promise;
+      }
+      this.updateApplyButton();
+    }
+
+    const isPromiseCurrentValidation = (promise: Promise<ModelInfoReqs["validateValue"]["response"]>) => {
+      return currentValidation !== null && currentValidation.promise === promise;
+    }
+
+    const endValidation = (validateVal: ModelInfoReqs["validateValue"]["response"]) => {
+      if (currentValidation === null) return;
+
+      row.removeChild(currentValidation.loadIcon);
+
+      currentValidation = null; // setting to null
+      this.pendingFields.delete(fieldId);
+
+      if (validateVal.requestError === "layer_nonexistent") {
+        this.alertLayerNonexistent();
+        return;
+      } else if (validateVal.requestError === "field_nonexistent") {
+        this.alertFieldNonexistent(validateVal.fieldName);
+        return;
+      }
+
+      if (validateVal.fieldValidationError === null) {
+        input.style.border = "1px solid black";
+        input.style.padding = "3px";
+
+        errorText.textContent = "";
+
+        if (this.invalidFields.has(fieldId)) {
+          this.invalidFields.delete(fieldId);
+        }
+      } else {
+        input.style.border = "3px solid red";
+        input.style.padding = "1px";
+
+        errorText.textContent = validateVal.fieldValidationError;
+
+        if (!this.invalidFields.has(fieldId)) {
+          this.invalidFields.add(fieldId);
+        }
+      }
+
+      this.updateApplyButton();
+    }
+
+    input.addEventListener("input", async () => {
+      const thisPromise = this.sendModelInfoRequests<"validateValue">({
+        type: "validateValue",
+        layerId: this.layerId,
+        valueId: fieldId,
+        newValue: input.value,
+      });
+
+      beginOrReplaceValidation(thisPromise);
+
+      const validateVal = await thisPromise;
+
+      if (!isPromiseCurrentValidation(thisPromise)) return;
+
+      endValidation(validateVal);
+    });
+
+    return row;
+  }
+
   private updateApplyButton() {
     this.applyButton.disabled = (this.invalidFields.size !== 0) || (this.pendingFields.size !== 0);
   }
@@ -227,7 +246,7 @@ export class EditLayerDialog extends Dialog {
     this.applyButton.disabled = true;
     const setFieldValues: {[key: string]: string} = {};
     for (const fieldId in this.inputFields) {
-      if (!this.fieldsReadonlyDict[fieldId]) {
+      if (!this.fieldsReadonlyDict[fieldId].isReadonly) {
         setFieldValues[fieldId] = this.inputFields[fieldId].value;
       }
     }

@@ -200,7 +200,7 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
     };
     "response": {
       requestError: null;
-      invalidError: string | null;
+      fieldValidationError: string | null;
     } | {
       requestError: "layer_nonexistent";
     } | {
