@@ -25,14 +25,8 @@ export class StageManager {
     this.app.stage.addChild(this.overlayContainer);
 
     this.app.view.addEventListener("wheel", (ev) => {
-      const mouseGlobalPos: PIXI.Point = this.app.renderer.plugins.interaction.mouse.global;
-
       const mouseXInStageFrame = this.getMousePos().x;
       const mouseYInStageFrame = this.getMousePos().y;
-
-      // const mouseAbsoluteX = this.getMousePos().x;
-      // const mouseAbsoluteY = this.getMousePos().y;
-
 
       const scrollFactor = Math.pow(1.003, -ev.deltaY);
       this.setScale(this.getScale()*scrollFactor);
@@ -40,23 +34,10 @@ export class StageManager {
       const moveStageX = (this.getMousePos().x - mouseXInStageFrame)*this.getScale();
       const moveStageY = (this.getMousePos().y - mouseYInStageFrame)*this.getScale();
 
-      // console.log(`dx: ${moveStageX}, dy: ${moveStageY}`);
-
       this.setPosition(
         this.stageXOffset() + moveStageX,
         this.stageYOffset() + moveStageY,
       );
-
-      // const dGlobalX = (this.getMousePos().x - mouseXInStageFrame);
-      // const dGlobalY = (this.getMousePos().y - mouseYInStageFrame);
-
-      // console.log(dGlobalX);
-      // console.log(dGlobalY);
-
-      // this.setPosition(
-      //   this.stageXOffset() - dGlobalX,
-      //   this.stageYOffset() - dGlobalY,
-      // );
     });
 
     this.stageInterface = new StageInterface(
