@@ -8,6 +8,7 @@ export class EdgeWrapper extends GraphicWrapper {
   private static readonly lineWidth = 10;
   private static readonly unselectedLineColor = 0x000000;
   private static readonly selectedLineColor = 0xFFFF00;
+  private static readonly inconsistentLineColor = 0xCC0000;
 
   private static draw(
     graphics: PIXI.Graphics,
@@ -23,7 +24,11 @@ export class EdgeWrapper extends GraphicWrapper {
     if (selected) {
       lineColor = EdgeWrapper.selectedLineColor;
     } else {
-      lineColor = EdgeWrapper.unselectedLineColor;
+      if (consistent === "consistent") {
+        lineColor = EdgeWrapper.unselectedLineColor;
+      } else {
+        lineColor = EdgeWrapper.inconsistentLineColor;
+      }
     }
     graphics.lineStyle(EdgeWrapper.lineWidth, lineColor);
 

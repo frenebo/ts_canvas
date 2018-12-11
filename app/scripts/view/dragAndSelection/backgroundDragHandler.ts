@@ -58,7 +58,11 @@ export class BackgroundDragHandler {
 
     // if the event is from a mouse AND its button is the left mouse button
     // AND the control key is not clicked, clicking on the background clears selection
-    if ((event.data.originalEvent as MouseEvent).button === 0 && !event.data.originalEvent.ctrlKey) {
+    if (
+      (event.data.originalEvent as MouseEvent).button === 0 &&
+      !event.data.originalEvent.ctrlKey &&
+      !event.data.originalEvent.metaKey
+    ) {
       this.selectionManager.clearSelection();
     }
     const mouseStart = {

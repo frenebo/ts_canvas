@@ -88,6 +88,12 @@ export class Model implements ModelInterface {
         await this.requestSingleModelChange(req);
       }
 
+      SessionUtils.propagateEdges({
+        graphData: this.session.data.graph,
+        edgesByVertex: this.session.data.edgesByVertex,
+        layers: this.session.data.layers,
+      });
+
       const newJson = SessionUtils.toJson(this.session.data);
 
       this.versioningManager.recordChange(newJson);

@@ -108,12 +108,6 @@ export class SessionUtils {
       targetVtxId: args.targetVtxId,
       targetPortId: args.targetPortId,
     });
-    SessionUtils.propagateEdgesFrom({
-      graphData: args.graphData,
-      edgesByVertex: args.edgesByVertex,
-      layers: args.layers,
-      vertexId: args.sourceVtxId,
-    });
   }
 
   public static setLayerFields(args: {
@@ -127,12 +121,6 @@ export class SessionUtils {
       layers: args.layers,
       layerId: args.layerId,
       fieldValues: args.fieldValues,
-    });
-    SessionUtils.propagateEdgesFrom({
-      graphData: args.graph,
-      edgesByVertex: args.edgesByVertex,
-      layers: args.layers,
-      vertexId: args.layerId,
     });
   }
 
@@ -159,47 +147,17 @@ export class SessionUtils {
     return topToBottom;
   }
 
-  public static propagateEdgesFrom(args: {
+  public static propagateEdges(args: {
     graphData: GraphData;
     edgesByVertex: EdgesByVertex;
     layers: LayerClassDict;
-    vertexId: string;
   }): void {
-    if (args.graphData.vertices[args.vertexId] === undefined) throw new Error(`Could not find vertex ${args.vertexId}`);
-
-    const verticesToInvestigate = new Set<string>([args.vertexId]);
-    const propagateVertices = new Set<string>();
-
-    while (verticesToInvestigate.size !== 0) {
-      const vertexId = verticesToInvestigate.keys().next().value;
-      verticesToInvestigate.delete(vertexId);
-      propagateVertices.add(vertexId);
-
-      for (const edgeIdOut of args.edgesByVertex[vertexId].out) {
-        const edgeTargetVtxId = args.graphData.edges[edgeIdOut].targetVertexId;
-        if (
-          (!verticesToInvestigate.has(edgeTargetVtxId)) &&
-          (!propagateVertices.has(edgeTargetVtxId))
-        ) {
-          verticesToInvestigate.add(edgeTargetVtxId)
-        }
-      }
-    }
-
     const sortedVertices = this.vertexTopoSort({
       graphData: args.graphData,
       edgesByVertex: args.edgesByVertex,
     });
-    const vertexSortIdxById: {[key: string]: number} = {};
-    for (let i = 0; i < sortedVertices.length; i++) {
-      vertexSortIdxById[sortedVertices[i]] = i;
-    }
 
-    const sortedPropagateVertices = Array.from(propagateVertices).sort((v1, v2) => {
-      return vertexSortIdxById[v1] - vertexSortIdxById[v2];
-    });
-
-    for (const propagateVtxId of sortedPropagateVertices) {
+    for (const propagateVtxId of sortedVertices) {
       for (const edgeOutId of args.edgesByVertex[propagateVtxId].out) {
         SessionUtils.propagateEdge({
           graphData: args.graphData,
