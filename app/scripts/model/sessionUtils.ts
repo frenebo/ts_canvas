@@ -131,6 +131,29 @@ export class SessionUtils {
     });
   }
 
+  private static vertexTopoSort(args: {
+    graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
+  }): string[] {
+    const topToBottom: string[] = [];
+    const remainingVertexIds = new Set(Object.keys(args.graphData.vertices));
+    while (remainingVertexIds.size !== 0) {
+      const roots = Object.keys(args.graphData.vertices).filter((key) => {
+        for (const edgeId of args.edgesByVertex[key].in) {
+          const edge = args.graphData.edges[edgeId];
+          if (remainingVertexIds.has(edge.sourceVertexId)) return false;
+        }
+        return true;
+      });
+      for (const root of roots) {
+        topToBottom.push(root);
+        remainingVertexIds.delete(root);
+      }
+    }
+
+    return topToBottom;
+  }
+
   public static propagateEdgesFrom(args: {
     graphData: GraphData;
     edgesByVertex: EdgesByVertex;
@@ -140,14 +163,19 @@ export class SessionUtils {
     const vertex = args.graphData.vertices[args.vertexId];
     if (vertex === undefined) throw new Error(`Could not find vertex ${args.vertexId}`);
 
+    const verticesToPropagateFrom: string[] = [];
+
     const edgeIdsOut: string[] = args.edgesByVertex[args.vertexId].out;
 
     for (const edgeId of edgeIdsOut) {
       SessionUtils.propagateEdge({
         graphData: args.graphData,
+        edgesByVertex: args.edgesByVertex,
         layers: args.layers,
         edgeId: edgeId,
       });
+
+      const edge = args.graphData.edges[edgeId];
     }
   }
 
@@ -287,6 +315,7 @@ export class SessionUtils {
 
   public static propagateEdge(args: {
     graphData: GraphData;
+    edgesByVertex: EdgesByVertex;
     layers: LayerClassDict;
     edgeId: string;
   }): void {
