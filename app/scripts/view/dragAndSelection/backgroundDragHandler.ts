@@ -71,7 +71,7 @@ export class BackgroundDragHandler {
       y: this.stageInterface.getStageY(),
     };
 
-    if (event.data.originalEvent.ctrlKey) {
+    if (event.data.originalEvent.ctrlKey || event.data.originalEvent.metaKey) {
       const graphics = new PIXI.Graphics();
       this.stageInterface.addDisplayObject(graphics);
 
