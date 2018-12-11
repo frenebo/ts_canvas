@@ -8,7 +8,7 @@ import {
   EdgesByVertex,
   GraphUtils,
 } from "./graphUtils.js";
-import { GraphData } from "../interfaces.js";
+import { GraphData, ModelInfoReqs } from "../interfaces.js";
 import { Layer } from "./layers/layers.js";
 
 export interface SessionDataJson {
@@ -57,6 +57,33 @@ export class SessionUtils {
     });
 
     if (graphValidated !== null) return graphValidated;
+
+    const sourceLayer = args.layers[args.sourceVtxId];
+    const targetLayer = args.layers[args.targetVtxId];
+
+    const targetValueOccupied = SessionUtils.getValueIsReadonly({
+      graphData: args.graphData,
+      edgesByVertex: args.edgesByVertex,
+      layers: args.layers,
+      layerId: args.targetVtxId,
+      valueId: targetLayer.getPortInfo(args.targetPortId).valueKey,
+    });
+
+    if (targetValueOccupied.requestError !== null) return "Target does not exist";
+
+    if (targetValueOccupied.isReadonly) {
+      if (targetValueOccupied.reason === "port_is_occupied") {
+        return "Target port is occupied";
+      } else {
+        return "Target port is readonly";
+      }
+    }
+
+    const sourceValue = sourceLayer.getValueWrapper(sourceLayer.getPortInfo(args.sourcePortId).valueKey);
+    const targetValue = targetLayer.getValueWrapper(targetLayer.getPortInfo(args.targetPortId).valueKey);
+
+    const targetValidatedValue = targetValue.validateValue(sourceValue.getValue());
+    if (targetValidatedValue !== null) return `Incompatible source and target: ${targetValidatedValue}`;
 
     return null;
   }
@@ -217,6 +244,45 @@ export class SessionUtils {
       layerId: args.oldVtxId,
       newLayerId: args.newVtxId,
     });
+  }
+
+  public static getValueIsReadonly(args: {
+    graphData: GraphData;
+    layers: LayerClassDict;
+    edgesByVertex: EdgesByVertex;
+    layerId: string;
+    valueId: string;
+  }): ModelInfoReqs["valueIsReadonly"]["response"] {
+    const vertex = args.graphData.vertices[args.layerId];
+    if (vertex === undefined) return {requestError: "layer_nonexistent"};
+
+    const layer = args.layers[args.layerId];
+    if (!layer.hasField(args.valueId)) return {requestError: "field_nonexistent"};
+
+    if (layer.isReadonlyField(args.valueId)) {
+      return {
+        requestError: null,
+        isReadonly: true,
+        reason: "value_is_not_modifiable",
+      };
+    }
+
+    const vertexOccupiedPortIds = args.edgesByVertex[args.layerId].in.map((edgeId) => args.graphData.edges[edgeId].targetPortId);
+
+    const layerOccupiedValueIds = vertexOccupiedPortIds.map((portId) => layer.getPortInfo(portId).valueKey);
+
+    if (layerOccupiedValueIds.indexOf(args.valueId) !== -1) {
+      return {
+        requestError: null,
+        isReadonly: true,
+        reason: "port_is_occupied",
+      };
+    } else {
+      return {
+        requestError: null,
+        isReadonly: false,
+      };
+    }
   }
 
   public static propagateEdge(args: {

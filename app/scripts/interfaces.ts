@@ -42,7 +42,6 @@ export interface LayerData {
   fields: {
     [key: string]: {
       value: string;
-      readonly: boolean;
     };
   };
 }
@@ -261,5 +260,24 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
     "response": {
       vertexIds: string[];
     };
+  };
+  "valueIsReadonly": {
+    "request": {
+      type: "valueIsReadonly";
+      layerId: string;
+      valueId: string;
+    };
+    "response": {
+      requestError: null;
+      isReadonly: false;
+    } | {
+      requestError: null;
+      isReadonly: true;
+      reason: "port_is_occupied" | "value_is_not_modifiable";
+    } | {
+      requestError: "layer_nonexistent";
+    } | {
+      requestError: "field_nonexistent";
+    }
   };
 }

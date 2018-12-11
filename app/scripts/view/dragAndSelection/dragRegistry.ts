@@ -28,7 +28,6 @@ export interface DragListeners {
 }
 
 export class DragRegistry {
-  private static readonly portTargetHoverWait = 250;
   private static readonly portSnapDistance = 20;
 
   private currentObject: PIXI.DisplayObject | null;

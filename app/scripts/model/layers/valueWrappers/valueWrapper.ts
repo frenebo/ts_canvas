@@ -39,7 +39,7 @@ abstract class AbstractValueWrapper<T, V extends {} & Cloneable> {
 
     this.setValue(parsed);
   }
-  public validateValue(val: T): string | null {
+  public validateValue(val: unknown): string | null {
     return this.utils.validate(val, this.config);
   }
   public validateString(str: string): string | null {
@@ -90,7 +90,11 @@ export type ShapeWrapperConfig = Cloneable & {
 
 export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperConfig> {
   private static validate(val: unknown, config: ShapeWrapperConfig): string | null {
-    if (!Array.isArray(val)) return "Value is not array";
+    if (!Array.isArray(val)) return "Value is not array of numbers";
+    for (const dim of val) {
+      if (typeof dim !== "number") return "Value is not an array of numbers";
+    }
+
     if (config.dimConstraints !== undefined) {
       if (config.dimConstraints.type === "equals") {
         if (val.length !== config.dimConstraints.value) {
@@ -124,7 +128,7 @@ export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperCon
 
     for (const trimmedDimStr of trimmedDims) {
       // optional plus/minus, 0 or more spaces, series of digits
-      if (!/(-|\+)?( )*^\d+$/.test(trimmedDimStr)) return null;
+      if (!/^[+\-]? *(?:\d+(?:\.\d*)?|\.\d+)$/.test(trimmedDimStr)) return null;
     }
 
     return trimmedDims.map((dim) => parseInt(dim));
@@ -152,6 +156,49 @@ export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperCon
         compareEquals: ShapeWrapper.compareEquals,
         factory: (factoryVal: number[], factoryConfig: ShapeWrapperConfig) => {
           return new ShapeWrapper(factoryVal, factoryConfig);
+        },
+      },
+    );
+  }
+}
+
+export type NumberWrapperConfig = Cloneable & {
+
+};
+
+export class NumberWrapper extends AbstractValueWrapper<number, NumberWrapperConfig> {
+  private static validate(val: unknown): string | null {
+    if (typeof val !== "number") return "Value is not a number";
+    if (isNaN(val)) return "Value is not a number";
+    if (Math.abs(val) >= Number.MAX_SAFE_INTEGER) return "Value too large";
+
+    return null;
+  }
+  private static parse(str: string): number | null {
+    const trimmed = str.trim();
+    if (!/^[+\-]? *(?:\d+(?:\.\d*)?|\.\d+)$/.test(trimmed)) return null;
+
+    return parseFloat(str);
+  }
+  private static stringify(val: number): string {
+    if (isNaN(val)) throw new Error("Val is not a number");
+
+    return val.toString();
+  }
+  private static compareEquals(val1: number, val2: number): boolean {
+    return val1 === val2;
+  }
+  constructor(val: number, config: NumberWrapperConfig = {}) {
+    super(
+      val,
+      config,
+      {
+        validate: NumberWrapper.validate,
+        parse: NumberWrapper.parse,
+        stringify: NumberWrapper.stringify,
+        compareEquals: NumberWrapper.compareEquals,
+        factory: (factoryVal: number, factoryConfig: NumberWrapperConfig) => {
+          return new NumberWrapper(factoryVal, factoryConfig);
         },
       },
     );

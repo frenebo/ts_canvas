@@ -50,8 +50,8 @@ export class Model implements ModelInterface {
 
   constructor() {
     this.requestQueue = new Queue();
-    for (let i = 0; i < 3; i++) {
-      const layer = Layer.getLayer("Repeat");
+    for (let i = 0; i < 5; i++) {
+      const layer = Layer.getLayer(i % 2 === 0 ? "Repeat" : "AddLayer");
       LayerUtils.addLayer({
         layers: this.session.data.layers,
         newLayerId: i.toString(),
@@ -331,6 +331,14 @@ export class Model implements ModelInterface {
         return GraphUtils.getUniqueVertexIds({
           graphData: this.session.data.graph,
           count: (req as ModelInfoReqs["getUniqueVertexIds"]["request"]).count,
+        });
+      } else if (req.type === "valueIsReadonly") {
+        return SessionUtils.getValueIsReadonly({
+          graphData: this.session.data.graph,
+          layers: this.session.data.layers,
+          edgesByVertex: this.session.data.edgesByVertex,
+          layerId: (req as ModelInfoReqs["valueIsReadonly"]["request"]).layerId,
+          valueId: (req as ModelInfoReqs["valueIsReadonly"]["request"]).valueId,
         });
       } else {
         throw new Error(`Unimplemented request ${req.type}`);

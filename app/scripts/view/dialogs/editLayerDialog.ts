@@ -7,6 +7,18 @@ import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
 import { MONOSPACE_STYLE } from "../../constants.js";
 
 export class EditLayerDialog extends Dialog {
+  private applyButton!: HTMLButtonElement;
+  private updateErrorDiv!: HTMLDivElement;
+  private readonly inputFields: {[key: string]: HTMLInputElement} = {};
+
+  private readonly invalidFields = new Set<string>();
+  private readonly pendingFields = new Set<string>();
+
+  private readonly fieldsReadonlyDict: {
+    [key: string]: boolean
+  } = {};
+
+
   constructor(
     closeDialogFunc: () => void,
     width: number,
@@ -64,9 +76,23 @@ export class EditLayerDialog extends Dialog {
     const fieldDiv = document.createElement("div");
     this.root.appendChild(fieldDiv);
 
-    const invalidFields: string[] = [];
-    const pendingFields: string[] = [];
-    const inputFields: {[key: string]: HTMLInputElement} = {};
+    for (const fieldId in layerData.fields) {
+      const fieldReadonlyInfo = await this.sendModelInfoRequests<"valueIsReadonly">({
+        type: "valueIsReadonly",
+        layerId: this.layerId,
+        valueId: fieldId,
+      });
+
+      if (fieldReadonlyInfo.requestError === "layer_nonexistent") {
+        this.alertLayerNonexistent();
+        break;
+      } else if (fieldReadonlyInfo.requestError === "field_nonexistent") {
+        this.alertFieldNonexistent(fieldId);
+        break;
+      }
+
+      this.fieldsReadonlyDict[fieldId] = fieldReadonlyInfo.isReadonly;
+    }
     for (const fieldId in layerData.fields) {
       const row = document.createElement("div");
       fieldDiv.appendChild(row);
@@ -82,11 +108,13 @@ export class EditLayerDialog extends Dialog {
 
       const input = document.createElement("input");
       row.appendChild(input);
-      inputFields[fieldId] = input;
+      this.inputFields[fieldId] = input;
       input.style.display = "inline-block";
       input.value = layerData.fields[fieldId].value;
       input.style.width = "10em";
-      input.disabled = layerData.fields[fieldId].readonly;
+
+
+      input.disabled = this.fieldsReadonlyDict[fieldId];
 
       input.style.padding = "3px";
       input.style.border = "1px solid black";
@@ -120,12 +148,12 @@ export class EditLayerDialog extends Dialog {
             promise: thisPromise,
             loadIcon: icon,
           };
-          pendingFields.push(fieldId);
+          this.pendingFields.add(fieldId);
         } else {
           currentValidation.promise = thisPromise;
         }
 
-        updateApplyButton();
+        this.updateApplyButton();
 
         const validateVal = await thisPromise;
 
@@ -137,7 +165,7 @@ export class EditLayerDialog extends Dialog {
         row.removeChild(currentValidation.loadIcon);
 
         currentValidation = null; // setting to null
-        pendingFields.splice(pendingFields.indexOf(fieldId), 1);
+        this.pendingFields.delete(fieldId);
 
         if (validateVal.requestError === "layer_nonexistent") {
           this.alertLayerNonexistent();
@@ -153,8 +181,8 @@ export class EditLayerDialog extends Dialog {
 
           errorText.textContent = "";
 
-          if (invalidFields.indexOf(fieldId) !== -1) {
-            invalidFields.splice(invalidFields.indexOf(fieldId), 1);
+          if (this.invalidFields.has(fieldId)) {
+            this.invalidFields.delete(fieldId);
           }
         } else {
           input.style.border = "3px solid red";
@@ -162,89 +190,91 @@ export class EditLayerDialog extends Dialog {
 
           errorText.textContent = validateVal.invalidError;
 
-          if (invalidFields.indexOf(fieldId) === -1) {
-            invalidFields.push(fieldId);
+          if (!this.invalidFields.has(fieldId)) {
+            this.invalidFields.add(fieldId);
           }
         }
 
-        updateApplyButton();
+        this.updateApplyButton();
       });
     }
 
-    const updateErrorDiv = document.createElement("div");
-    this.root.appendChild(updateErrorDiv);
-    updateErrorDiv.style.color = "red";
-    updateErrorDiv.style.textAlign = "center";
-    updateErrorDiv.style.marginTop = "10px";
+    this.updateErrorDiv = document.createElement("div");
+    this.root.appendChild(this.updateErrorDiv);
+    this.updateErrorDiv.style.color = "red";
+    this.updateErrorDiv.style.textAlign = "center";
+    this.updateErrorDiv.style.marginTop = "10px";
 
     const saveButtonDiv = document.createElement("div");
     this.root.appendChild(saveButtonDiv);
     saveButtonDiv.style.marginTop = "10px";
 
-    const applyButton = document.createElement("button");
-    saveButtonDiv.appendChild(applyButton);
-    applyButton.textContent = "Apply";
-    applyButton.style.margin = "0 auto";
-    applyButton.style.display = "block";
+    this.applyButton = document.createElement("button");
+    saveButtonDiv.appendChild(this.applyButton);
+    this.applyButton.textContent = "Apply";
+    this.applyButton.style.margin = "0 auto";
+    this.applyButton.style.display = "block";
 
-    function updateApplyButton() {
-      applyButton.disabled = (invalidFields.length !== 0) || (pendingFields.length !== 0);
-    }
+    this.applyButton.addEventListener("click", () => this.applyValues());
+  }
 
-    applyButton.addEventListener("click", async () => {
-      this.addLoadIcon();
-      applyButton.disabled = true;
-      const setFieldValues: {[key: string]: string} = {};
-      for (const fieldId in inputFields) {
-        if (!layerData.fields[fieldId].readonly) {
-          setFieldValues[fieldId] = inputFields[fieldId].value;
-        }
+  private updateApplyButton() {
+    this.applyButton.disabled = (this.invalidFields.size !== 0) || (this.pendingFields.size !== 0);
+  }
+
+  private async applyValues() {
+    this.addLoadIcon();
+    this.applyButton.disabled = true;
+    const setFieldValues: {[key: string]: string} = {};
+    for (const fieldId in this.inputFields) {
+      if (!this.fieldsReadonlyDict[fieldId]) {
+        setFieldValues[fieldId] = this.inputFields[fieldId].value;
       }
-      const validated = await this.sendModelInfoRequests<"validateLayerFields">({
-        type: "validateLayerFields",
-        layerId: this.layerId,
-        fieldValues: setFieldValues,
-      });
+    }
+    const validated = await this.sendModelInfoRequests<"validateLayerFields">({
+      type: "validateLayerFields",
+      layerId: this.layerId,
+      fieldValues: setFieldValues,
+    });
 
-      if (validated.requestError === "layer_nonexistent") {
-        this.alertLayerNonexistent();
-      } else if (validated.requestError === "field_nonexistent") {
-        this.alertFieldNonexistent(validated.fieldName);
-      } else {
-        let errorText = validated.errors.length === 0 ? "" : validated.errors.length === 1 ? "Error: " : "Errors: ";
-        errorText += validated.errors.join(", ");
+    if (validated.requestError === "layer_nonexistent") {
+      this.alertLayerNonexistent();
+    } else if (validated.requestError === "field_nonexistent") {
+      this.alertFieldNonexistent(validated.fieldName);
+    } else {
+      let errorText = validated.errors.length === 0 ? "" : validated.errors.length === 1 ? "Error: " : "Errors: ";
+      errorText += validated.errors.join(", ");
 
-        updateErrorDiv.textContent = errorText;
+      this.updateErrorDiv.textContent = errorText;
 
-        if (validated.errors.length === 0) {
-          this.sendModelChangeRequests({
-            type: "setLayerFields",
-            layerId: this.layerId,
-            fieldValues: setFieldValues,
-          }).catch(() => {
-            // @TODO
-          });
+      if (validated.errors.length === 0) {
+        this.sendModelChangeRequests({
+          type: "setLayerFields",
+          layerId: this.layerId,
+          fieldValues: setFieldValues,
+        }).catch(() => {
+          // @TODO
+        });
 
-          const newInfo = await this.sendModelInfoRequests<"getLayerInfo">({
-            type: "getLayerInfo",
-            layerId: this.layerId,
-          });
+        const newInfo = await this.sendModelInfoRequests<"getLayerInfo">({
+          type: "getLayerInfo",
+          layerId: this.layerId,
+        });
 
-          if (!newInfo.layerExists) {
-            this.alertLayerNonexistent();
-          } else {
-            const newFields = newInfo.data.fields;
+        if (!newInfo.layerExists) {
+          this.alertLayerNonexistent();
+        } else {
+          const newFields = newInfo.data.fields;
 
-            for (const fieldId in newFields) {
-              if (inputFields[fieldId].value !== newFields[fieldId].value) {
-                inputFields[fieldId].value = newFields[fieldId].value;
-              }
+          for (const fieldId in newFields) {
+            if (this.inputFields[fieldId].value !== newFields[fieldId].value) {
+              this.inputFields[fieldId].value = newFields[fieldId].value;
             }
           }
         }
-        this.removeLoadIcon();
-        applyButton.disabled = false;
       }
-    });
+      this.removeLoadIcon();
+      this.applyButton.disabled = false;
+    }
   }
 }

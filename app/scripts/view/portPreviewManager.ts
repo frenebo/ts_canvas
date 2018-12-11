@@ -57,7 +57,8 @@ export class PortPreviewManager {
     text.position.set(PortPreviewManager.textPadding, PortPreviewManager.textPadding);
 
     const previewX = this.stageInterface.getMousePos().x;
-    const previewY = this.stageInterface.getMousePos().y;
+    const previewY = this.stageInterface.getMousePos().y - this.previewData.overlay.height;
+
     this.previewData.overlay.position.set(previewX, previewY);
 
     const backgroundWidth = text.width + PortPreviewManager.textPadding*2;

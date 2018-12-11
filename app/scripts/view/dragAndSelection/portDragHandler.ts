@@ -14,7 +14,7 @@ interface PortListenerTypes {
 type ArgumentTypes<F extends Function> = F extends (...args: infer A) => unknown ? A : never;
 
 export class PortDragHandler {
-  private static readonly hoverTimeWait = 500; // milliseconds
+  private static readonly hoverTimeWait = 150; // milliseconds
   private static readonly dragThreshold = 8;
   private readonly listenerDict: {[key in keyof PortListenerTypes]: Array<PortListenerTypes[key]>} = {
     dragStart: [],

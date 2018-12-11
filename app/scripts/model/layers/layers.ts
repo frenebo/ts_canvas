@@ -1,6 +1,7 @@
 import {
   ValueWrapper,
   ShapeWrapper,
+  NumberWrapper,
 } from "./valueWrappers/valueWrapper.js";
 
 interface LayerPortInfo {
@@ -8,9 +9,12 @@ interface LayerPortInfo {
   type: "input" | "output";
 }
 
-interface LayerTypes {
-  "Repeat": RepeatLayer;
+const layerDict = {
+  "Repeat": () => new RepeatLayer(),
+  "AddLayer": () => new AddLayer(),
 }
+
+export type LayerType = keyof typeof layerDict;
 
 export interface LayerJsonInfo {
   layerType: string;
@@ -18,23 +22,13 @@ export interface LayerJsonInfo {
 }
 
 export abstract class Layer {
-  private static layerConstructorDict: LayerTypes | null = null;
-  public static isLayerType(type: string): type is keyof LayerTypes {
-    if (Layer.layerConstructorDict === null) {
-      Layer.layerConstructorDict = {
-        "Repeat": new RepeatLayer(),
-      };
-    }
-
-    return Object.keys(Layer.layerConstructorDict).indexOf(type) !== -1;
+  public static isLayerType(type: string): type is LayerType {
+    return Object.keys(layerDict).indexOf(type) !== -1;
   }
 
-  public static getLayer<T extends keyof LayerTypes>(type: T): LayerTypes[T] {
-    if (type === "Repeat") {
-      return new RepeatLayer();
-    } else {
-      throw new Error("unimplemented layer");
-    }
+  public static getLayer<T extends LayerType>(type: T): ReturnType<(typeof layerDict)[T]> {
+    const layerConstructor = layerDict[type];
+    return layerConstructor() as ReturnType<(typeof layerDict)[T]>;
   }
 
   public static toJson(layer: Layer): LayerJsonInfo {
@@ -129,7 +123,7 @@ export abstract class Layer {
   }
 }
 
-export class RepeatLayer extends Layer {
+class RepeatLayer extends Layer {
   protected type = "Repeat";
   protected ports: {
     [key: string]: LayerPortInfo;
@@ -163,6 +157,56 @@ export class RepeatLayer extends Layer {
     const inputShape = this.fields.inputShape.wrapper.getValue();
     this.fields.outputShape.wrapper.setValue(inputShape);
 
+    return {errors: [], warnings: []};
+  }
+}
+
+class AddLayer extends Layer {
+  protected type = "AddLayer";
+  protected ports: {
+    [key: string]: LayerPortInfo;
+  } = {
+    "inputValue1": {
+      valueKey: "inputValue1",
+      type: "input",
+    },
+    "inputValue2": {
+      valueKey: "inputValue2",
+      type: "input",
+    },
+    "outputValue": {
+      valueKey: "outputShape",
+      type: "output",
+    },
+  };
+
+  protected fields = {
+    inputValue1: {
+      wrapper: new NumberWrapper(0),
+      readonly: false,
+    },
+    inputValue2: {
+      wrapper: new NumberWrapper(0),
+      readonly: false,
+    },
+    outputShape: {
+      wrapper: new NumberWrapper(0),
+      readonly: true,
+    },
+  };
+
+  constructor() {
+    super();
+  }
+
+  protected updateFunc(): {errors: string[], warnings: string[]} {
+    const outNum = this.fields.inputValue1.wrapper.getValue() + this.fields.inputValue2.wrapper.getValue();
+
+    const validated = this.fields.outputShape.wrapper.validateValue(outNum);
+    if (validated !== null) return {errors: [`Problem adding inputs: ${validated}`], warnings: []};
+
+
+    this.fields.outputShape.wrapper.setValue(outNum);
     return {errors: [], warnings: []};
   }
 }
