@@ -1,9 +1,10 @@
 import { GraphicWrapper } from "./graphicWrapper.js";
+import { StageInterface } from "../stageInterface.js";
 
 export class LabelWrapper extends GraphicWrapper {
   private static readonly cachedLabels = new Map<string, PIXI.RenderTexture>();
   private static drawLabel(
-    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    stageInterface: StageInterface,
     labelText: string,
   ): PIXI.Sprite {
     if (LabelWrapper.cachedLabels.has(labelText)) {
@@ -30,22 +31,17 @@ export class LabelWrapper extends GraphicWrapper {
 
     const label = new PIXI.Text(labelText, textStyle);
 
-    const texture = renderer.generateTexture(
-      label,
-      undefined, // scale mode
-      renderer.resolution*4, // resolution
-      undefined, // region
-    );
+    const texture = stageInterface.generateTexture(label);
 
     LabelWrapper.cachedLabels.set(labelText, texture);
 
-    return LabelWrapper.drawLabel(renderer, labelText);
+    return LabelWrapper.drawLabel(stageInterface, labelText);
   }
 
   private text: string | null = null;
   private sprite: PIXI.Sprite | null = null;
   constructor(
-    private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    private readonly stageInterface: StageInterface,
   ) {
     super({});
   }
@@ -61,7 +57,7 @@ export class LabelWrapper extends GraphicWrapper {
   public setText(text: string): void {
     if (this.text !== text) {
       if (this.sprite !== null) this.removeChild(this.sprite);
-      this.sprite = LabelWrapper.drawLabel(this.renderer, text);
+      this.sprite = LabelWrapper.drawLabel(this.stageInterface, text);
       this.addChild(this.sprite);
       this.text = text;
     }

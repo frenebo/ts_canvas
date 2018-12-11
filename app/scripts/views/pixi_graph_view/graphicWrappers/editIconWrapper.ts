@@ -1,4 +1,5 @@
 import { GraphicWrapper } from "./graphicWrapper.js";
+import { StageInterface } from "../stageInterface.js";
 
 export class EditIconWrapper extends GraphicWrapper {
   public static height = 50;
@@ -20,7 +21,7 @@ export class EditIconWrapper extends GraphicWrapper {
   private static cachedClicking: PIXI.RenderTexture | null = null;
   private static cachedNotClicking: PIXI.RenderTexture | null = null;
 
-  private static draw(clicking: boolean, renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
+  private static draw(clicking: boolean, stageInterface: StageInterface): PIXI.Sprite {
     if (clicking && EditIconWrapper.cachedClicking !== null) {
       const spriteFromCachedTexture = new PIXI.Sprite(EditIconWrapper.cachedClicking);
       return spriteFromCachedTexture;
@@ -55,10 +56,8 @@ export class EditIconWrapper extends GraphicWrapper {
     graphPoints(EditIconWrapper.outlinePoints, true);
     graphPoints(EditIconWrapper.eraserPoints);
 
-    const texture = renderer.generateTexture(
+    const texture = stageInterface.generateTexture(
       graphics,
-      undefined,
-      renderer.resolution*2,
       new PIXI.Rectangle(
         0,
         0,
@@ -86,7 +85,7 @@ export class EditIconWrapper extends GraphicWrapper {
   private sprite: PIXI.Sprite;
 
   constructor(
-    private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    private readonly stageInterface: StageInterface,
   ) {
     super({
       buttonMode: true,
@@ -100,7 +99,7 @@ export class EditIconWrapper extends GraphicWrapper {
 
   private redraw(): void {
     this.removeChild(this.sprite);
-    this.sprite = EditIconWrapper.draw(this.isSelected, this.renderer);
+    this.sprite = EditIconWrapper.draw(this.isSelected, this.stageInterface);
     this.sprite.position.set(-EditIconWrapper.texturePadding);
     this.addChild(this.sprite);
   }

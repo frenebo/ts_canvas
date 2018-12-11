@@ -4,23 +4,20 @@ import { PortWrapper } from "./portWrapper.js";
 import { GraphicWrapper } from "./graphicWrapper.js";
 import { LabelWrapper } from "./labelWrapper.js";
 import { VtxBackgroundWrapper } from "./vertexBackgroundWrapper.js";
+import { StageInterface } from "../stageInterface.js";
 
 export class VertexWrapper extends GraphicWrapper {
   public static readonly width = 250;
   public static readonly height = 80;
 
-  private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer;
   private editIcon: EditIconWrapper | null = null;
   private isSelected = false;
   private readonly label: LabelWrapper;
   private readonly background: VtxBackgroundWrapper;
 
-  constructor(
-    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
-  ) {
+  constructor(stageInterface: StageInterface) {
     super({});
-    this.renderer = renderer;
-    this.background = new VtxBackgroundWrapper(renderer);
+    this.background = new VtxBackgroundWrapper(stageInterface);
     this.addChild(this.background);
     this.redrawBackground();
 
@@ -29,7 +26,7 @@ export class VertexWrapper extends GraphicWrapper {
       fontSize: 30,
     });
 
-    this.label = new LabelWrapper(renderer);
+    this.label = new LabelWrapper(stageInterface);
     this.addChild(this.label);
   }
 

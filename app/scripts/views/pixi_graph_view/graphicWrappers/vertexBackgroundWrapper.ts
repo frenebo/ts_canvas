@@ -1,4 +1,5 @@
 import { GraphicWrapper } from "./graphicWrapper.js";
+import { StageInterface } from "../stageInterface.js";
 
 export class VtxBackgroundWrapper extends GraphicWrapper {
   private static readonly cachedTextures = new Map<string, PIXI.RenderTexture>();
@@ -10,7 +11,7 @@ export class VtxBackgroundWrapper extends GraphicWrapper {
   public static readonly backgroundSpritePadding = 5;
 
   private static drawSprite(
-    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    stageInterface: StageInterface,
     selected: boolean,
     width: number,
     height: number,
@@ -36,16 +37,11 @@ export class VtxBackgroundWrapper extends GraphicWrapper {
       10,
     );
 
-    const texture = renderer.generateTexture(
-      graphics,
-      undefined, // scale mode
-      renderer.resolution*4, // resolution
-      undefined, // region
-    );
+    const texture = stageInterface.generateTexture(graphics);
     VtxBackgroundWrapper.cachedTextures.set(uniqueString, texture);
 
     return VtxBackgroundWrapper.drawSprite(
-      renderer,
+      stageInterface,
       selected,
       width,
       height,
@@ -60,7 +56,7 @@ export class VtxBackgroundWrapper extends GraphicWrapper {
   private alpha: number | null = null;
 
   constructor(
-    private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    private readonly stageInterface: StageInterface,
   ) {
     super({});
   }
@@ -83,7 +79,7 @@ export class VtxBackgroundWrapper extends GraphicWrapper {
       this.alpha = alpha;
       if (this.sprite !== null) this.removeChild(this.sprite);
       this.sprite = VtxBackgroundWrapper.drawSprite(
-        this.renderer,
+        this.stageInterface,
         this.selected,
         this.width,
         this.height,

@@ -1,7 +1,7 @@
 import { PortWrapper } from "./graphicWrappers/portWrapper";
-import { BackgroundWrapper } from "./backgroundWrapper";
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper";
 import { RequestInfoFunc } from "../../messenger";
+import { StageInterface } from "./stageInterface";
 
 export class PortPreviewManager {
   private static readonly textPadding = 5;
@@ -14,7 +14,7 @@ export class PortPreviewManager {
     overlay: PIXI.Container;
   } | null = null;
   constructor(
-    private readonly backgroundWrapper: BackgroundWrapper,
+    private readonly stageInterface: StageInterface,
     private readonly sendModelInfoRequests: RequestInfoFunc,
   ) {
     // empty
@@ -42,8 +42,8 @@ export class PortPreviewManager {
       overlay: new PIXI.Container(),
     };
 
-    this.backgroundWrapper.addOverlayObject(this.previewData.overlay);
-    this.previewData.overlay.scale.set(1/this.backgroundWrapper.getScale());
+    this.stageInterface.addDisplayObject(this.previewData.overlay);
+    this.previewData.overlay.scale.set(1/this.stageInterface.getScale());
 
     const textBackground = new PIXI.Graphics();
     this.previewData.overlay.addChild(textBackground);
@@ -56,8 +56,8 @@ export class PortPreviewManager {
     });
     text.position.set(PortPreviewManager.textPadding, PortPreviewManager.textPadding);
 
-    const previewX = this.backgroundWrapper.getMousePos().x;
-    const previewY = this.backgroundWrapper.getMousePos().y;
+    const previewX = this.stageInterface.getMousePos().x;
+    const previewY = this.stageInterface.getMousePos().y;
     this.previewData.overlay.position.set(previewX, previewY);
 
     const backgroundWidth = text.width + PortPreviewManager.textPadding*2;
@@ -66,12 +66,12 @@ export class PortPreviewManager {
     textBackground.beginFill(0x333333);
     textBackground.drawRoundedRect(0, 0, backgroundWidth, backgroundHeight, PortPreviewManager.cornerRadius);
 
-    this.backgroundWrapper.onPositionOrZoomChanged(() => { this.portHoverEnd(port); });
+    this.stageInterface.onPositionOrZoomChanged(() => { this.portHoverEnd(port); });
   }
 
   public portHoverEnd(port: PortWrapper): void {
     if (this.previewData !== null && this.previewData.port === port) {
-      this.backgroundWrapper.removeOverlayObject(this.previewData.overlay);
+      this.stageInterface.removeDisplayObject(this.previewData.overlay);
       this.previewData = null;
     }
   }

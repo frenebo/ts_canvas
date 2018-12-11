@@ -1,6 +1,8 @@
-import { BackgroundWrapper } from "../backgroundWrapper.js";
+
 import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "../selectionManager.js";
+import { BackgroundWrapper } from "../graphicWrappers/backgroundWrapper.js";
+import { StageInterface } from "../stageInterface.js";
 
 export class BackgroundDragHandler {
   private static readonly dragThreshold = 2;
@@ -40,7 +42,7 @@ export class BackgroundDragHandler {
 
   constructor(
     private readonly selectionManager: SelectionManager,
-    private readonly backgroundWrapper: BackgroundWrapper,
+    private readonly stageInterface: StageInterface,
     dragListeners: DragListeners,
   ) {
     const that = this;
@@ -65,17 +67,17 @@ export class BackgroundDragHandler {
     };
 
     const backgroundStart = {
-      x: this.backgroundWrapper.localX(),
-      y: this.backgroundWrapper.localY(),
+      x: this.stageInterface.getStageX(),
+      y: this.stageInterface.getStageY(),
     };
 
     if (event.data.originalEvent.ctrlKey) {
       const graphics = new PIXI.Graphics();
-      this.backgroundWrapper.addChild(graphics);
+      this.stageInterface.addDisplayObject(graphics);
 
       const mouseStartLocal = {
-        x: this.backgroundWrapper.getDataRelativeLoc(event.data).x,
-        y: this.backgroundWrapper.getDataRelativeLoc(event.data).y,
+        x: this.stageInterface.getDataRelativeLoc(event.data).x,
+        y: this.stageInterface.getDataRelativeLoc(event.data).y,
       };
 
       this.mouseData = {
@@ -113,14 +115,14 @@ export class BackgroundDragHandler {
     if (this.mouseData.type === "click") {
       // do nothing
     } else if (this.mouseData.type === "drag") {
-      this.backgroundWrapper.setPosition(
+      this.stageInterface.setStagePositionAbsolute(
         this.mouseData.backgroundStart.x + deltaX,
         this.mouseData.backgroundStart.y + deltaY,
       );
     } else if (this.mouseData.type === "select") {
       const graphics = this.mouseData.graphics;
 
-      const mouseLocalPos = this.backgroundWrapper.getDataRelativeLoc(event.data);
+      const mouseLocalPos = this.stageInterface.getDataRelativeLoc(event.data);
 
       graphics.clear();
       graphics.lineColor = 0x000000;
@@ -141,9 +143,9 @@ export class BackgroundDragHandler {
     if (this.mouseData === null) return;
 
     if (this.mouseData.type === "select") {
-      this.backgroundWrapper.removeChild(this.mouseData.graphics);
+      this.stageInterface.removeDisplayObject(this.mouseData.graphics);
 
-      const mouseLocalPos = this.backgroundWrapper.getDataRelativeLoc(event.data);
+      const mouseLocalPos = this.stageInterface.getDataRelativeLoc(event.data);
 
       this.selectionManager.addSelectionBox(
         Math.min(this.mouseData.mouseStartLocal.x, mouseLocalPos.x),
@@ -160,7 +162,7 @@ export class BackgroundDragHandler {
     if (this.mouseData === null) return;
 
     if (this.mouseData.type === "select") {
-      this.backgroundWrapper.removeChild(this.mouseData.graphics);
+      this.stageInterface.removeDisplayObject(this.mouseData.graphics);
     }
 
     this.mouseData = null;

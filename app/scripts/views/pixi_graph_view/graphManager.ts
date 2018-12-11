@@ -6,13 +6,13 @@ import {
 } from "../../interfaces.js";
 import { EditIconWrapper } from "./graphicWrappers/editIconWrapper.js";
 import { PortWrapper } from "./graphicWrappers/portWrapper.js";
-import { StageManager } from "./stageManager.js";
 import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
 import { SelectionManager } from "./selectionManager.js";
 import { CullingManager } from "./cullingManager.js";
 import { PortPreviewManager } from "./portPreviewManager.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
 import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
+import { StageManager } from "./stageManager.js";
 
 export type GraphManagerCommand = {
   type: "removeEdge";
@@ -71,12 +71,11 @@ export class GraphManager {
       () => this.edgeWrappers,
       sendModelChangeRequests,
       sendModelInfoRequests,
-      this.stageManager.getRenderer(),
-      this.stageManager.getBackgroundWrapper(),
+      this.stageManager.getStageInterface(),
     );
 
     this.portPreviewManager = new PortPreviewManager(
-      this.stageManager.getBackgroundWrapper(),
+      this.stageManager.getStageInterface(),
       sendModelInfoRequests,
     );
 
@@ -86,15 +85,13 @@ export class GraphManager {
       () => this.vertexWrappers,
       () => this.edgeWrappers,
       () => this.ports,
-      this.stageManager.getBackgroundWrapper(),
       this.selectionManager,
       this.portPreviewManager,
-      this.stageManager.getRenderer(),
+      this.stageManager.getStageInterface(),
     );
 
     this.cullingManager = new CullingManager(
-      this.stageManager.getBackgroundWrapper(),
-      this.stageManager.getRenderer(),
+      this.stageManager.getStageInterface(),
     );
   }
 
@@ -134,8 +131,8 @@ export class GraphManager {
       throw new Error(`A vertex with the key ${vertexKey} is already present`);
     }
 
-    const vertexWrapper = new VertexWrapper(this.stageManager.getRenderer());
-    const editIcon = new EditIconWrapper(this.stageManager.getRenderer());
+    const vertexWrapper = new VertexWrapper(this.stageManager.getStageInterface());
+    const editIcon = new EditIconWrapper(this.stageManager.getStageInterface());
     vertexWrapper.addEditIcon(editIcon);
 
     this.dragRegistry.registerEditIcon(
@@ -234,7 +231,7 @@ export class GraphManager {
     }
     for (const addedPortId of addedPortIds) {
       const portData = vertexData.ports[addedPortId];
-      const portWrapper = new PortWrapper(this.stageManager.getRenderer(), portData.portType === "output");
+      const portWrapper = new PortWrapper(this.stageManager.getStageInterface(), portData.portType === "output");
       vertexWrapper.addChild(portWrapper.getDisplayObject());
       vertexWrapper.positionPort(portWrapper, portData.position, portData.side);
 

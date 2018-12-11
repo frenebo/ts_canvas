@@ -1,7 +1,7 @@
 import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
 import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "../selectionManager.js";
-import { BackgroundWrapper } from "../backgroundWrapper.js";
+import { StageInterface } from "../stageInterface.js";
 
 export class VertexDragHandler {
   private static readonly dragThreshold = 5;
@@ -24,7 +24,7 @@ export class VertexDragHandler {
     private readonly vtxWrapper: VertexWrapper,
     listeners: DragListeners,
     private readonly selectionManager: SelectionManager,
-    private readonly backgroundWrapper: BackgroundWrapper,
+    private readonly stageInterface: StageInterface,
   ) {
     const that = this;
 
@@ -83,7 +83,7 @@ export class VertexDragHandler {
     if (!this.clickData.isDrag && this.selectionManager.vertexIsSelected(this.vertexId)) {
 
 
-      const scaledThreshold = VertexDragHandler.dragThreshold/this.backgroundWrapper.getScale();
+      const scaledThreshold = VertexDragHandler.dragThreshold/this.stageInterface.getScale();
       if (dx*dx + dy*dy > scaledThreshold*scaledThreshold) {
         // begin drag
         this.clickData.isDrag = true;

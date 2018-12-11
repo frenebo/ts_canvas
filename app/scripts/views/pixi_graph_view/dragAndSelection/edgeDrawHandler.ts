@@ -1,6 +1,6 @@
 import { PortWrapper } from "../graphicWrappers/portWrapper.js";
 import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
-import { BackgroundWrapper } from "../backgroundWrapper.js";
+import { StageInterface } from "../stageInterface.js";
 
 export class EdgeDrawHandler {
   private dragData: {
@@ -10,7 +10,7 @@ export class EdgeDrawHandler {
   } | null = null;
 
   constructor(
-    private readonly backgroundWrapper: BackgroundWrapper,
+    private readonly stageInterface: StageInterface,
   ) {
   }
 
@@ -18,7 +18,7 @@ export class EdgeDrawHandler {
     if (this.dragData !== null) throw new Error("Already drawing edge");
 
     const graphics = new PIXI.Graphics();
-    this.backgroundWrapper.addChild(graphics);
+    this.stageInterface.addDisplayObject(graphics);
 
     graphics.lineColor = 0x000000;
     graphics.lineStyle(10);
@@ -60,7 +60,7 @@ export class EdgeDrawHandler {
   public endDrag(): void {
     if (this.dragData === null) throw new Error("Not currently drawing edge");
 
-    this.backgroundWrapper.removeChild(this.dragData.graphics);
+    this.stageInterface.removeDisplayObject(this.dragData.graphics);
     this.dragData = null;
   }
 }

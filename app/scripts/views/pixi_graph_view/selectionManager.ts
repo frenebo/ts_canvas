@@ -3,9 +3,9 @@ import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import {
   ModelChangeRequest, ModelInfoReqs, EdgeData,
 } from "../../interfaces.js";
-import { BackgroundWrapper } from "./backgroundWrapper.js";
 import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
 import { VtxBackgroundWrapper } from "./graphicWrappers/vertexBackgroundWrapper.js";
+import { StageInterface } from "./stageInterface.js";
 
 export class SelectionManager {
   private static readonly ghostAlpha = 0.5;
@@ -26,8 +26,7 @@ export class SelectionManager {
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
     private readonly sendModelChangeRequests: RequestModelChangesFunc,
     private readonly sendModelInfoRequests: RequestInfoFunc,
-    private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
-    private readonly background: BackgroundWrapper,
+    private readonly stageInterface: StageInterface,
   ) {
     // empty
   }
@@ -132,7 +131,7 @@ export class SelectionManager {
     if (this.selectionDrag !== null) throw new Error("In middle of drag");
 
     const ghostRoot = new PIXI.Container();
-    this.background.addChild(ghostRoot);
+    this.stageInterface.addDisplayObject(ghostRoot);
     ghostRoot.position.set(dx, dy);
 
     this.selectionDrag = {
@@ -145,7 +144,7 @@ export class SelectionManager {
 
     for (const selectedVertexId in this.selectedVertices) {
       const selectedVertex = this.selectedVertices[selectedVertexId];
-      const ghost = new VtxBackgroundWrapper(this.renderer);
+      const ghost = new VtxBackgroundWrapper(this.stageInterface);
       ghost.redraw(
         false,
         VertexWrapper.width,
@@ -180,7 +179,7 @@ export class SelectionManager {
   public abortSelectionDrag(): void {
     if (this.selectionDrag === null) return;
 
-    this.background.removeChild(this.selectionDrag.ghostRoot);
+    this.stageInterface.removeDisplayObject(this.selectionDrag.ghostRoot);
 
     this.selectionDrag = null;
   }
@@ -188,7 +187,7 @@ export class SelectionManager {
   public async endSelectionDrag(dx: number, dy: number): Promise<void> {
     if (this.selectionDrag === null) throw new Error("No drag currently happening");
 
-    this.background.removeChild(this.selectionDrag.ghostRoot);
+    this.stageInterface.removeDisplayObject(this.selectionDrag.ghostRoot);
 
     const vertexIds = Array.from(this.selectionDrag.ghosts.keys());
 

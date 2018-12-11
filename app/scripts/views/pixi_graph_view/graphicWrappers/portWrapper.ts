@@ -1,4 +1,5 @@
 import { GraphicWrapper } from "./graphicWrapper.js";
+import { StageInterface } from "../stageInterface.js";
 
 export class PortWrapper extends GraphicWrapper {
   private static readonly texturePadding = 4;
@@ -7,7 +8,7 @@ export class PortWrapper extends GraphicWrapper {
   public static height = 12;
 
   private static cachedPortTexture: PIXI.RenderTexture | null = null;
-  private static createSprite(renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer): PIXI.Sprite {
+  private static createSprite(stageInterface: StageInterface): PIXI.Sprite {
     if (PortWrapper.cachedPortTexture !== null) {
       const spriteFromCachedTexture = new PIXI.Sprite(PortWrapper.cachedPortTexture);
       return spriteFromCachedTexture;
@@ -26,12 +27,7 @@ export class PortWrapper extends GraphicWrapper {
       5,
     );
 
-    const texture = renderer.generateTexture(
-      graphics,
-      undefined, // scale mode
-      renderer.resolution*4, // resolution
-      undefined, // region
-    );
+    const texture = stageInterface.generateTexture(graphics)
 
     PortWrapper.cachedPortTexture = texture;
 
@@ -44,7 +40,7 @@ export class PortWrapper extends GraphicWrapper {
 
 
   constructor(
-    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    stageInterface: StageInterface,
     isOutput: boolean,
   ) {
     super({
@@ -53,7 +49,7 @@ export class PortWrapper extends GraphicWrapper {
 
     this.isOutput = isOutput;
 
-    this.sprite = PortWrapper.createSprite(renderer);
+    this.sprite = PortWrapper.createSprite(stageInterface);
     this.addChild(this.sprite);
     this.sprite.position.set(-PortWrapper.texturePadding);
   }

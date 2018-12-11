@@ -1,4 +1,4 @@
-import { BackgroundWrapper } from "../backgroundWrapper.js";
+
 import { BackgroundDragHandler } from "./backgroundDragHandler.js";
 import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
 import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
@@ -15,6 +15,8 @@ import {
   RequestInfoFunc,
 } from "../../../messenger.js";
 import { ModelInfoReqs } from "../../../interfaces.js";
+import { BackgroundWrapper } from "../graphicWrappers/backgroundWrapper.js";
+import { StageInterface } from "../stageInterface.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
 
@@ -41,14 +43,13 @@ export class DragRegistry {
     private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
     private readonly getPortWrappers: () => Readonly<{[vertexKey: string]: Readonly<{[portKey: string]: PortWrapper}>}>,
-    private readonly backgroundWrapper: BackgroundWrapper,
     private readonly selectionManager: SelectionManager,
     private readonly portPreviewManager: PortPreviewManager,
-    renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    private stageInterface: StageInterface,
   ) {
     this.currentObject = null;
-    this.edgeDrawHandler = new EdgeDrawHandler(this.backgroundWrapper);
-    this.registerBackground(this.backgroundWrapper);
+    this.edgeDrawHandler = new EdgeDrawHandler(this.stageInterface);
+    this.registerBackground(this.stageInterface.getBackgroundDisplayObject());
   }
 
   private portsByCloseness(targetX: number, targetY: number): Array<{
@@ -98,9 +99,9 @@ export class DragRegistry {
     }
   }
 
-  private registerBackground(background: BackgroundWrapper): void {
-    const listeners = this.registerDisplayObject(background.getDisplayObject());
-    new BackgroundDragHandler(this.selectionManager, background, listeners);
+  private registerBackground(backgroundObj: PIXI.DisplayObject): void {
+    const listeners = this.registerDisplayObject(backgroundObj);
+    new BackgroundDragHandler(this.selectionManager, this.stageInterface, listeners);
   }
 
   public registerVertex(id: string, vertex: VertexWrapper): void {
@@ -109,7 +110,7 @@ export class DragRegistry {
       vertex.getDisplayObject(),
       (l) => this.vertexDragAbortListeners[id].push(l),
     );
-    new VertexDragHandler(id, vertex, listeners, this.selectionManager, this.backgroundWrapper);
+    new VertexDragHandler(id, vertex, listeners, this.selectionManager, this.stageInterface);
   }
 
   public removeVertex(id: string, vertex: VertexWrapper): void {
@@ -131,7 +132,7 @@ export class DragRegistry {
       (l) => this.edgeDragAbortListeners[id].push(l),
     );
 
-    new EdgeDragHandler(id, edge, listeners, this.selectionManager, this.backgroundWrapper);
+    new EdgeDragHandler(id, edge, listeners, this.selectionManager, this.stageInterface);
   }
 
   public removeEdge(id: string, edge: EdgeWrapper): void {
@@ -233,8 +234,8 @@ export class DragRegistry {
       portDragHandler.addListener("dragMove", (cursorX, cursorY) => {
         if (dragData === null) throw new Error("No current drag");
 
-        const stageX = (cursorX - this.backgroundWrapper.localX())/this.backgroundWrapper.localScale();
-        const stageY = (cursorY - this.backgroundWrapper.localY())/this.backgroundWrapper.localScale();
+        const stageX = (cursorX - this.stageInterface.getStageX())/this.stageInterface.getScale();
+        const stageY = (cursorY - this.stageInterface.getStageY())/this.stageInterface.getScale();
 
         let targetHasChanged = false;
         const snapInfo = getSnapPortInfo(stageX, stageY);

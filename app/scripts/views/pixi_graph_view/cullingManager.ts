@@ -1,6 +1,6 @@
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper";
 import { EdgeWrapper } from "./graphicWrappers/edgeWrapper";
-import { BackgroundWrapper } from "./backgroundWrapper";
+import { StageInterface } from "./stageInterface";
 
 class PositionTracker {
   public static getInsertionIndex<T>(arr: T[], comparator: (val: T) => number, prefer?: "start" | "end"): number {
@@ -167,13 +167,12 @@ export class CullingManager {
   private readonly posTracker: PositionTracker;
 
   constructor(
-    private readonly backgroundWrapper: BackgroundWrapper,
-    private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
+    private readonly stageInterface: StageInterface,
   ) {
     this.posTracker = new PositionTracker();
-    const that = this;
-    backgroundWrapper.onPositionOrZoomChanged(() => {
-      that.onPositionOrZoomChanged();
+
+    stageInterface.onPositionOrZoomChanged(() => {
+      this.positionOrZoomChanged();
     });
   }
 
@@ -225,11 +224,11 @@ export class CullingManager {
     delete this.edgeWrappers[edgeKey];
   }
 
-  private onPositionOrZoomChanged(): void {
-    const backgroundLeftX = - this.backgroundWrapper.localX()/this.backgroundWrapper.getScale();
-    const backgroundTopY = - this.backgroundWrapper.localY()/this.backgroundWrapper.getScale();
-    const backgroundRightX = this.renderer.width/this.backgroundWrapper.getScale() + backgroundLeftX;
-    const backgroundBottomY = this.renderer.height/this.backgroundWrapper.getScale() + backgroundTopY;
+  private positionOrZoomChanged(): void {
+    const backgroundLeftX = - this.stageInterface.getStageX()/this.stageInterface.getScale();
+    const backgroundTopY = - this.stageInterface.getStageY()/this.stageInterface.getScale();
+    const backgroundRightX = this.stageInterface.getRendererWidth()/this.stageInterface.getScale() + backgroundLeftX;
+    const backgroundBottomY = this.stageInterface.getRendererHeight()/this.stageInterface.getScale() + backgroundTopY;
 
     const verticesInBox = this.posTracker.filterVerticesInBox(
       backgroundLeftX,
