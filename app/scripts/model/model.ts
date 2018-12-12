@@ -1,8 +1,8 @@
 import {
   IGraphData,
+  IModelInfoReqs,
   IModelInterface,
   ModelChangeRequest,
-  ModelInfoReqs,
   ModelVersioningRequest,
 } from "../interfaces.js";
 import { Queue } from "../queue.js";
@@ -101,6 +101,144 @@ export class Model implements IModelInterface {
       this.graphChangedListeners.forEach((l) => {
         l();
       });
+    });
+  }
+
+  public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
+    return this.requestQueue.addToQueue(async () => {
+      if (req.type === "undo") {
+        this.session.data = SessionUtils.fromJson(this.versioningManager.undo());
+      } else if (req.type === "redo") {
+        this.session.data = SessionUtils.fromJson(this.versioningManager.redo());
+      } else if (req.type === "saveFile") {
+        SaveUtils.saveFile(req.fileName, this.session);
+        this.versioningManager.onFileSave(req.fileName);
+      } else if (req.type === "openFile") {
+        SaveUtils.openFile(req.fileName, this.session);
+        this.versioningManager.onFileOpen(req.fileName, SessionUtils.toJson(this.session.data));
+      } else if (req.type === "deleteFile") {
+        SaveUtils.deleteFile(req.fileName, this.session);
+        this.versioningManager.onFileDelete(req.fileName);
+      } else {
+        throw new Error("unimplemented");
+      }
+    }).then(() => {
+      this.graphChangedListeners.forEach((l) => {
+        l();
+      });
+    });
+  }
+
+  public async requestModelInfo<T extends keyof IModelInfoReqs>(
+    req: IModelInfoReqs[T]["request"],
+  ): Promise<IModelInfoReqs[T]["response"]> {
+    return this.requestQueue.addToQueue(async () => {
+      if (req.type === "validateEdge") {
+        const validationMessage = SessionUtils.validateCreateEdge({
+          edgeId: (req as IModelInfoReqs["validateEdge"]["request"]).edgeId,
+          edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
+          layers: this.session.data.layers,
+          sourcePortId: (req as IModelInfoReqs["validateEdge"]["request"]).sourcePortId,
+          sourceVtxId: (req as IModelInfoReqs["validateEdge"]["request"]).sourceVertexId,
+          targetPortId: (req as IModelInfoReqs["validateEdge"]["request"]).targetPortId,
+          targetVtxId: (req as IModelInfoReqs["validateEdge"]["request"]).targetVertexId,
+        });
+        let response: IModelInfoReqs["validateEdge"]["response"];
+
+        if (validationMessage === null) {
+          response = {
+            valid: true,
+          };
+        } else {
+          response = {
+            problem: validationMessage,
+            valid: false,
+          };
+        }
+
+        return response;
+      } else if (req.type === "edgesBetweenVertices") {
+        return GraphUtils.edgesBetweenVertices({
+          edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
+          vtxIds: (req as IModelInfoReqs["edgesBetweenVertices"]["request"]).vertexIds,
+        });
+      } else if (req.type === "fileIsOpen") {
+        let response: IModelInfoReqs["fileIsOpen"]["response"];
+
+        const openFileName = this.versioningManager.getOpenFileName();
+
+        if (openFileName === null) {
+          response = {
+            fileIsOpen: false,
+          };
+        } else {
+          response = {
+            fileIsOpen: true,
+            fileIsUpToDate: this.versioningManager.areAllChangesSaved(),
+            fileName: openFileName,
+          };
+        }
+
+        return response;
+      } else if (req.type === "savedFileNames") {
+        const response: IModelInfoReqs["savedFileNames"]["response"] = {
+          fileNames: SaveUtils.savedFileNames(),
+        };
+        return response;
+      } else if (req.type === "getPortInfo") {
+        return LayerUtils.getPortInfo({
+          layerId: (req as IModelInfoReqs["getPortInfo"]["request"]).vertexId,
+          layers: this.session.data.layers,
+          portId: (req as IModelInfoReqs["getPortInfo"]["request"]).portId,
+        });
+      } else if (req.type === "validateValue") {
+        return LayerUtils.validateValue({
+          layerId: (req as IModelInfoReqs["validateValue"]["request"]).layerId,
+          layers: this.session.data.layers,
+          newValueString: (req as IModelInfoReqs["validateValue"]["request"]).newValue,
+          valueId: (req as IModelInfoReqs["validateValue"]["request"]).valueId,
+        });
+      } else if (req.type === "getLayerInfo") {
+        return LayerUtils.getLayerInfo({
+          layerId: (req as IModelInfoReqs["getLayerInfo"]["request"]).layerId,
+          layers: this.session.data.layers,
+        });
+      } else if (req.type === "compareValue") {
+        return LayerUtils.compareValue({
+          compareString: (req as IModelInfoReqs["compareValue"]["request"]).compareValue,
+          layerId: (req as IModelInfoReqs["compareValue"]["request"]).layerId,
+          layers: this.session.data.layers,
+          valueId: (req as IModelInfoReqs["compareValue"]["request"]).valueId,
+        });
+      } else if (req.type === "validateLayerFields") {
+        return LayerUtils.validateLayerFields({
+          fieldValues: (req as IModelInfoReqs["validateLayerFields"]["request"]).fieldValues,
+          layerId: (req as IModelInfoReqs["validateLayerFields"]["request"]).layerId,
+          layers: this.session.data.layers,
+        });
+      } else if (req.type === "getUniqueEdgeIds") {
+        return GraphUtils.getUniqueEdgeIds({
+          count: (req as IModelInfoReqs["getUniqueEdgeIds"]["request"]).count,
+          graphData: this.session.data.graph,
+        });
+      } else if (req.type === "getUniqueVertexIds") {
+        return GraphUtils.getUniqueVertexIds({
+          count: (req as IModelInfoReqs["getUniqueVertexIds"]["request"]).count,
+          graphData: this.session.data.graph,
+        });
+      } else if (req.type === "valueIsReadonly") {
+        return SessionUtils.getValueIsReadonly({
+          edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
+          layerId: (req as IModelInfoReqs["valueIsReadonly"]["request"]).layerId,
+          layers: this.session.data.layers,
+          valueId: (req as IModelInfoReqs["valueIsReadonly"]["request"]).valueId,
+        });
+      } else {
+        throw new Error(`Unimplemented request ${req.type}`);
+      }
     });
   }
 
@@ -212,143 +350,5 @@ export class Model implements IModelInterface {
     } else {
       throw new Error("Unimplemented");
     }
-  }
-
-  public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
-    return this.requestQueue.addToQueue(async () => {
-      if (req.type === "undo") {
-        this.session.data = SessionUtils.fromJson(this.versioningManager.undo());
-      } else if (req.type === "redo") {
-        this.session.data = SessionUtils.fromJson(this.versioningManager.redo());
-      } else if (req.type === "saveFile") {
-        SaveUtils.saveFile(req.fileName, this.session);
-        this.versioningManager.onFileSave(req.fileName);
-      } else if (req.type === "openFile") {
-        SaveUtils.openFile(req.fileName, this.session);
-        this.versioningManager.onFileOpen(req.fileName, SessionUtils.toJson(this.session.data));
-      } else if (req.type === "deleteFile") {
-        SaveUtils.deleteFile(req.fileName, this.session);
-        this.versioningManager.onFileDelete(req.fileName);
-      } else {
-        throw new Error("unimplemented");
-      }
-    }).then(() => {
-      this.graphChangedListeners.forEach((l) => {
-        l();
-      });
-    });
-  }
-
-  public async requestModelInfo<T extends keyof ModelInfoReqs>(
-    req: ModelInfoReqs[T]["request"],
-  ): Promise<ModelInfoReqs[T]["response"]> {
-    return this.requestQueue.addToQueue(async () => {
-      if (req.type === "validateEdge") {
-        const validationMessage = SessionUtils.validateCreateEdge({
-          edgeId: (req as ModelInfoReqs["validateEdge"]["request"]).edgeId,
-          edgesByVertex: this.session.data.edgesByVertex,
-          graphData: this.session.data.graph,
-          layers: this.session.data.layers,
-          sourcePortId: (req as ModelInfoReqs["validateEdge"]["request"]).sourcePortId,
-          sourceVtxId: (req as ModelInfoReqs["validateEdge"]["request"]).sourceVertexId,
-          targetPortId: (req as ModelInfoReqs["validateEdge"]["request"]).targetPortId,
-          targetVtxId: (req as ModelInfoReqs["validateEdge"]["request"]).targetVertexId,
-        });
-        let response: ModelInfoReqs["validateEdge"]["response"];
-
-        if (validationMessage === null) {
-          response = {
-            valid: true,
-          };
-        } else {
-          response = {
-            problem: validationMessage,
-            valid: false,
-          };
-        }
-
-        return response;
-      } else if (req.type === "edgesBetweenVertices") {
-        return GraphUtils.edgesBetweenVertices({
-          edgesByVertex: this.session.data.edgesByVertex,
-          graphData: this.session.data.graph,
-          vtxIds: (req as ModelInfoReqs["edgesBetweenVertices"]["request"]).vertexIds,
-        });
-      } else if (req.type === "fileIsOpen") {
-        let response: ModelInfoReqs["fileIsOpen"]["response"];
-
-        const openFileName = this.versioningManager.getOpenFileName();
-
-        if (openFileName === null) {
-          response = {
-            fileIsOpen: false,
-          };
-        } else {
-          response = {
-            fileIsOpen: true,
-            fileIsUpToDate: this.versioningManager.areAllChangesSaved(),
-            fileName: openFileName,
-          };
-        }
-
-        return response;
-      } else if (req.type === "savedFileNames") {
-        const response: ModelInfoReqs["savedFileNames"]["response"] = {
-          fileNames: SaveUtils.savedFileNames(),
-        };
-        return response;
-      } else if (req.type === "getPortInfo") {
-        return LayerUtils.getPortInfo({
-          layerId: (req as ModelInfoReqs["getPortInfo"]["request"]).vertexId,
-          layers: this.session.data.layers,
-          portId: (req as ModelInfoReqs["getPortInfo"]["request"]).portId,
-        });
-      } else if (req.type === "validateValue") {
-        return LayerUtils.validateValue({
-          layerId: (req as ModelInfoReqs["validateValue"]["request"]).layerId,
-          layers: this.session.data.layers,
-          newValueString: (req as ModelInfoReqs["validateValue"]["request"]).newValue,
-          valueId: (req as ModelInfoReqs["validateValue"]["request"]).valueId,
-        });
-      } else if (req.type === "getLayerInfo") {
-        return LayerUtils.getLayerInfo({
-          layerId: (req as ModelInfoReqs["getLayerInfo"]["request"]).layerId,
-          layers: this.session.data.layers,
-        });
-      } else if (req.type === "compareValue") {
-        return LayerUtils.compareValue({
-          compareString: (req as ModelInfoReqs["compareValue"]["request"]).compareValue,
-          layerId: (req as ModelInfoReqs["compareValue"]["request"]).layerId,
-          layers: this.session.data.layers,
-          valueId: (req as ModelInfoReqs["compareValue"]["request"]).valueId,
-        });
-      } else if (req.type === "validateLayerFields") {
-        return LayerUtils.validateLayerFields({
-          fieldValues: (req as ModelInfoReqs["validateLayerFields"]["request"]).fieldValues,
-          layerId: (req as ModelInfoReqs["validateLayerFields"]["request"]).layerId,
-          layers: this.session.data.layers,
-        });
-      } else if (req.type === "getUniqueEdgeIds") {
-        return GraphUtils.getUniqueEdgeIds({
-          count: (req as ModelInfoReqs["getUniqueEdgeIds"]["request"]).count,
-          graphData: this.session.data.graph,
-        });
-      } else if (req.type === "getUniqueVertexIds") {
-        return GraphUtils.getUniqueVertexIds({
-          count: (req as ModelInfoReqs["getUniqueVertexIds"]["request"]).count,
-          graphData: this.session.data.graph,
-        });
-      } else if (req.type === "valueIsReadonly") {
-        return SessionUtils.getValueIsReadonly({
-          edgesByVertex: this.session.data.edgesByVertex,
-          graphData: this.session.data.graph,
-          layerId: (req as ModelInfoReqs["valueIsReadonly"]["request"]).layerId,
-          layers: this.session.data.layers,
-          valueId: (req as ModelInfoReqs["valueIsReadonly"]["request"]).valueId,
-        });
-      } else {
-        throw new Error(`Unimplemented request ${req.type}`);
-      }
-    });
   }
 }

@@ -55,9 +55,9 @@ export interface IModelInterface {
   onDataChanged(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void>;
   requestModelVersioningChange(req: ModelVersioningRequest): Promise<void>;
-  requestModelInfo<T extends keyof ModelInfoReqs>(
-    req: ModelInfoReqs[T]["request"],
-  ): Promise<ModelInfoReqs[T]["response"]>;
+  requestModelInfo<T extends keyof IModelInfoReqs>(
+    req: IModelInfoReqs[T]["request"],
+  ): Promise<IModelInfoReqs[T]["response"]>;
 }
 
 export type ModelChangeRequest = {
@@ -114,7 +114,7 @@ type ReqMapType<T extends string> = {
   };
 };
 
-export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
+export interface IModelInfoReqs extends ReqMapType<keyof IModelInfoReqs> {
   "validateEdge": {
     "request": {
       type: "validateEdge";

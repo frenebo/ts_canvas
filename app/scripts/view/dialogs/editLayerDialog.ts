@@ -1,5 +1,5 @@
 import { MONOSPACE_STYLE } from "../../constants.js";
-import { ModelInfoReqs } from "../../interfaces.js";
+import { IModelInfoReqs } from "../../interfaces.js";
 import {
   RequestInfoFunc,
   RequestModelChangesFunc,
@@ -10,6 +10,8 @@ export class EditLayerDialog extends Dialog {
   private applyButton!: HTMLButtonElement;
   private updateErrorDiv!: HTMLDivElement;
   private readonly inputFields: {[key: string]: HTMLInputElement} = {};
+  private layerNonexistentDiv: HTMLDivElement | null = null;
+  private fieldNonexistentDiv: HTMLDivElement | null = null;
 
   private readonly invalidFields = new Set<string>();
   private readonly pendingFields = new Set<string>();
@@ -32,7 +34,6 @@ export class EditLayerDialog extends Dialog {
     });
   }
 
-  private layerNonexistentDiv: HTMLDivElement | null = null;
   private alertLayerNonexistent() {
     if (this.layerNonexistentDiv === null) {
       this.layerNonexistentDiv = document.createElement("div");
@@ -43,7 +44,6 @@ export class EditLayerDialog extends Dialog {
     }
   }
 
-  private fieldNonexistentDiv: HTMLDivElement | null = null;
   private alertFieldNonexistent(fieldName: string) {
     if (this.fieldNonexistentDiv === null) {
       this.fieldNonexistentDiv = document.createElement("div");
@@ -156,11 +156,11 @@ export class EditLayerDialog extends Dialog {
     errorText.style.marginLeft = "10px";
 
     let currentValidation: {
-      promise: Promise<ModelInfoReqs["validateValue"]["response"]>;
+      promise: Promise<IModelInfoReqs["validateValue"]["response"]>;
       loadIcon: HTMLDivElement;
     } | null = null;
 
-    const beginOrReplaceValidation = (promise: Promise<ModelInfoReqs["validateValue"]["response"]>) => {
+    const beginOrReplaceValidation = (promise: Promise<IModelInfoReqs["validateValue"]["response"]>) => {
       if (currentValidation === null) {
         const icon = Dialog.createSmallLoadIcon();
         row.appendChild(icon);
@@ -177,11 +177,11 @@ export class EditLayerDialog extends Dialog {
       this.updateApplyButton();
     };
 
-    const isPromiseCurrentValidation = (promise: Promise<ModelInfoReqs["validateValue"]["response"]>) => {
+    const isPromiseCurrentValidation = (promise: Promise<IModelInfoReqs["validateValue"]["response"]>) => {
       return currentValidation !== null && currentValidation.promise === promise;
     };
 
-    const endValidation = (validateVal: ModelInfoReqs["validateValue"]["response"]) => {
+    const endValidation = (validateVal: IModelInfoReqs["validateValue"]["response"]) => {
       if (currentValidation === null) {
         return;
       }

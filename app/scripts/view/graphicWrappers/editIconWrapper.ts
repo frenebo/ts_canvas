@@ -86,6 +86,7 @@ export class EditIconWrapper extends GraphicWrapper {
 
   private readonly clickListeners: Array<() => void> = [];
   private sprite: PIXI.Sprite;
+  private isSelected = false;
 
   constructor(
     private readonly stageInterface: StageInterface,
@@ -100,14 +101,6 @@ export class EditIconWrapper extends GraphicWrapper {
     this.redraw();
   }
 
-  private redraw(): void {
-    this.removeChild(this.sprite);
-    this.sprite = EditIconWrapper.draw(this.isSelected, this.stageInterface);
-    this.sprite.position.set(-EditIconWrapper.texturePadding);
-    this.addChild(this.sprite);
-  }
-
-  private isSelected = false;
   public toggleSelected(selected: boolean) {
     if (selected !== this.isSelected) {
       this.isSelected = selected;
@@ -117,5 +110,12 @@ export class EditIconWrapper extends GraphicWrapper {
 
   public addClickListener(listener: () => void): void {
     this.clickListeners.push(listener);
+  }
+
+  private redraw(): void {
+    this.removeChild(this.sprite);
+    this.sprite = EditIconWrapper.draw(this.isSelected, this.stageInterface);
+    this.sprite.position.set(-EditIconWrapper.texturePadding);
+    this.addChild(this.sprite);
   }
 }

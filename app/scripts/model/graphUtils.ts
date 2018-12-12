@@ -1,8 +1,8 @@
 import {
-  IGraphData,
   IEdgeData,
+  IGraphData,
+  IModelInfoReqs,
   IVertexData,
-  ModelInfoReqs,
 } from "../interfaces.js";
 import { Layer } from "./layers/layers.js";
 
@@ -18,7 +18,7 @@ export class GraphUtils {
     graphData: IGraphData;
     edgesByVertex: IEdgesByVertex;
     vtxIds: string[];
-  }): ModelInfoReqs["edgesBetweenVertices"]["response"] {
+  }): IModelInfoReqs["edgesBetweenVertices"]["response"] {
     const nonexistentVertices: string[] = [];
     for (const vtxId of args.vtxIds) {
       if (args.graphData.vertices[vtxId] === undefined) {
@@ -61,7 +61,7 @@ export class GraphUtils {
   public static getUniqueEdgeIds(args: {
     graphData: IGraphData;
     count: number;
-  }): ModelInfoReqs["getUniqueEdgeIds"]["response"] {
+  }): IModelInfoReqs["getUniqueEdgeIds"]["response"] {
     const ids = new Set<string>();
 
     while (ids.size < args.count) {
@@ -85,7 +85,7 @@ export class GraphUtils {
   public static getUniqueVertexIds(args: {
     graphData: IGraphData;
     count: number;
-  }): ModelInfoReqs["getUniqueVertexIds"]["response"] {
+  }): IModelInfoReqs["getUniqueVertexIds"]["response"] {
     const ids = new Set<string>();
 
     while (ids.size < args.count) {
@@ -112,7 +112,9 @@ export class GraphUtils {
     x: number;
     y: number;
   }): null | string {
-    if (args.graphData.vertices[args.vtxId] === undefined) return `Vertex with id ${args.vtxId} does not exist`;
+    if (args.graphData.vertices[args.vtxId] === undefined) {
+      return `Vertex with id ${args.vtxId} does not exist`;
+    }
 
     return null;
   }
@@ -263,11 +265,11 @@ export class GraphUtils {
     y?: number;
   }): IVertexData {
     const vtxData: IVertexData = {
-      label: args.layer.getType(),
       geo: {
         x: args.x === undefined ? 0 : args.x,
         y: args.y === undefined ? 0 : args.y,
       },
+      label: args.layer.getType(),
       ports: {},
     };
     const inputPortCount = args.layer.getPortIds().filter((id) => args.layer.getPortInfo(id).type === "input").length;

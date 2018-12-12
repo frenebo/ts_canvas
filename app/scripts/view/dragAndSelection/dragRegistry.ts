@@ -1,9 +1,8 @@
-import { ModelInfoReqs } from "../../interfaces.js";
+import { IModelInfoReqs } from "../../interfaces.js";
 import {
   RequestInfoFunc,
   RequestModelChangesFunc,
 } from "../../messenger.js";
-import { BackgroundWrapper } from "../graphicWrappers/backgroundWrapper.js";
 import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
 import { EditIconWrapper } from "../graphicWrappers/editIconWrapper.js";
 import { PortWrapper } from "../graphicWrappers/portWrapper.js";
@@ -48,60 +47,6 @@ export class DragRegistry {
     this.currentObject = null;
     this.edgeDrawHandler = new EdgeDrawHandler(this.stageInterface);
     this.registerBackground(this.stageInterface.getBackgroundDisplayObject());
-  }
-
-  private portsByCloseness(targetX: number, targetY: number): Array<{
-    portKey: string;
-    port: PortWrapper;
-    vtxKey: string;
-    vtx: VertexWrapper;
-    distanceSquared: number;
-  }> {
-    const portDescriptions: Array<{
-      portKey: string;
-      port: PortWrapper;
-      vtxKey: string;
-      vtx: VertexWrapper;
-      distanceSquared: number;
-    }> = [];
-
-    for (const vertexKey of Object.keys(this.getVertexWrappers())) {
-      const vertexWrapper = this.getVertexWrappers()[vertexKey];
-      for (const portKey of Object.keys(this.getPortWrappers()[vertexKey])) {
-        const portWrapper = this.getPortWrappers()[vertexKey][portKey];
-        const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + PortWrapper.width / 2);
-        const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + PortWrapper.height / 2);
-        portDescriptions.push({
-          distanceSquared: xDistance * xDistance + yDistance * yDistance,
-          port: portWrapper,
-          portKey: portKey,
-          vtx: vertexWrapper,
-          vtxKey: vertexKey,
-        });
-      }
-    }
-
-    const sortedDescriptions = portDescriptions.sort((d1, d2) => d1.distanceSquared - d2.distanceSquared);
-
-    return sortedDescriptions;
-  }
-
-  private uniqueEdgeId(): string {
-    let i = 0;
-    while (true) {
-      const id = `edge${i.toString()}`;
-
-      i++;
-
-      if (this.getEdgeWrappers()[id] === undefined) {
-        return id;
-      }
-    }
-  }
-
-  private registerBackground(backgroundObj: PIXI.DisplayObject): void {
-    const listeners = this.registerDisplayObject(backgroundObj);
-    const bgDragHandler = new BackgroundDragHandler(this.selectionManager, this.stageInterface, listeners);
   }
 
   public registerVertex(id: string, vertex: VertexWrapper): void {
@@ -268,10 +213,10 @@ export class DragRegistry {
             dragData.currentTarget = {
               port: snapInfo.targetPort,
               portId: snapInfo.targetPortId,
+              validation: "waiting_for_validity",
+              vertexId: snapInfo.targetVtxId,
               xPos: snapInfo.xPos,
               yPos: snapInfo.yPos,
-              vertexId: snapInfo.targetVtxId,
-              validation: "waiting_for_validity",
             };
           }
         }
@@ -314,7 +259,7 @@ export class DragRegistry {
                 type: "validateEdge",
               }),
               edgeIds[0],
-            ] as [ModelInfoReqs["validateEdge"]["response"], string];
+            ] as [IModelInfoReqs["validateEdge"]["response"], string];
           }).then(([response, edgeId]) => {
             // do nothing if the current target has changed by the time the edge has been validated
             if (
@@ -379,6 +324,47 @@ export class DragRegistry {
         this.edgeDrawHandler.endDrag();
       });
     }
+  }
+
+  private portsByCloseness(targetX: number, targetY: number): Array<{
+    portKey: string;
+    port: PortWrapper;
+    vtxKey: string;
+    vtx: VertexWrapper;
+    distanceSquared: number;
+  }> {
+    const portDescriptions: Array<{
+      portKey: string;
+      port: PortWrapper;
+      vtxKey: string;
+      vtx: VertexWrapper;
+      distanceSquared: number;
+    }> = [];
+
+    for (const vertexKey of Object.keys(this.getVertexWrappers())) {
+      const vertexWrapper = this.getVertexWrappers()[vertexKey];
+      for (const portKey of Object.keys(this.getPortWrappers()[vertexKey])) {
+        const portWrapper = this.getPortWrappers()[vertexKey][portKey];
+        const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + PortWrapper.width / 2);
+        const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + PortWrapper.height / 2);
+        portDescriptions.push({
+          distanceSquared: xDistance * xDistance + yDistance * yDistance,
+          port: portWrapper,
+          portKey: portKey,
+          vtx: vertexWrapper,
+          vtxKey: vertexKey,
+        });
+      }
+    }
+
+    const sortedDescriptions = portDescriptions.sort((d1, d2) => d1.distanceSquared - d2.distanceSquared);
+
+    return sortedDescriptions;
+  }
+
+  private registerBackground(backgroundObj: PIXI.DisplayObject): void {
+    const listeners = this.registerDisplayObject(backgroundObj);
+    const bgDragHandler = new BackgroundDragHandler(this.selectionManager, this.stageInterface, listeners);
   }
 
   private registerDisplayObject(obj: PIXI.DisplayObject, setAbortListener?: (l: () => void) => void) {

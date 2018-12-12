@@ -2,10 +2,10 @@ import { StageInterface } from "../stageInterface.js";
 import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class PortWrapper extends GraphicWrapper {
-  private static readonly texturePadding = 4;
-  private static readonly borderWidth = 2;
   public static width = 20;
   public static height = 12;
+  private static readonly texturePadding = 4;
+  private static readonly borderWidth = 2;
 
   private static cachedPortTexture: PIXI.RenderTexture | null = null;
   private static createSprite(stageInterface: StageInterface): PIXI.Sprite {

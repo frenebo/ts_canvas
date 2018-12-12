@@ -32,15 +32,6 @@ export class DialogManager {
     return this.currentDialog !== null;
   }
 
-  private closeDialog(): void {
-    if (this.currentDialog === null) {
-      return;
-    }
-
-    this.div.removeChild(this.currentDialog.root);
-    this.currentDialog = null;
-  }
-
   public saveAsDialog(): void {
     if (this.currentDialog !== null) {
       this.closeDialog();
@@ -89,5 +80,14 @@ export class DialogManager {
     this.div.appendChild(dialog.root);
 
     this.currentDialog = dialog;
+  }
+
+  private closeDialog(): void {
+    if (this.currentDialog === null) {
+      return;
+    }
+
+    this.div.removeChild(this.currentDialog.root);
+    this.currentDialog = null;
   }
 }

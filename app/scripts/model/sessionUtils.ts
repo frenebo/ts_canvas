@@ -1,4 +1,4 @@
-import { IGraphData, ModelInfoReqs } from "../interfaces.js";
+import { IGraphData, IModelInfoReqs } from "../interfaces.js";
 import {
   GraphUtils,
   IEdgesByVertex,
@@ -258,7 +258,7 @@ export class SessionUtils {
     edgesByVertex: IEdgesByVertex;
     layerId: string;
     valueId: string;
-  }): ModelInfoReqs["valueIsReadonly"]["response"] {
+  }): IModelInfoReqs["valueIsReadonly"]["response"] {
     const vertex = args.graphData.vertices[args.layerId];
     if (vertex === undefined) {
       return {requestError: "layer_nonexistent"};

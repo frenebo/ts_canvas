@@ -1,6 +1,6 @@
 import {
   ILayerData,
-  ModelInfoReqs,
+  IModelInfoReqs,
 } from "../interfaces.js";
 import {
   ILayerJsonInfo,
@@ -20,7 +20,7 @@ export class LayerUtils {
     layers: ILayerClassDict;
     portId: string;
     layerId: string;
-  }): ModelInfoReqs["getPortInfo"]["response"] {
+  }): IModelInfoReqs["getPortInfo"]["response"] {
     if (args.layers[args.layerId] === undefined) {
       return {couldFindPort: false};
     }
@@ -40,7 +40,7 @@ export class LayerUtils {
   public static getLayerInfo(args: {
     layers: ILayerClassDict;
     layerId: string;
-  }): ModelInfoReqs["getLayerInfo"]["response"] {
+  }): IModelInfoReqs["getLayerInfo"]["response"] {
     const layer = args.layers[args.layerId];
     if (layer === undefined) {
       return {
@@ -49,9 +49,10 @@ export class LayerUtils {
     }
 
     const data: ILayerData = {
-      ports: {},
       fields: {},
+      ports: {},
     };
+
     for (const portId of layer.getPortIds()) {
       data.ports[portId] = {
         valueName: layer.getPortInfo(portId).valueKey,
@@ -80,9 +81,13 @@ export class LayerUtils {
     }
 
     for (const fieldId of Object.keys(args.fieldValues)) {
-      if (!layer.hasField(fieldId)) throw new Error(`Layer has no field named ${fieldId}`);
+      if (!layer.hasField(fieldId)) {
+        throw new Error(`Layer has no field named ${fieldId}`);
+      }
 
-      if (layer.isReadonlyField(fieldId)) throw new Error(`Field ${fieldId} is readonly`);
+      if (layer.isReadonlyField(fieldId)) {
+        throw new Error(`Field ${fieldId} is readonly`);
+      }
 
       layer.getValueWrapper(fieldId).setFromString(args.fieldValues[fieldId]);
     }
@@ -93,7 +98,7 @@ export class LayerUtils {
     layers: ILayerClassDict;
     layerId: string;
     fieldValues: {[key: string]: string};
-  }): ModelInfoReqs["validateLayerFields"]["response"] {
+  }): IModelInfoReqs["validateLayerFields"]["response"] {
     const errors: string[] = [];
 
     const origLayer = args.layers[args.layerId];
@@ -135,7 +140,7 @@ export class LayerUtils {
     layerId: string;
     valueId: string;
     newValueString: string;
-  }): ModelInfoReqs["validateValue"]["response"] {
+  }): IModelInfoReqs["validateValue"]["response"] {
     const layer = args.layers[args.layerId];
     if (layer === undefined) {
       return {requestError: "layer_nonexistent"};
@@ -156,7 +161,7 @@ export class LayerUtils {
     layerId: string;
     valueId: string;
     compareString: string;
-  }): ModelInfoReqs["compareValue"]["response"] {
+  }): IModelInfoReqs["compareValue"]["response"] {
     const layer = args.layers[args.layerId];
     if (layer === undefined) {
       return {requestError: "layer_nonexistent"};

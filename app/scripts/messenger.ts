@@ -1,16 +1,16 @@
 import {
-  ModelChangeRequest,
-  ModelInfoReqs,
+  IModelInfoReqs,
   IModelInterface,
-  ModelVersioningRequest,
   IViewInterface,
+  ModelChangeRequest,
+  ModelVersioningRequest,
 } from "./interfaces.js";
 
 export type RequestModelChangesFunc = (...reqs: ModelChangeRequest[]) => Promise<void>;
 export type RequestVersioningChangeFunc = (req: ModelVersioningRequest) => Promise<void>;
-export type RequestInfoFunc = <V extends keyof ModelInfoReqs>(
-  req: ModelInfoReqs[V]["request"],
-) => Promise<ModelInfoReqs[V]["response"]>;
+export type RequestInfoFunc = <V extends keyof IModelInfoReqs>(
+  req: IModelInfoReqs[V]["request"],
+) => Promise<IModelInfoReqs[V]["response"]>;
 
 export class Messenger {
   private readonly model: IModelInterface;
@@ -49,9 +49,9 @@ export class Messenger {
 
   public newInfoRequestHandler(): RequestInfoFunc {
     const that = this;
-    return async <V extends keyof ModelInfoReqs>(
-      req: ModelInfoReqs[V]["request"],
-    ): Promise<ModelInfoReqs[V]["response"]> => {
+    return async <V extends keyof IModelInfoReqs>(
+      req: IModelInfoReqs[V]["request"],
+    ): Promise<IModelInfoReqs[V]["response"]> => {
       return that.model.requestModelInfo(req);
     };
   }

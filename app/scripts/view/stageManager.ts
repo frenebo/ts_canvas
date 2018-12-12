@@ -57,12 +57,9 @@ export class StageManager {
     );
   }
 
-  private setStagePosAbsolute(x: number, y: number): void {
-    this.setPosition(x, y);
-  }
-
-  private getDataRelativeLoc(data: PIXI.interaction.InteractionData): PIXI.Point {
-    return data.getLocalPosition(this.childContainer);
+  public setDimensions(width: number, height: number): void {
+    this.backgroundWrapper.setDimensions(width, height);
+    this.app.renderer.resize(width, height);
   }
 
   public removeEdge(edge: EdgeWrapper): void {
@@ -81,17 +78,41 @@ export class StageManager {
     edge.addTo(this.childContainer);
   }
 
+  public onPositionOrZoomChanged(l: () => void): void {
+    this.positionZoomChangedListeners.push(l);
+  }
+
+  public getStageInterface(): StageInterface {
+    return this.stageInterface;
+  }
+
+  public getMousePos(): {x: number; y: number} {
+    const mouseX: number =
+      this.app.renderer.plugins.interaction.mouse.global.x / this.getScale() - this.stageXOffset() / this.getScale();
+
+    const mouseY: number =
+      this.app.renderer.plugins.interaction.mouse.global.y / this.getScale() - this.stageYOffset() / this.getScale();
+
+    return {
+      x: mouseX,
+      y: mouseY,
+    };
+  }
+
+  private setStagePosAbsolute(x: number, y: number): void {
+    this.setPosition(x, y);
+  }
+
+  private getDataRelativeLoc(data: PIXI.interaction.InteractionData): PIXI.Point {
+    return data.getLocalPosition(this.childContainer);
+  }
+
   private addOverlayChild(obj: PIXI.DisplayObject): void {
     this.overlayContainer.addChild(obj);
   }
 
   private removeOverlayChild(obj: PIXI.DisplayObject): void {
     this.overlayContainer.removeChild(obj);
-  }
-
-  public setDimensions(width: number, height: number): void {
-    this.backgroundWrapper.setDimensions(width, height);
-    this.app.renderer.resize(width, height);
   }
 
   private setScale(scale: number): void {
@@ -124,26 +145,5 @@ export class StageManager {
 
   private stageYOffset(): number {
     return this.childContainer.position.y;
-  }
-
-  public getMousePos(): {x: number; y: number} {
-    const mouseX: number =
-      this.app.renderer.plugins.interaction.mouse.global.x / this.getScale() - this.stageXOffset() / this.getScale();
-
-    const mouseY: number =
-      this.app.renderer.plugins.interaction.mouse.global.y / this.getScale() - this.stageYOffset() / this.getScale();
-
-    return {
-      x: mouseX,
-      y: mouseY,
-    };
-  }
-
-  public onPositionOrZoomChanged(l: () => void): void {
-    this.positionZoomChangedListeners.push(l);
-  }
-
-  public getStageInterface(): StageInterface {
-    return this.stageInterface;
   }
 }

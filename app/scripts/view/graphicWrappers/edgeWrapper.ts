@@ -49,6 +49,11 @@ export class EdgeWrapper extends GraphicWrapper {
 
   private readonly graphics: PIXI.Graphics;
   private isSelected = false;
+  private previousSourceX = 0;
+  private previousTargetX = 0;
+  private previousSourceY = 0;
+  private previousTargetY = 0;
+  private previousIsSelected = false;
 
   constructor(
     private readonly sourceVertex: VertexWrapper,
@@ -69,12 +74,6 @@ export class EdgeWrapper extends GraphicWrapper {
     this.isSelected = selected;
     this.refresh();
   }
-
-  private previousSourceX = 0;
-  private previousTargetX = 0;
-  private previousSourceY = 0;
-  private previousTargetY = 0;
-  private previousIsSelected = false;
 
   public refresh(): void {
     const sourceX = this.sourcePort.localX() + this.sourceVertex.localX() + PortWrapper.width / 2;

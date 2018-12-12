@@ -1,15 +1,5 @@
 
 export class Dialog {
-  protected static createTitle(titleText: string) {
-    const titleDiv = document.createElement("div");
-    titleDiv.textContent = titleText;
-    titleDiv.style.fontSize = "30px";
-    titleDiv.style.fontWeight = "bold";
-    titleDiv.style.textAlign = "center";
-    titleDiv.style.marginTop = "15px";
-
-    return titleDiv;
-  }
 
   public static createSmallLoadIcon() {
     const div = document.createElement("div");
@@ -26,6 +16,17 @@ export class Dialog {
     loadIcon.style.marginTop = "0px";
     loadIcon.style.marginBottom = "0px";
     return div;
+  }
+
+  protected static createTitle(titleText: string) {
+    const titleDiv = document.createElement("div");
+    titleDiv.textContent = titleText;
+    titleDiv.style.fontSize = "30px";
+    titleDiv.style.fontWeight = "bold";
+    titleDiv.style.textAlign = "center";
+    titleDiv.style.marginTop = "15px";
+
+    return titleDiv;
   }
 
   private static createLoadIcon() {
@@ -90,6 +91,7 @@ export class Dialog {
       this.root.appendChild(this.loadIcon);
     }
   }
+
   protected removeLoadIcon() {
     if (this.loadIcon !== null) {
       this.root.removeChild(this.loadIcon);

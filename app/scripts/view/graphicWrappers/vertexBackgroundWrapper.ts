@@ -2,13 +2,13 @@ import { StageInterface } from "../stageInterface.js";
 import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class VtxBackgroundWrapper extends GraphicWrapper {
+  public static readonly backgroundSpritePadding = 5;
   private static readonly cachedTextures = new Map<string, PIXI.RenderTexture>();
 
   private static readonly unselectedFillColor = 0xE6E6E6;
   private static readonly selectedFillColor = 0xFFFF00;
   private static readonly borderColor = 0x333333;
   private static readonly borderWidth = 5;
-  public static readonly backgroundSpritePadding = 5;
 
   private static drawSprite(
     stageInterface: StageInterface,

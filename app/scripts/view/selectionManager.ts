@@ -179,17 +179,6 @@ export class SelectionManager {
     this.selectionDrag.ghostRoot.position.set(dx, dy);
   }
 
-  private idOfVertex(vertexWrapper: VertexWrapper): string | null {
-    const vertexWrappers = this.getVertexWrappers();
-    for (const vertexId in vertexWrappers) {
-      if (vertexWrappers[vertexId] === vertexWrapper) {
-        return vertexId;
-      }
-    }
-
-    return null;
-  }
-
   public abortSelectionDrag(): void {
     if (this.selectionDrag === null) {
       return;

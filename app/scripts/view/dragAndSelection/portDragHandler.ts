@@ -104,14 +104,14 @@ export class PortDragHandler {
     });
   }
 
+  public addListener<T extends keyof IListenerTypes>(eventName: T, listener: IListenerTypes[T]): void {
+    (this.listenerDict[eventName] as Array<IListenerTypes[T]>).push(listener);
+  }
+
   private callListeners<T extends keyof IListenerTypes>(evName: T, ...listenerArgs: ArgumentTypes<IListenerTypes[T]>) {
     const listeners = this.listenerDict[evName] as Array<IListenerTypes[T]>;
     for (const listener of listeners) {
       (listener as (...args: ArgumentTypes<IListenerTypes[T]>) => unknown)(...listenerArgs);
     }
-  }
-
-  public addListener<T extends keyof IListenerTypes>(eventName: T, listener: IListenerTypes[T]): void {
-    (this.listenerDict[eventName] as Array<IListenerTypes[T]>).push(listener);
   }
 }
