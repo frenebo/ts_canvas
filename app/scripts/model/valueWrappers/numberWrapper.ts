@@ -1,4 +1,4 @@
-import { AbstractValueWrapper, CloneableConfig } from "./valueWrapper";
+import { AbstractValueWrapper, CloneableConfig } from "./valueWrapper.js";
 
 export type NumberWrapperConfig = CloneableConfig & {
 

@@ -1,7 +1,7 @@
-import { EdgeWrapper } from "../graphicWrappers/edgeWrapper";
-import { VertexWrapper } from "../graphicWrappers/vertexWrapper";
-import { StageInterface } from "../stageInterface";
-import { PositionTracker } from "./positionTracker";
+import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
+import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
+import { StageInterface } from "../stageInterface.js";
+import { PositionTracker } from "./positionTracker.js";
 
 export class CullingManager {
   private readonly vertexWrappers: {[key: string]: VertexWrapper} = {};
