@@ -44,7 +44,7 @@ export class DragRegistry {
     private readonly getPortWrappers: () => Readonly<{[vertexKey: string]: Readonly<{[portKey: string]: PortWrapper}>}>,
     private readonly selectionManager: SelectionManager,
     private readonly portPreviewManager: PortPreviewManager,
-    private stageInterface: StageInterface,
+    private readonly stageInterface: StageInterface,
   ) {
     this.currentObject = null;
     this.edgeDrawHandler = new EdgeDrawHandler(this.stageInterface);

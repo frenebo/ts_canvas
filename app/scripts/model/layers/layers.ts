@@ -12,7 +12,7 @@ interface LayerPortInfo {
 const layerDict = {
   "Repeat": () => new RepeatLayer(),
   "AddLayer": () => new AddLayer(),
-}
+};
 
 export type LayerType = keyof typeof layerDict;
 
@@ -199,7 +199,7 @@ class AddLayer extends Layer {
     super();
   }
 
-  protected updateFunc(): {errors: string[], warnings: string[]} {
+  protected updateFunc(): {errors: string[]; warnings: string[]} {
     const outNum = this.fields.inputValue1.wrapper.getValue() + this.fields.inputValue2.wrapper.getValue();
 
     const validated = this.fields.outputShape.wrapper.validateValue(outNum);

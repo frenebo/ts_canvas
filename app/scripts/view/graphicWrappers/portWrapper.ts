@@ -27,7 +27,7 @@ export class PortWrapper extends GraphicWrapper {
       5,
     );
 
-    const texture = stageInterface.generateTexture(graphics)
+    const texture = stageInterface.generateTexture(graphics);
 
     PortWrapper.cachedPortTexture = texture;
 

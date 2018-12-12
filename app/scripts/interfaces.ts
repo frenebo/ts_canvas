@@ -278,6 +278,6 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
       requestError: "layer_nonexistent";
     } | {
       requestError: "field_nonexistent";
-    }
+    };
   };
 }

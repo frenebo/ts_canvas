@@ -285,7 +285,9 @@ export class SessionUtils {
       };
     }
 
-    const vertexOccupiedPortIds = args.edgesByVertex[args.layerId].in.map((edgeId) => args.graphData.edges[edgeId].targetPortId);
+    const vertexOccupiedPortIds = args.edgesByVertex[args.layerId].in.map((edgeId) => {
+      return args.graphData.edges[edgeId].targetPortId;
+    });
 
     const layerOccupiedValueIds = vertexOccupiedPortIds.map((portId) => layer.getPortInfo(portId).valueKey);
 

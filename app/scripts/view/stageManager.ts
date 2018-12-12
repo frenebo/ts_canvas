@@ -9,7 +9,7 @@ export class StageManager {
   private readonly overlayContainer: PIXI.Container;
   private readonly backgroundWrapper: BackgroundWrapper;
   private readonly positionZoomChangedListeners: Array<() => void> = [];
-  private stageInterface: StageInterface;
+  private readonly stageInterface: StageInterface;
 
   constructor(div: HTMLDivElement) {
     this.app = new PIXI.Application();
@@ -43,15 +43,15 @@ export class StageManager {
     this.stageInterface = new StageInterface(
       this.app.renderer,
       () => this.getScale(),
-      (l) => this.onPositionOrZoomChanged(l),
+      (l) => { this.onPositionOrZoomChanged(l); },
       () => this.getMousePos(),
-      (obj) => this.addOverlayChild(obj),
-      (obj) => this.removeOverlayChild(obj),
+      (obj) => { this.addOverlayChild(obj); },
+      (obj) => { this.removeOverlayChild(obj); },
       () => this.stageXOffset(),
       () => this.stageYOffset(),
       () => this.backgroundWrapper.getDisplayObject(),
       (data) => this.getDataRelativeLoc(data),
-      (dx, dy) => this.setStagePosAbsolute(dx, dy),
+      (dx, dy) => { this.setStagePosAbsolute(dx, dy); },
       () => this.app.renderer.width,
       () => this.app.renderer.height,
     );

@@ -73,7 +73,7 @@ export class EditIconWrapper extends GraphicWrapper {
     return sprite;
   }
 
-  private static getHitArea(): PIXI.Polygon {
+  private static createHitArea(): PIXI.Polygon {
     const outlineFirstPoint = EditIconWrapper.outlinePoints[EditIconWrapper.outlinePoints.length - 1];
     const outlinePoints = EditIconWrapper.outlinePoints.concat([outlineFirstPoint]);
     const points = outlinePoints.map(([x, y]) => new PIXI.Point(x, y));
@@ -89,7 +89,7 @@ export class EditIconWrapper extends GraphicWrapper {
   ) {
     super({
       buttonMode: true,
-      hitArea: EditIconWrapper.getHitArea(),
+      hitArea: EditIconWrapper.createHitArea(),
     });
 
     this.sprite = new PIXI.Sprite(); // placeholder

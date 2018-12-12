@@ -93,7 +93,7 @@ export class EditLayerDialog extends Dialog {
 
       this.fieldsReadonlyDict[fieldId] = {isReadonly: fieldReadonlyInfo.isReadonly};
 
-      const row = await this.createFieldRow(fieldId, layerData.fields[fieldId].value);
+      const row = this.createFieldRow(fieldId, layerData.fields[fieldId].value);
       fieldDiv.appendChild(row);
     }
 
@@ -113,7 +113,11 @@ export class EditLayerDialog extends Dialog {
     this.applyButton.style.margin = "0 auto";
     this.applyButton.style.display = "block";
 
-    this.applyButton.addEventListener("click", () => this.applyValues());
+    this.applyButton.addEventListener("click", () => {
+      this.applyValues().catch(() => {
+        // @TODO?
+      });
+    });
   }
 
   private createFieldRow(fieldId: string, value: string): HTMLDivElement {
@@ -141,7 +145,7 @@ export class EditLayerDialog extends Dialog {
 
     if (this.fieldsReadonlyDict[fieldId].isReadonly) {
       input.disabled = true;
-      input.style.backgroundColor = "#999999"
+      input.style.backgroundColor = "#999999";
     }
 
     input.style.padding = "3px";
@@ -172,11 +176,11 @@ export class EditLayerDialog extends Dialog {
         currentValidation.promise = promise;
       }
       this.updateApplyButton();
-    }
+    };
 
     const isPromiseCurrentValidation = (promise: Promise<ModelInfoReqs["validateValue"]["response"]>) => {
       return currentValidation !== null && currentValidation.promise === promise;
-    }
+    };
 
     const endValidation = (validateVal: ModelInfoReqs["validateValue"]["response"]) => {
       if (currentValidation === null) return;
@@ -215,7 +219,7 @@ export class EditLayerDialog extends Dialog {
       }
 
       this.updateApplyButton();
-    }
+    };
 
     input.addEventListener("input", async () => {
       const thisPromise = this.sendModelInfoRequests<"validateValue">({

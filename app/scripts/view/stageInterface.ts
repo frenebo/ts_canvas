@@ -4,7 +4,7 @@ export class StageInterface {
     private readonly renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer,
     private readonly getScaleFunc: () => number,
     private readonly onPositionOrZoomChangedFunc: (l: () => void) => void,
-    private readonly getMousePosFunc: () => {x: number, y: number},
+    private readonly getMousePosFunc: () => {x: number; y: number},
     private readonly addDisplayObjectFunc: (obj: PIXI.DisplayObject) => void,
     private readonly removeDisplayObjectFunc: (obj: PIXI.DisplayObject) => void,
     private readonly getStageXFunc: () => number,
