@@ -7,14 +7,11 @@ var tslint = require("tslint");
 
 gulp.task("clean", () => del(["build"]));
 
-gulp.task("copy", () => gulp.src(["app/**/*", "!app/scripts/**/*.ts"]).pipe(gulp.dest("build")));
+gulp.task("copy", () => gulp.src(["app/**/*", "!app/**/*.ts"]).pipe(gulp.dest("build")));
 
 gulp.task("copy_deps", () => {
   return gulp.src(["node_modules/pixi.js/dist/pixi.js"]).pipe(gulp.dest("build/deps/pixi"))
 });
-gulp.task("electron_copy_deps", () => {
-  return gulp.src(["node_modules/pixi.js/dist/pixi.js"]).pipe(gulp.dest("electron_build/deps/pixi"));
-})
 
 gulp.task("start_server", () => {
   return connect.server({
@@ -26,9 +23,9 @@ gulp.task("start_server", () => {
 var project = ts.createProject('tsconfig.json');
 
 gulp.task("ts", function() {
-  return gulp.src(["app/scripts/**/*.ts", "node_modules/types/@types/**/*.d.ts"])
+  return gulp.src(["app/**/*.ts", "node_modules/types/@types/**/*.d.ts"])
     .pipe(project()).js
-    .pipe(gulp.dest("build/scripts"));
+    .pipe(gulp.dest("build"));
 });
 
 
@@ -43,7 +40,7 @@ gulp.task("serve", gulp.series(
 gulp.task("tslint", function() {
   var program = tslint.Linter.createProgram("./tsconfig.json");
 
-   return gulp.src(["app/scripts/**/*.ts"])
+   return gulp.src(["app/**/*.ts"])
        .pipe(gulpTslint({ program: program }))
        .pipe(gulpTslint.report({
             configuration: {},
