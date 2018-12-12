@@ -1,26 +1,25 @@
-
-import { BackgroundDragHandler } from "./backgroundDragHandler.js";
-import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
-import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
-import { VertexDragHandler } from "./vertexDragHandler.js";
-import { PortWrapper } from "../graphicWrappers/portWrapper.js";
-import { PortDragHandler } from "./portDragHandler.js";
-import { EdgeDrawHandler } from "./edgeDrawHandler.js";
-import { EditIconWrapper } from "../graphicWrappers/editIconWrapper.js";
-import { SelectionManager } from "../selectionManager.js";
-import { EdgeDragHandler } from "./edgeDragHandler.js";
-import { PortPreviewManager } from "../portPreviewManager.js";
-import {
-  RequestModelChangesFunc,
-  RequestInfoFunc,
-} from "../../messenger.js";
 import { ModelInfoReqs } from "../../interfaces.js";
+import {
+  RequestInfoFunc,
+  RequestModelChangesFunc,
+} from "../../messenger.js";
 import { BackgroundWrapper } from "../graphicWrappers/backgroundWrapper.js";
+import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
+import { EditIconWrapper } from "../graphicWrappers/editIconWrapper.js";
+import { PortWrapper } from "../graphicWrappers/portWrapper.js";
+import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
+import { PortPreviewManager } from "../portPreviewManager.js";
+import { SelectionManager } from "../selectionManager.js";
 import { StageInterface } from "../stageInterface.js";
+import { BackgroundDragHandler } from "./backgroundDragHandler.js";
+import { EdgeDragHandler } from "./edgeDragHandler.js";
+import { EdgeDrawHandler } from "./edgeDrawHandler.js";
+import { PortDragHandler } from "./portDragHandler.js";
+import { VertexDragHandler } from "./vertexDragHandler.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
 
-export interface DragListeners {
+export interface IDragListeners {
   onDragStart(listener: DragListener): void;
   onDragMove(listener: DragListener): void;
   onDragEnd(listener: DragListener): void;
@@ -66,18 +65,18 @@ export class DragRegistry {
       distanceSquared: number;
     }> = [];
 
-    for (const vertexKey in this.getVertexWrappers()) {
+    for (const vertexKey of Object.keys(this.getVertexWrappers())) {
       const vertexWrapper = this.getVertexWrappers()[vertexKey];
-      for (const portKey in this.getPortWrappers()[vertexKey]) {
+      for (const portKey of Object.keys(this.getPortWrappers()[vertexKey])) {
         const portWrapper = this.getPortWrappers()[vertexKey][portKey];
-        const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + PortWrapper.width/2);
-        const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + PortWrapper.height/2);
+        const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + PortWrapper.width / 2);
+        const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + PortWrapper.height / 2);
         portDescriptions.push({
-          portKey: portKey,
+          distanceSquared: xDistance * xDistance + yDistance * yDistance,
           port: portWrapper,
-          vtxKey: vertexKey,
+          portKey: portKey,
           vtx: vertexWrapper,
-          distanceSquared: xDistance*xDistance + yDistance*yDistance,
+          vtxKey: vertexKey,
         });
       }
     }
@@ -94,13 +93,15 @@ export class DragRegistry {
 
       i++;
 
-      if (this.getEdgeWrappers()[id] === undefined) return id;
+      if (this.getEdgeWrappers()[id] === undefined) {
+        return id;
+      }
     }
   }
 
   private registerBackground(backgroundObj: PIXI.DisplayObject): void {
     const listeners = this.registerDisplayObject(backgroundObj);
-    new BackgroundDragHandler(this.selectionManager, this.stageInterface, listeners);
+    const bgDragHandler = new BackgroundDragHandler(this.selectionManager, this.stageInterface, listeners);
   }
 
   public registerVertex(id: string, vertex: VertexWrapper): void {
@@ -109,7 +110,7 @@ export class DragRegistry {
       vertex.getDisplayObject(),
       (l) => this.vertexDragAbortListeners[id].push(l),
     );
-    new VertexDragHandler(id, vertex, listeners, this.selectionManager, this.stageInterface);
+    const vtxDragHandler = new VertexDragHandler(id, vertex, listeners, this.selectionManager, this.stageInterface);
   }
 
   public removeVertex(id: string, vertex: VertexWrapper): void {
@@ -118,7 +119,9 @@ export class DragRegistry {
     if (this.currentObject === vertex.getDisplayObject()) {
       this.currentObject = null;
 
-      for (const l of this.vertexDragAbortListeners[id]) l();
+      for (const l of this.vertexDragAbortListeners[id]) {
+        l();
+      }
     }
 
     delete this.vertexDragAbortListeners[id];
@@ -131,7 +134,7 @@ export class DragRegistry {
       (l) => this.edgeDragAbortListeners[id].push(l),
     );
 
-    new EdgeDragHandler(id, edge, listeners, this.selectionManager, this.stageInterface);
+    const edgeDragHandler = new EdgeDragHandler(id, edge, listeners, this.selectionManager, this.stageInterface);
   }
 
   public removeEdge(id: string, edge: EdgeWrapper): void {
@@ -140,7 +143,9 @@ export class DragRegistry {
     if (this.currentObject === edge.getDisplayObject()) {
       this.currentObject = null;
 
-      for (const l of this.edgeDragAbortListeners[id]) l();
+      for (const l of this.edgeDragAbortListeners[id]) {
+        l();
+      }
     }
 
     delete this.edgeDragAbortListeners[id];
@@ -156,24 +161,32 @@ export class DragRegistry {
     const listeners = this.registerDisplayObject(port.getDisplayObject());
     const portDragHandler = new PortDragHandler(port, listeners);
 
-
     portDragHandler.addListener("click", () => {
       this.portPreviewManager.editPort(port, vertexId, portId);
     });
 
     let isHovering = false;
     portDragHandler.addListener("hover", async () => {
-      if (this.portPreviewManager.currentShowingIs(port)) return;
+      if (this.portPreviewManager.currentShowingIs(port)) {
+        return;
+      }
+
       isHovering = true;
 
       const portInfo = await this.sendModelInfoRequests<"getPortInfo">({
+        portId: portId,
         type: "getPortInfo",
         vertexId: vertexId,
-        portId: portId,
       });
 
-      if (!portInfo.couldFindPort) return;
-      if (!isHovering) return; // if the mouse has left by the time the model info is gotten
+      if (!portInfo.couldFindPort) {
+        return;
+      }
+
+      if (!isHovering) {
+        return; // if the mouse has left by the time the model info is gotten
+      }
+
       this.portPreviewManager.portHover(port, vertex, portId, vertexId, portInfo.portValue);
     });
     portDragHandler.addListener("hoverend", () => {
@@ -192,16 +205,16 @@ export class DragRegistry {
 
         if (
           (closestPortVertex !== vertex || closestPort !== port) &&
-          closestInfo.distanceSquared < DragRegistry.portSnapDistance*DragRegistry.portSnapDistance
+          closestInfo.distanceSquared < DragRegistry.portSnapDistance * DragRegistry.portSnapDistance
         ) {
 
           return {
-            targetVtx: closestPortVertex,
             targetPort: closestPort,
-            targetVtxId: closestInfo.vtxKey,
             targetPortId: closestInfo.portKey,
-            xPos: closestPort.localX() + PortWrapper.width/2 + closestPortVertex.localX(),
-            yPos: closestPort.localY() + PortWrapper.width/2 + closestPortVertex.localY(),
+            targetVtx: closestPortVertex,
+            targetVtxId: closestInfo.vtxKey,
+            xPos: closestPort.localX() + PortWrapper.width / 2 + closestPortVertex.localX(),
+            yPos: closestPort.localY() + PortWrapper.width / 2 + closestPortVertex.localY(),
           };
         } else {
           return null;
@@ -231,10 +244,12 @@ export class DragRegistry {
         };
       });
       portDragHandler.addListener("dragMove", (cursorX, cursorY) => {
-        if (dragData === null) throw new Error("No current drag");
+        if (dragData === null) {
+          throw new Error("No current drag");
+        }
 
-        const stageX = (cursorX - this.stageInterface.getStageX())/this.stageInterface.getScale();
-        const stageY = (cursorY - this.stageInterface.getStageY())/this.stageInterface.getScale();
+        const stageX = (cursorX - this.stageInterface.getStageX()) / this.stageInterface.getScale();
+        const stageY = (cursorY - this.stageInterface.getStageY()) / this.stageInterface.getScale();
 
         let targetHasChanged = false;
         const snapInfo = getSnapPortInfo(stageX, stageY);
@@ -286,17 +301,17 @@ export class DragRegistry {
           snapInfo !== null && targetHasChanged
         ) {
           this.sendModelInfoRequests<"getUniqueEdgeIds">({
-            type: "getUniqueEdgeIds",
             count: 1,
+            type: "getUniqueEdgeIds",
           }).then(async ({ edgeIds }) => {
             return [
               await this.sendModelInfoRequests<"validateEdge">({
-                type: "validateEdge",
                 edgeId: edgeIds[0],
-                sourceVertexId: vertexId,
                 sourcePortId: portId,
-                targetVertexId: snapInfo.targetVtxId,
+                sourceVertexId: vertexId,
                 targetPortId: snapInfo.targetPortId,
+                targetVertexId: snapInfo.targetVtxId,
+                type: "validateEdge",
               }),
               edgeIds[0],
             ] as [ModelInfoReqs["validateEdge"]["response"], string];
@@ -309,8 +324,8 @@ export class DragRegistry {
               dragData.currentTarget.vertexId === snapInfo.targetVtxId
             ) {
               dragData.currentTarget.validation = response.valid ? {
-                isValid: true,
                 edgeId: edgeId,
+                isValid: true,
               } : {
                 isValid: false,
                 message: response.problem,
@@ -344,12 +359,12 @@ export class DragRegistry {
           dragData.currentTarget.validation.isValid
         ) {
           this.sendModelChangeRequests({
-            type: "createEdge",
             newEdgeId: dragData.currentTarget.validation.edgeId,
-            sourceVertexId: vertexId,
             sourcePortId: portId,
-            targetVertexId: dragData.currentTarget.vertexId,
+            sourceVertexId: vertexId,
             targetPortId: dragData.currentTarget.portId,
+            targetVertexId: dragData.currentTarget.vertexId,
+            type: "createEdge",
           }).catch((reason) => {
             // @TODO
           });
@@ -376,34 +391,50 @@ export class DragRegistry {
     let dragging = false;
 
     const onDragStart = (ev: PIXI.interaction.InteractionEvent) => {
-      if (this.currentObject !== null) return;
+      if (this.currentObject !== null) {
+        return;
+      }
 
       this.currentObject = obj;
       dragging = true;
 
-      for (const listener of dragStartListeners) listener(ev);
+      for (const listener of dragStartListeners) {
+        listener(ev);
+      }
     };
 
     const onDragMove = (ev: PIXI.interaction.InteractionEvent) => {
-      if (!dragging) return;
+      if (!dragging) {
+        return;
+      }
 
-      for (const listener of dragMoveListeners) listener(ev);
+      for (const listener of dragMoveListeners) {
+        listener(ev);
+      }
     };
 
     const onDragEnd = (ev: PIXI.interaction.InteractionEvent) => {
-      if (!dragging) return;
+      if (!dragging) {
+        return;
+      }
 
       dragging = false;
       this.currentObject = null;
 
-      for (const listener of dragEndListeners) listener(ev);
+      for (const listener of dragEndListeners) {
+        listener(ev);
+      }
     };
 
     const callAbortListeners = () => {
-      for (const listener of dragAbortListeners) listener();
+      for (const listener of dragAbortListeners) {
+        listener();
+      }
     };
 
-    if (setAbortListener !== undefined) setAbortListener(callAbortListeners);
+    if (setAbortListener !== undefined) {
+      setAbortListener(callAbortListeners);
+    }
 
     obj
       .on("mousedown",       onDragStart)
@@ -416,10 +447,10 @@ export class DragRegistry {
       .on("touchmove",       onDragMove);
 
     return {
-      onDragStart: (listener: DragListener) => { dragStartListeners.push(listener); },
-      onDragMove: (listener: DragListener) => { dragMoveListeners.push(listener); },
-      onDragEnd: (listener: DragListener) => { dragEndListeners.push(listener); },
       onDragAbort: (listener: () => void) => { dragAbortListeners.push(listener); },
+      onDragEnd: (listener: DragListener) => { dragEndListeners.push(listener); },
+      onDragMove: (listener: DragListener) => { dragMoveListeners.push(listener); },
+      onDragStart: (listener: DragListener) => { dragStartListeners.push(listener); },
     };
   }
 }

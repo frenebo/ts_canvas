@@ -1,39 +1,39 @@
 
-export interface PortData {
+export interface IPortData {
   side: "top" | "bottom" | "left" | "right";
   position: number; // 0 to 1
   portType: "input" | "output";
 }
 
-export interface VertexData {
+export interface IVertexData {
   label: string;
   geo: {
     x: number;
     y: number;
   };
   ports: {
-    [key: string]: PortData;
+    [key: string]: IPortData;
   };
 }
 
-export interface EdgeData {
+export interface IEdgeData {
+  consistency: "consistent" | "inconsistent";
   sourceVertexId: string;
   sourcePortId: string;
   targetVertexId: string;
   targetPortId: string;
-  consistency: "consistent" | "inconsistent";
 }
 
-export interface GraphData {
+export interface IGraphData {
   vertices: {
-    [key: string]: VertexData;
+    [key: string]: IVertexData;
   };
   edges: {
-    [key: string]: EdgeData;
+    [key: string]: IEdgeData;
   };
 }
 
-export interface LayerData {
+export interface ILayerData {
   ports: {
     [key: string]: {
       valueName: string;
@@ -46,12 +46,12 @@ export interface LayerData {
   };
 }
 
-export interface ViewInterface {
-  setGraphData(data: GraphData): void;
+export interface IViewInterface {
+  setGraphData(data: IGraphData): void;
 }
 
-export interface ModelInterface {
-  getGraphData(): Promise<GraphData>;
+export interface IModelInterface {
+  getGraphData(): Promise<IGraphData>;
   onDataChanged(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void>;
   requestModelVersioningChange(req: ModelVersioningRequest): Promise<void>;
@@ -139,7 +139,7 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
     "response": {
       verticesExist: true;
       edges: {
-        [key: string]: EdgeData;
+        [key: string]: IEdgeData;
       };
     } | {
       verticesExist: false;
@@ -186,7 +186,7 @@ export interface ModelInfoReqs extends ReqMapType<keyof ModelInfoReqs> {
     };
     "response": {
       layerExists: true;
-      data: LayerData;
+      data: ILayerData;
     } | {
       layerExists: false;
     };

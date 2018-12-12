@@ -15,7 +15,9 @@ export class EdgeDrawHandler {
   }
 
   public beginDraw(sourceVertex: VertexWrapper, sourcePort: PortWrapper): void {
-    if (this.dragData !== null) throw new Error("Already drawing edge");
+    if (this.dragData !== null) {
+      throw new Error("Already drawing edge");
+    }
 
     const graphics = new PIXI.Graphics();
     this.stageInterface.addDisplayObject(graphics);
@@ -24,19 +26,21 @@ export class EdgeDrawHandler {
     graphics.lineStyle(10);
 
     this.dragData = {
-      sourceVtx: sourceVertex,
-      sourcePort: sourcePort,
       graphics: graphics,
+      sourcePort: sourcePort,
+      sourceVtx: sourceVertex,
     };
   }
 
   public redrawLine(endX: number, endY: number, validity?: "valid" | "invalid" | undefined | null): void {
-    if (this.dragData === null) throw new Error("Not currently drawing edge");
+    if (this.dragData === null) {
+      throw new Error("Not currently drawing edge");
+    }
 
     const startX =
-      this.dragData.sourcePort.localX() + PortWrapper.width/2 + this.dragData.sourceVtx.localX();
+      this.dragData.sourcePort.localX() + PortWrapper.width / 2 + this.dragData.sourceVtx.localX();
     const startY =
-      this.dragData.sourcePort.localY() + PortWrapper.height/2 + this.dragData.sourceVtx.localY();
+      this.dragData.sourcePort.localY() + PortWrapper.height / 2 + this.dragData.sourceVtx.localY();
 
     this.dragData.graphics.clear();
 
@@ -58,7 +62,9 @@ export class EdgeDrawHandler {
   }
 
   public endDrag(): void {
-    if (this.dragData === null) throw new Error("Not currently drawing edge");
+    if (this.dragData === null) {
+      throw new Error("Not currently drawing edge");
+    }
 
     this.stageInterface.removeDisplayObject(this.dragData.graphics);
     this.dragData = null;

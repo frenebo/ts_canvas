@@ -1,10 +1,14 @@
-import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
-import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import {
-  ModelChangeRequest, ModelInfoReqs, EdgeData,
+  IEdgeData,
+  ModelChangeRequest,
 } from "../interfaces.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../messenger.js";
+import {
+  RequestInfoFunc,
+  RequestModelChangesFunc,
+} from "../messenger.js";
+import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import { VtxBackgroundWrapper } from "./graphicWrappers/vertexBackgroundWrapper.js";
+import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import { StageInterface } from "./stageInterface.js";
 
 export class SelectionManager {
@@ -75,7 +79,9 @@ export class SelectionManager {
   public selectEdge(edgeId: string): void {
     if (this.selectedEdges[edgeId] === undefined) {
       const edge = this.getEdgeWrappers()[edgeId];
-      if (edge === undefined) throw new Error(`Couldn't find edge with id ${edgeId}`);
+      if (edge === undefined) {
+        throw new Error(`Couldn't find edge with id ${edgeId}`);
+      }
 
       this.selectedEdges[edgeId] = edge;
       edge.toggleSelected(true);
@@ -94,7 +100,9 @@ export class SelectionManager {
     // only select if it isn't already selected
     if (this.selectedVertices[vertexId] === undefined) {
       const vertex = this.getVertexWrappers()[vertexId];
-      if (vertex === undefined) throw new Error(`No such vertex with id ${vertexId}`);
+      if (vertex === undefined) {
+        throw new Error(`No such vertex with id ${vertexId}`);
+      }
 
       this.selectedVertices[vertexId] = vertex;
       vertex.toggleSelected(true);
@@ -113,7 +121,7 @@ export class SelectionManager {
   public addSelectionBox(leftX: number, topY: number, w: number, h: number): void {
     const vertexWrappers = this.getVertexWrappers();
 
-    for (const vertexId in vertexWrappers) {
+    for (const vertexId of Object.keys(vertexWrappers)) {
       const vertexWrapper = vertexWrappers[vertexId];
 
       if (
@@ -128,7 +136,9 @@ export class SelectionManager {
   }
 
   public startSelectionDrag(dx: number, dy: number, isClone: boolean): void {
-    if (this.selectionDrag !== null) throw new Error("In middle of drag");
+    if (this.selectionDrag !== null) {
+      throw new Error("In middle of drag");
+    }
 
     const ghostRoot = new PIXI.Container();
     this.stageInterface.addDisplayObject(ghostRoot);
@@ -137,12 +147,12 @@ export class SelectionManager {
     this.selectionDrag = {
       dx: dx,
       dy: dy,
-      isClone: isClone,
       ghostRoot: ghostRoot,
       ghosts: new Map(),
+      isClone: isClone,
     };
 
-    for (const selectedVertexId in this.selectedVertices) {
+    for (const selectedVertexId of Object.keys(this.selectedVertices)) {
       const selectedVertex = this.selectedVertices[selectedVertexId];
       const ghost = new VtxBackgroundWrapper(this.stageInterface);
       ghost.redraw(
@@ -162,7 +172,9 @@ export class SelectionManager {
   }
 
   public continueSelectionDrag(dx: number, dy: number): void {
-    if (this.selectionDrag === null) throw new Error("No drag currently happening");
+    if (this.selectionDrag === null) {
+      throw new Error("No drag currently happening");
+    }
 
     this.selectionDrag.ghostRoot.position.set(dx, dy);
   }
@@ -170,14 +182,18 @@ export class SelectionManager {
   private idOfVertex(vertexWrapper: VertexWrapper): string | null {
     const vertexWrappers = this.getVertexWrappers();
     for (const vertexId in vertexWrappers) {
-      if (vertexWrappers[vertexId] === vertexWrapper) return vertexId;
+      if (vertexWrappers[vertexId] === vertexWrapper) {
+        return vertexId;
+      }
     }
 
     return null;
   }
 
   public abortSelectionDrag(): void {
-    if (this.selectionDrag === null) return;
+    if (this.selectionDrag === null) {
+      return;
+    }
 
     this.stageInterface.removeDisplayObject(this.selectionDrag.ghostRoot);
 
@@ -185,7 +201,9 @@ export class SelectionManager {
   }
 
   public async endSelectionDrag(dx: number, dy: number): Promise<void> {
-    if (this.selectionDrag === null) throw new Error("No drag currently happening");
+    if (this.selectionDrag === null) {
+      throw new Error("No drag currently happening");
+    }
 
     this.stageInterface.removeDisplayObject(this.selectionDrag.ghostRoot);
 
@@ -197,8 +215,8 @@ export class SelectionManager {
       const requests: ModelChangeRequest[] = [];
 
       const newVertexIds = await this.sendModelInfoRequests<"getUniqueVertexIds">({
-        type: "getUniqueVertexIds",
         count: vertexIds.length,
+        type: "getUniqueVertexIds",
       });
 
       const origToCloneIds: {[key: string]: string} = {};
@@ -213,16 +231,16 @@ export class SelectionManager {
         origToCloneIds[vertexIdToClone] = uniqueId;
 
         requests.push({
-          type: "cloneVertex",
-          sourceVertexId: vertexIdToClone,
           newVertexId: uniqueId,
+          sourceVertexId: vertexIdToClone,
+          type: "cloneVertex",
           x: newX,
           y: newY,
         });
       }
 
       let requestIds: string[] = vertexIds.slice();
-      let edgesToClone: {[key: string]: EdgeData} | null = null;
+      let edgesToClone: {[key: string]: IEdgeData} | null = null;
       while (edgesToClone === null) {
         const requestData = await this.sendModelInfoRequests<"edgesBetweenVertices">({
           type: "edgesBetweenVertices",
@@ -237,8 +255,8 @@ export class SelectionManager {
 
       const edgesToCloneIds = Object.keys(edgesToClone);
       const newEdgeIds = await this.sendModelInfoRequests<"getUniqueEdgeIds">({
-        type: "getUniqueEdgeIds",
         count: edgesToCloneIds.length,
+        type: "getUniqueEdgeIds",
       });
 
       for (let i = 0; i < edgesToCloneIds.length; i++) {
@@ -247,12 +265,12 @@ export class SelectionManager {
         const newEdgeId = newEdgeIds.edgeIds[i];
 
         requests.push({
-          type: "createEdge",
           newEdgeId: newEdgeId,
-          sourceVertexId: origToCloneIds[edgeData.sourceVertexId],
           sourcePortId: edgeData.sourcePortId,
-          targetVertexId: origToCloneIds[edgeData.targetVertexId],
+          sourceVertexId: origToCloneIds[edgeData.sourceVertexId],
           targetPortId: edgeData.targetPortId,
+          targetVertexId: origToCloneIds[edgeData.targetVertexId],
+          type: "createEdge",
         });
       }
 
@@ -282,10 +300,10 @@ export class SelectionManager {
   }
 
   public selectAll(): void {
-    for (const vertexId in this.getVertexWrappers()) {
+    for (const vertexId of Object.keys(this.getVertexWrappers())) {
       this.selectVertex(vertexId);
     }
-    for (const edgeId in this.getEdgeWrappers()) {
+    for (const edgeId of Object.keys(this.getEdgeWrappers())) {
       this.selectEdge(edgeId);
     }
   }
@@ -293,14 +311,14 @@ export class SelectionManager {
   public deleteSelection(): void {
     const requests: ModelChangeRequest[] = [];
 
-    for (const edgeId in this.selectedEdges) {
+    for (const edgeId of Object.keys(this.selectedEdges)) {
       requests.push({
-        type: "deleteEdge",
         edgeId: edgeId,
+        type: "deleteEdge",
       });
     }
 
-    for (const vertexId in this.selectedVertices) {
+    for (const vertexId of Object.keys(this.selectedVertices)) {
       requests.push({
         type: "deleteVertex",
         vertexId: vertexId,

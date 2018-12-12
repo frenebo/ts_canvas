@@ -1,6 +1,6 @@
+import { GraphicWrapper } from "./graphicWrapper.js";
 import { PortWrapper } from "./portWrapper.js";
 import { VertexWrapper } from "./vertexWrapper.js";
-import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class EdgeWrapper extends GraphicWrapper {
   private static readonly spriteLeftRightPadding = 25;
@@ -70,7 +70,6 @@ export class EdgeWrapper extends GraphicWrapper {
     this.refresh();
   }
 
-
   private previousSourceX = 0;
   private previousTargetX = 0;
   private previousSourceY = 0;
@@ -78,10 +77,10 @@ export class EdgeWrapper extends GraphicWrapper {
   private previousIsSelected = false;
 
   public refresh(): void {
-    const sourceX = this.sourcePort.localX() + this.sourceVertex.localX() + PortWrapper.width/2;
-    const sourceY = this.sourcePort.localY() + this.sourceVertex.localY() + PortWrapper.height/2;
-    const targetX = this.targetPort.localX() + this.targetVertex.localX() + PortWrapper.width/2;
-    const targetY = this.targetPort.localY() + this.targetVertex.localY() + PortWrapper.height/2;
+    const sourceX = this.sourcePort.localX() + this.sourceVertex.localX() + PortWrapper.width / 2;
+    const sourceY = this.sourcePort.localY() + this.sourceVertex.localY() + PortWrapper.height / 2;
+    const targetX = this.targetPort.localX() + this.targetVertex.localX() + PortWrapper.width / 2;
+    const targetY = this.targetPort.localY() + this.targetVertex.localY() + PortWrapper.height / 2;
 
     if (
       sourceX === this.previousSourceX &&
@@ -123,9 +122,9 @@ export class EdgeWrapper extends GraphicWrapper {
       Math.min(sourceY, targetY) - EdgeWrapper.spriteTopBottomPadding,
     );
 
-    const angle = Math.atan((targetY - sourceY)/(targetX - sourceX)) + (targetX < sourceX ? Math.PI : 0);
-    const thicknessHorizontalOffset = Math.sin(angle)*EdgeWrapper.lineWidth/2;
-    const thicknessVerticalOffset = Math.cos(angle)*EdgeWrapper.lineWidth/2;
+    const angle = Math.atan((targetY - sourceY) / (targetX - sourceX)) + (targetX < sourceX ? Math.PI : 0);
+    const thicknessHorizontalOffset = Math.sin(angle) * EdgeWrapper.lineWidth / 2;
+    const thicknessVerticalOffset = Math.cos(angle) * EdgeWrapper.lineWidth / 2;
 
     this.updateHitArea(new PIXI.Polygon(
       new PIXI.Point(

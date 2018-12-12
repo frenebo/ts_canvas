@@ -1,7 +1,7 @@
 import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
-import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "../selectionManager.js";
 import { StageInterface } from "../stageInterface.js";
+import { IDragListeners } from "./dragRegistry.js";
 
 export class EdgeDragHandler {
   private static readonly dragThreshold = 5;
@@ -9,7 +9,7 @@ export class EdgeDragHandler {
   constructor(
     id: string,
     edgeWrapper: EdgeWrapper,
-    listeners: DragListeners,
+    listeners: IDragListeners,
     selectionManager: SelectionManager,
     private readonly stageInterface: StageInterface,
   ) {
@@ -24,17 +24,20 @@ export class EdgeDragHandler {
     } | null = null;
 
     listeners.onDragStart((event) => {
-      if (clickData !== null) throw new Error("click already in progress");
+      if (clickData !== null) {
+        throw new Error("click already in progress");
+      }
+
       const mouseLocalX = edgeWrapper.getDataRelativeLoc(event.data).x - edgeWrapper.localX();
       const mouseLocalY = edgeWrapper.getDataRelativeLoc(event.data).y - edgeWrapper.localY();
 
       clickData = {
         isCtrlOrMetaClick: event.data.originalEvent.ctrlKey || event.data.originalEvent.metaKey,
+        isDrag: false,
         mouseStartLocal: {
           x: mouseLocalX,
           y: mouseLocalY,
         },
-        isDrag: false,
         selectionUpdated: false,
       };
 
@@ -48,7 +51,9 @@ export class EdgeDragHandler {
       }
     });
     listeners.onDragMove((event) => {
-      if (clickData === null) throw new Error("no click in progress");
+      if (clickData === null) {
+        throw new Error("no click in progress");
+      }
 
       const mouseLocalX = edgeWrapper.getDataRelativeLoc(event.data).x - edgeWrapper.localX();
       const mouseLocalY = edgeWrapper.getDataRelativeLoc(event.data).y - edgeWrapper.localY();
@@ -56,11 +61,10 @@ export class EdgeDragHandler {
       const dx = mouseLocalX - clickData.mouseStartLocal.x;
       const dy = mouseLocalY - clickData.mouseStartLocal.y;
 
-
       // If the current click doesn't count as a drag
       if (!clickData.isDrag && selectionManager.edgeIsSelected(id)) {
-        const scaledThreshold = EdgeDragHandler.dragThreshold/this.stageInterface.getScale();
-        if (dx*dx + dy*dy > scaledThreshold*scaledThreshold) {
+        const scaledThreshold = EdgeDragHandler.dragThreshold / this.stageInterface.getScale();
+        if (dx * dx + dy * dy > scaledThreshold * scaledThreshold) {
           // begin drag
           clickData.isDrag = true;
           selectionManager.startSelectionDrag(dx, dy, clickData.isCtrlOrMetaClick);
@@ -72,7 +76,9 @@ export class EdgeDragHandler {
       }
     });
     listeners.onDragEnd((event) => {
-      if (clickData === null) throw new Error("no click in progress");
+      if (clickData === null) {
+        throw new Error("no click in progress");
+      }
 
       const mouseLocalX = edgeWrapper.getDataRelativeLoc(event.data).x - edgeWrapper.localX();
       const mouseLocalY = edgeWrapper.getDataRelativeLoc(event.data).y - edgeWrapper.localY();
@@ -100,7 +106,9 @@ export class EdgeDragHandler {
       clickData = null;
     });
     listeners.onDragAbort(() => {
-      if (clickData === null) return;
+      if (clickData === null) {
+        return;
+      }
 
       if (clickData.isDrag) {
         selectionManager.abortSelectionDrag();

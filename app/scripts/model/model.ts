@@ -1,70 +1,70 @@
 import {
-  ModelInterface,
-  GraphData,
+  IGraphData,
+  IModelInterface,
   ModelChangeRequest,
   ModelInfoReqs,
   ModelVersioningRequest,
 } from "../interfaces.js";
+import { Queue } from "../queue.js";
 import {
   GraphUtils,
-  EdgesByVertex,
+  IEdgesByVertex,
 } from "./graphUtils.js";
-import { SaveUtils } from "./saveUtils.js";
-import { VersioningManager } from "./versioningUtils.js";
-import {
-  LayerUtils,
-  LayerClassDict,
-} from "./layers/layerUtils.js";
 import { Layer } from "./layers/layers.js";
 import {
+  ILayerClassDict,
+  LayerUtils,
+} from "./layerUtils.js";
+import { SaveUtils } from "./saveUtils.js";
+import {
+  ISessionDataJson,
   SessionUtils,
-  SessionDataJson,
 } from "./sessionUtils.js";
-import { Queue } from "../queue.js";
+import { VersioningManager } from "./versioningUtils.js";
 
-export interface ModelDataObj {
-  graph: GraphData;
-  layers: LayerClassDict;
-  edgesByVertex: EdgesByVertex;
+export interface IModelDataObj {
+  graph: IGraphData;
+  layers: ILayerClassDict;
+  edgesByVertex: IEdgesByVertex;
 }
 
-export interface SessionData {
-  data: ModelDataObj;
+export interface ISessionData {
+  data: IModelDataObj;
 }
 
-export class Model implements ModelInterface {
+export class Model implements IModelInterface {
   private readonly graphChangedListeners: Array<() => void> = [];
 
-  private readonly session: SessionData = {
+  private readonly session: ISessionData = {
     data: {
+      edgesByVertex: {},
       graph: {
-        vertices: {},
         edges: {},
+        vertices: {},
       },
       layers: {},
-      edgesByVertex: {},
     },
   };
   private readonly requestQueue: Queue;
-  private readonly versioningManager: VersioningManager<SessionDataJson>;
+  private readonly versioningManager: VersioningManager<ISessionDataJson>;
 
   constructor() {
     this.requestQueue = new Queue();
     for (let i = 0; i < 5; i++) {
       const layer = Layer.getLayer(i % 2 === 0 ? "Repeat" : "AddLayer");
       LayerUtils.addLayer({
+        layer: layer,
         layers: this.session.data.layers,
         newLayerId: i.toString(),
-        layer: layer,
       });
       const vertex = GraphUtils.createVertexFromLayer({
         layer: layer,
-        x: i*100,
-        y: i*100,
+        x: i * 100,
+        y: i * 100,
       });
       GraphUtils.addVertex({
-        graphData: this.session.data.graph,
         edgesByVertex: this.session.data.edgesByVertex,
+        graphData: this.session.data.graph,
         id: i.toString(),
         vtxData: vertex,
       });
@@ -72,7 +72,7 @@ export class Model implements ModelInterface {
     this.versioningManager = new VersioningManager(SessionUtils.toJson(this.session.data));
   }
 
-  public async getGraphData(): Promise<GraphData> {
+  public async getGraphData(): Promise<IGraphData> {
     return this.session.data.graph;
   }
 
@@ -89,8 +89,8 @@ export class Model implements ModelInterface {
       }
 
       SessionUtils.propagateEdges({
-        graphData: this.session.data.graph,
         edgesByVertex: this.session.data.edgesByVertex,
+        graphData: this.session.data.graph,
         layers: this.session.data.layers,
       });
 
@@ -124,33 +124,33 @@ export class Model implements ModelInterface {
     } else if (req.type === "createEdge") {
       if (
         SessionUtils.validateCreateEdge({
-          graphData: this.session.data.graph,
-          edgesByVertex: this.session.data.edgesByVertex,
-          layers: this.session.data.layers,
           edgeId: req.newEdgeId,
-          sourceVtxId: req.sourceVertexId,
+          edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
+          layers: this.session.data.layers,
           sourcePortId: req.sourcePortId,
-          targetVtxId: req.targetVertexId,
+          sourceVtxId: req.sourceVertexId,
           targetPortId: req.targetPortId,
+          targetVtxId: req.targetVertexId,
         }) === null
       ) {
         SessionUtils.createEdge({
-          graphData: this.session.data.graph,
-          edgesByVertex: this.session.data.edgesByVertex,
-          layers: this.session.data.layers,
           edgeId: req.newEdgeId,
-          sourceVtxId: req.sourceVertexId,
+          edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
+          layers: this.session.data.layers,
           sourcePortId: req.sourcePortId,
-          targetVtxId: req.targetVertexId,
+          sourceVtxId: req.sourceVertexId,
           targetPortId: req.targetPortId,
+          targetVtxId: req.targetVertexId,
         });
       }
     } else if (req.type === "cloneVertex") {
       if (
         SessionUtils.validateCloneVertex({
+          edgesByVertex: this.session.data.edgesByVertex,
           graphData: this.session.data.graph,
           layers: this.session.data.layers,
-          edgesByVertex: this.session.data.edgesByVertex,
           newVtxId: req.newVertexId,
           oldVtxId: req.sourceVertexId,
           x: req.x,
@@ -158,9 +158,9 @@ export class Model implements ModelInterface {
         }) === null
       ) {
         SessionUtils.cloneVertex({
+          edgesByVertex: this.session.data.edgesByVertex,
           graphData: this.session.data.graph,
           layers: this.session.data.layers,
-          edgesByVertex: this.session.data.edgesByVertex,
           newVtxId: req.newVertexId,
           oldVtxId: req.sourceVertexId,
           x: req.x,
@@ -169,44 +169,44 @@ export class Model implements ModelInterface {
       }
     } else if (req.type === "deleteVertex") {
       if (SessionUtils.validateDeleteVertex({
-        graphData: this.session.data.graph,
         edgesByVertex: this.session.data.edgesByVertex,
+        graphData: this.session.data.graph,
         layers: this.session.data.layers,
         vertexId: req.vertexId,
       }) === null) {
         SessionUtils.deleteVertex({
-          graphData: this.session.data.graph,
           edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
           layers: this.session.data.layers,
           vertexId: req.vertexId,
         });
       }
     } else if (req.type === "deleteEdge") {
       if (SessionUtils.validateDeleteEdge({
-        graphData: this.session.data.graph,
-        edgesByVertex: this.session.data.edgesByVertex,
         edgeId: req.edgeId,
+        edgesByVertex: this.session.data.edgesByVertex,
+        graphData: this.session.data.graph,
       }) === null) {
         SessionUtils.deleteEdge({
-          graphData: this.session.data.graph,
-          edgesByVertex: this.session.data.edgesByVertex,
           edgeId: req.edgeId,
+          edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
         });
       }
     } else if (req.type === "setLayerFields") {
       if (SessionUtils.validateSetLayerFields({
-        graph: this.session.data.graph,
         edgesByVertex: this.session.data.edgesByVertex,
-        layers: this.session.data.layers,
-        layerId: req.layerId,
         fieldValues: req.fieldValues,
+        graph: this.session.data.graph,
+        layerId: req.layerId,
+        layers: this.session.data.layers,
       }) === null) {
         SessionUtils.setLayerFields({
-          graph: this.session.data.graph,
           edgesByVertex: this.session.data.edgesByVertex,
-          layers: this.session.data.layers,
-          layerId: req.layerId,
           fieldValues: req.fieldValues,
+          graph: this.session.data.graph,
+          layerId: req.layerId,
+          layers: this.session.data.layers,
         });
       }
     } else {
@@ -245,14 +245,14 @@ export class Model implements ModelInterface {
     return this.requestQueue.addToQueue(async () => {
       if (req.type === "validateEdge") {
         const validationMessage = SessionUtils.validateCreateEdge({
-          graphData: this.session.data.graph,
-          edgesByVertex: this.session.data.edgesByVertex,
-          layers: this.session.data.layers,
           edgeId: (req as ModelInfoReqs["validateEdge"]["request"]).edgeId,
-          sourceVtxId: (req as ModelInfoReqs["validateEdge"]["request"]).sourceVertexId,
+          edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
+          layers: this.session.data.layers,
           sourcePortId: (req as ModelInfoReqs["validateEdge"]["request"]).sourcePortId,
-          targetVtxId: (req as ModelInfoReqs["validateEdge"]["request"]).targetVertexId,
+          sourceVtxId: (req as ModelInfoReqs["validateEdge"]["request"]).sourceVertexId,
           targetPortId: (req as ModelInfoReqs["validateEdge"]["request"]).targetPortId,
+          targetVtxId: (req as ModelInfoReqs["validateEdge"]["request"]).targetVertexId,
         });
         let response: ModelInfoReqs["validateEdge"]["response"];
 
@@ -262,16 +262,16 @@ export class Model implements ModelInterface {
           };
         } else {
           response = {
-            valid: false,
             problem: validationMessage,
+            valid: false,
           };
         }
 
         return response;
       } else if (req.type === "edgesBetweenVertices") {
         return GraphUtils.edgesBetweenVertices({
-          graphData: this.session.data.graph,
           edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
           vtxIds: (req as ModelInfoReqs["edgesBetweenVertices"]["request"]).vertexIds,
         });
       } else if (req.type === "fileIsOpen") {
@@ -286,8 +286,8 @@ export class Model implements ModelInterface {
         } else {
           response = {
             fileIsOpen: true,
-            fileName: openFileName,
             fileIsUpToDate: this.versioningManager.areAllChangesSaved(),
+            fileName: openFileName,
           };
         }
 
@@ -299,51 +299,51 @@ export class Model implements ModelInterface {
         return response;
       } else if (req.type === "getPortInfo") {
         return LayerUtils.getPortInfo({
+          layerId: (req as ModelInfoReqs["getPortInfo"]["request"]).vertexId,
           layers: this.session.data.layers,
           portId: (req as ModelInfoReqs["getPortInfo"]["request"]).portId,
-          layerId: (req as ModelInfoReqs["getPortInfo"]["request"]).vertexId,
         });
       } else if (req.type === "validateValue") {
         return LayerUtils.validateValue({
-          layers: this.session.data.layers,
           layerId: (req as ModelInfoReqs["validateValue"]["request"]).layerId,
-          valueId: (req as ModelInfoReqs["validateValue"]["request"]).valueId,
+          layers: this.session.data.layers,
           newValueString: (req as ModelInfoReqs["validateValue"]["request"]).newValue,
+          valueId: (req as ModelInfoReqs["validateValue"]["request"]).valueId,
         });
       } else if (req.type === "getLayerInfo") {
         return LayerUtils.getLayerInfo({
-          layers: this.session.data.layers,
           layerId: (req as ModelInfoReqs["getLayerInfo"]["request"]).layerId,
+          layers: this.session.data.layers,
         });
       } else if (req.type === "compareValue") {
         return LayerUtils.compareValue({
-          layers: this.session.data.layers,
-          layerId: (req as ModelInfoReqs["compareValue"]["request"]).layerId,
-          valueId: (req as ModelInfoReqs["compareValue"]["request"]).valueId,
           compareString: (req as ModelInfoReqs["compareValue"]["request"]).compareValue,
+          layerId: (req as ModelInfoReqs["compareValue"]["request"]).layerId,
+          layers: this.session.data.layers,
+          valueId: (req as ModelInfoReqs["compareValue"]["request"]).valueId,
         });
       } else if (req.type === "validateLayerFields") {
         return LayerUtils.validateLayerFields({
-          layers: this.session.data.layers,
+          fieldValues: (req as ModelInfoReqs["validateLayerFields"]["request"]).fieldValues,
           layerId: (req as ModelInfoReqs["validateLayerFields"]["request"]).layerId,
-          fieldValues:(req as ModelInfoReqs["validateLayerFields"]["request"]).fieldValues,
+          layers: this.session.data.layers,
         });
       } else if (req.type === "getUniqueEdgeIds") {
         return GraphUtils.getUniqueEdgeIds({
-          graphData: this.session.data.graph,
           count: (req as ModelInfoReqs["getUniqueEdgeIds"]["request"]).count,
+          graphData: this.session.data.graph,
         });
       } else if (req.type === "getUniqueVertexIds") {
         return GraphUtils.getUniqueVertexIds({
-          graphData: this.session.data.graph,
           count: (req as ModelInfoReqs["getUniqueVertexIds"]["request"]).count,
+          graphData: this.session.data.graph,
         });
       } else if (req.type === "valueIsReadonly") {
         return SessionUtils.getValueIsReadonly({
-          graphData: this.session.data.graph,
-          layers: this.session.data.layers,
           edgesByVertex: this.session.data.edgesByVertex,
+          graphData: this.session.data.graph,
           layerId: (req as ModelInfoReqs["valueIsReadonly"]["request"]).layerId,
+          layers: this.session.data.layers,
           valueId: (req as ModelInfoReqs["valueIsReadonly"]["request"]).valueId,
         });
       } else {

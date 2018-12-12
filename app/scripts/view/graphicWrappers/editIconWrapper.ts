@@ -1,5 +1,5 @@
-import { GraphicWrapper } from "./graphicWrapper.js";
 import { StageInterface } from "../stageInterface.js";
+import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class EditIconWrapper extends GraphicWrapper {
   public static height = 50;
@@ -36,7 +36,7 @@ export class EditIconWrapper extends GraphicWrapper {
     graphics.lineColor = 0x000000;
     graphics.lineStyle(5);
 
-    function graphPoints(origPts: number[][], loop=false) {
+    function graphPoints(origPts: number[][], loop = false) {
       graphics.moveTo(
         origPts[0][0] + EditIconWrapper.texturePadding,
         origPts[0][1] + EditIconWrapper.texturePadding,
@@ -61,13 +61,16 @@ export class EditIconWrapper extends GraphicWrapper {
       new PIXI.Rectangle(
         0,
         0,
-        EditIconWrapper.width + EditIconWrapper.texturePadding*2,
-        EditIconWrapper.height + EditIconWrapper.texturePadding*2,
+        EditIconWrapper.width + EditIconWrapper.texturePadding * 2,
+        EditIconWrapper.height + EditIconWrapper.texturePadding * 2,
       ),
     );
 
-    if (clicking) EditIconWrapper.cachedClicking = texture;
-    else EditIconWrapper.cachedNotClicking = texture;
+    if (clicking) {
+      EditIconWrapper.cachedClicking = texture;
+    } else {
+      EditIconWrapper.cachedNotClicking = texture;
+    }
 
     const sprite = new PIXI.Sprite(texture);
     return sprite;

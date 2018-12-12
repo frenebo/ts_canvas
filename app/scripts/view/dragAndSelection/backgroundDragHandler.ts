@@ -1,8 +1,7 @@
-
-import { DragListeners } from "./dragRegistry.js";
-import { SelectionManager } from "../selectionManager.js";
 import { BackgroundWrapper } from "../graphicWrappers/backgroundWrapper.js";
+import { SelectionManager } from "../selectionManager.js";
 import { StageInterface } from "../stageInterface.js";
+import { IDragListeners } from "./dragRegistry.js";
 
 export class BackgroundDragHandler {
   private static readonly dragThreshold = 2;
@@ -43,7 +42,7 @@ export class BackgroundDragHandler {
   constructor(
     private readonly selectionManager: SelectionManager,
     private readonly stageInterface: StageInterface,
-    dragListeners: DragListeners,
+    dragListeners: IDragListeners,
   ) {
     const that = this;
 
@@ -54,7 +53,9 @@ export class BackgroundDragHandler {
   }
 
   private onClickStart(event: PIXI.interaction.InteractionEvent): void {
-    if (this.mouseData !== null) throw new Error("Previous drag has not ended");
+    if (this.mouseData !== null) {
+      throw new Error("Previous drag has not ended");
+    }
 
     // if the event is from a mouse AND its button is the left mouse button
     // AND the control key is not clicked, clicking on the background clears selection
@@ -85,33 +86,36 @@ export class BackgroundDragHandler {
       };
 
       this.mouseData = {
-        type: "select",
+        graphics: graphics,
         mouseStart,
         mouseStartLocal,
-        // backgroundStart,
-        graphics: graphics,
+        type: "select",
       };
     } else {
       this.mouseData = {
-        type: "click",
-        mouseStart,
         backgroundStart,
+        mouseStart,
+        type: "click",
       };
     }
   }
 
   private onClickMove(event: PIXI.interaction.InteractionEvent): void {
-    if (this.mouseData === null) return;
+    if (this.mouseData === null) {
+      return;
+    }
 
     const deltaX = event.data.global.x - this.mouseData.mouseStart.x;
     const deltaY = event.data.global.y - this.mouseData.mouseStart.y;
 
     if (this.mouseData.type === "click") {
-      if (deltaX*deltaX + deltaY*deltaY > BackgroundDragHandler.dragThreshold*BackgroundDragHandler.dragThreshold) {
+      if (
+        deltaX * deltaX + deltaY * deltaY > BackgroundDragHandler.dragThreshold * BackgroundDragHandler.dragThreshold
+      ) {
         this.mouseData = {
-          type: "drag",
-          mouseStart: this.mouseData.mouseStart,
           backgroundStart: this.mouseData.backgroundStart,
+          mouseStart: this.mouseData.mouseStart,
+          type: "drag",
         };
       }
     }
@@ -144,7 +148,9 @@ export class BackgroundDragHandler {
   }
 
   private onClickEnd(event: PIXI.interaction.InteractionEvent): void {
-    if (this.mouseData === null) return;
+    if (this.mouseData === null) {
+      return;
+    }
 
     if (this.mouseData.type === "select") {
       this.stageInterface.removeDisplayObject(this.mouseData.graphics);
@@ -163,7 +169,9 @@ export class BackgroundDragHandler {
   }
 
   private onClickAbort(): void {
-    if (this.mouseData === null) return;
+    if (this.mouseData === null) {
+      return;
+    }
 
     if (this.mouseData.type === "select") {
       this.stageInterface.removeDisplayObject(this.mouseData.graphics);

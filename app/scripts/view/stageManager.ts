@@ -1,7 +1,7 @@
 import { BackgroundWrapper } from "./graphicWrappers/backgroundWrapper.js";
-import { StageInterface } from "./stageInterface.js";
 import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
+import { StageInterface } from "./stageInterface.js";
 
 export class StageManager {
   private readonly app: PIXI.Application;
@@ -29,10 +29,10 @@ export class StageManager {
       const mouseYInStageFrame = this.getMousePos().y;
 
       const scrollFactor = Math.pow(1.003, -ev.deltaY);
-      this.setScale(this.getScale()*scrollFactor);
+      this.setScale(this.getScale() * scrollFactor);
 
-      const moveStageX = (this.getMousePos().x - mouseXInStageFrame)*this.getScale();
-      const moveStageY = (this.getMousePos().y - mouseYInStageFrame)*this.getScale();
+      const moveStageX = (this.getMousePos().x - mouseXInStageFrame) * this.getScale();
+      const moveStageY = (this.getMousePos().y - mouseYInStageFrame) * this.getScale();
 
       this.setPosition(
         this.stageXOffset() + moveStageX,
@@ -128,10 +128,10 @@ export class StageManager {
 
   public getMousePos(): {x: number; y: number} {
     const mouseX: number =
-      this.app.renderer.plugins.interaction.mouse.global.x/this.getScale() - this.stageXOffset()/this.getScale();
+      this.app.renderer.plugins.interaction.mouse.global.x / this.getScale() - this.stageXOffset() / this.getScale();
 
     const mouseY: number =
-      this.app.renderer.plugins.interaction.mouse.global.y/this.getScale() - this.stageYOffset()/this.getScale();
+      this.app.renderer.plugins.interaction.mouse.global.y / this.getScale() - this.stageYOffset() / this.getScale();
 
     return {
       x: mouseX,

@@ -1,10 +1,10 @@
-import { Dialog } from "./dialog.js";
-import {
-  ModelChangeRequest,
-  ModelInfoReqs,
-} from "../../interfaces.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../../messenger.js";
 import { MONOSPACE_STYLE } from "../../constants.js";
+import { ModelInfoReqs } from "../../interfaces.js";
+import {
+  RequestInfoFunc,
+  RequestModelChangesFunc,
+} from "../../messenger.js";
+import { Dialog } from "./dialog.js";
 
 export class EditLayerDialog extends Dialog {
   private applyButton!: HTMLButtonElement;
@@ -17,7 +17,6 @@ export class EditLayerDialog extends Dialog {
   private readonly fieldsReadonlyDict: {
     [key: string]: {isReadonly: boolean};
   } = {};
-
 
   constructor(
     closeDialogFunc: () => void,
@@ -63,8 +62,8 @@ export class EditLayerDialog extends Dialog {
 
     this.addLoadIcon();
     const layerInfoResponse = await this.sendModelInfoRequests<"getLayerInfo">({
-      type: "getLayerInfo",
       layerId: this.layerId,
+      type: "getLayerInfo",
     });
     this.removeLoadIcon();
     if (!layerInfoResponse.layerExists) {
@@ -76,10 +75,10 @@ export class EditLayerDialog extends Dialog {
     const fieldDiv = document.createElement("div");
     this.root.appendChild(fieldDiv);
 
-    for (const fieldId in layerData.fields) {
+    for (const fieldId of Object.keys(layerData.fields)) {
       const fieldReadonlyInfo = await this.sendModelInfoRequests<"valueIsReadonly">({
-        type: "valueIsReadonly",
         layerId: this.layerId,
+        type: "valueIsReadonly",
         valueId: fieldId,
       });
 
@@ -169,8 +168,8 @@ export class EditLayerDialog extends Dialog {
         errorText.textContent = "";
         this.pendingFields.add(fieldId);
         currentValidation = {
-          promise: promise,
           loadIcon: icon,
+          promise: promise,
         };
       } else {
         currentValidation.promise = promise;
@@ -183,7 +182,9 @@ export class EditLayerDialog extends Dialog {
     };
 
     const endValidation = (validateVal: ModelInfoReqs["validateValue"]["response"]) => {
-      if (currentValidation === null) return;
+      if (currentValidation === null) {
+        return;
+      }
 
       row.removeChild(currentValidation.loadIcon);
 
@@ -223,19 +224,21 @@ export class EditLayerDialog extends Dialog {
 
     input.addEventListener("input", async () => {
       const thisPromise = this.sendModelInfoRequests<"validateValue">({
-        type: "validateValue",
         layerId: this.layerId,
-        valueId: fieldId,
         newValue: input.value,
+        type: "validateValue",
+        valueId: fieldId,
       });
 
       beginOrReplaceValidation(thisPromise);
 
       const validateVal = await thisPromise;
 
-      if (!isPromiseCurrentValidation(thisPromise)) return;
-
-      endValidation(validateVal);
+      if (!isPromiseCurrentValidation(thisPromise)) {
+        return;
+      } else {
+        endValidation(validateVal);
+      }
     });
 
     return row;
@@ -255,9 +258,9 @@ export class EditLayerDialog extends Dialog {
       }
     }
     const validated = await this.sendModelInfoRequests<"validateLayerFields">({
-      type: "validateLayerFields",
-      layerId: this.layerId,
       fieldValues: setFieldValues,
+      layerId: this.layerId,
+      type: "validateLayerFields",
     });
 
     if (validated.requestError === "layer_nonexistent") {
@@ -272,16 +275,16 @@ export class EditLayerDialog extends Dialog {
 
       if (validated.errors.length === 0) {
         this.sendModelChangeRequests({
-          type: "setLayerFields",
-          layerId: this.layerId,
           fieldValues: setFieldValues,
+          layerId: this.layerId,
+          type: "setLayerFields",
         }).catch(() => {
           // @TODO
         });
 
         const newInfo = await this.sendModelInfoRequests<"getLayerInfo">({
-          type: "getLayerInfo",
           layerId: this.layerId,
+          type: "getLayerInfo",
         });
 
         if (!newInfo.layerExists) {

@@ -1,8 +1,12 @@
+import {
+  RequestInfoFunc,
+  RequestModelChangesFunc,
+  RequestVersioningChangeFunc,
+} from "../../messenger.js";
 import { Dialog } from "./dialog.js";
 import { EditLayerDialog } from "./editLayerDialog.js";
 import { OpenDialog } from "./openDialog.js";
 import { SaveAsDialog } from "./saveAsDialog.js";
-import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../messenger.js";
 
 export class DialogManager {
   private static readonly dialogWidth = 700;
@@ -29,14 +33,18 @@ export class DialogManager {
   }
 
   private closeDialog(): void {
-    if (this.currentDialog === null) return;
+    if (this.currentDialog === null) {
+      return;
+    }
 
     this.div.removeChild(this.currentDialog.root);
     this.currentDialog = null;
   }
 
   public saveAsDialog(): void {
-    if (this.currentDialog !== null) this.closeDialog();
+    if (this.currentDialog !== null) {
+      this.closeDialog();
+    }
     const dialog = new SaveAsDialog(
       () => { this.closeDialog(); },
       DialogManager.dialogWidth,
@@ -49,7 +57,9 @@ export class DialogManager {
   }
 
   public openDialog(): void {
-    if (this.currentDialog !== null) this.closeDialog();
+    if (this.currentDialog !== null) {
+      this.closeDialog();
+    }
 
     const dialog = new OpenDialog(
       () => { this.closeDialog(); },
@@ -64,7 +74,9 @@ export class DialogManager {
   }
 
   public editLayerDialog(layerId: string): void {
-    if (this.currentDialog !== null) this.closeDialog();
+    if (this.currentDialog !== null) {
+      this.closeDialog();
+    }
 
     const dialog = new EditLayerDialog(
       () => { this.closeDialog(); },

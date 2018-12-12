@@ -1,8 +1,12 @@
-import { SelectionManager } from "./selectionManager.js";
+import {
+  RequestInfoFunc,
+  RequestModelChangesFunc,
+  RequestVersioningChangeFunc,
+} from "../messenger.js";
 import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../messenger.js";
+import { SelectionManager } from "./selectionManager.js";
 
-interface ShortcutDescription {
+interface IShortcutDescription {
   eventKeyName: string; // must be lowercase!
   ctrlMeta?: boolean;
   shift?: boolean;
@@ -11,11 +15,11 @@ interface ShortcutDescription {
 export class KeyboardHandler {
   private static matchShortcuts<T extends string>(
     ev: KeyboardEvent,
-    shortcuts: {[key in T]: ShortcutDescription[]},
+    shortcuts: {[key in T]: IShortcutDescription[]},
   ): T[] {
     const matches: T[] = [];
 
-    for (const shortcutKey in shortcuts) {
+    for (const shortcutKey of Object.keys(shortcuts) as T[]) {
       for (const description of shortcuts[shortcutKey]) {
 
         if (
@@ -33,12 +37,14 @@ export class KeyboardHandler {
     return matches;
   }
 
-  private static stringifyShortcuts(shortcuts: ShortcutDescription[]): string {
+  private static stringifyShortcuts(shortcuts: IShortcutDescription[]): string {
     const descriptions: string[] = [];
 
     for (const shortcut of shortcuts) {
       let description = "";
-      if (shortcut.ctrlMeta === true) description += "Ctrl-";
+      if (shortcut.ctrlMeta === true) {
+        description += "Ctrl-";
+      }
       if (shortcut.shift === true) {
         description += "Shift-";
       }
@@ -50,41 +56,41 @@ export class KeyboardHandler {
     return descriptions.join(" or ");
   }
 
-  private readonly undoShortcuts: ShortcutDescription[] = [{
-    eventKeyName: "z",
+  private readonly undoShortcuts: IShortcutDescription[] = [{
     ctrlMeta: true,
+    eventKeyName: "z",
     shift: false,
   }];
-  private readonly redoShortcuts: ShortcutDescription[] = [
+  private readonly redoShortcuts: IShortcutDescription[] = [
     {
-      eventKeyName: "z",
       ctrlMeta: true,
+      eventKeyName: "z",
       shift: true,
     },
     {
-      eventKeyName: "y",
       ctrlMeta: true,
+      eventKeyName: "y",
     },
   ];
-  private readonly selectAllShortcuts: ShortcutDescription[] = [{
+  private readonly selectAllShortcuts: IShortcutDescription[] = [{
+    ctrlMeta: true,
     eventKeyName: "a",
-    ctrlMeta: true,
   }];
-  private readonly saveShortcuts: ShortcutDescription[] = [{
-    eventKeyName: "s",
+  private readonly saveShortcuts: IShortcutDescription[] = [{
     ctrlMeta: true,
+    eventKeyName: "s",
     shift: false,
   }];
-  private readonly saveAsShortcuts: ShortcutDescription[] = [{
-    eventKeyName: "s",
+  private readonly saveAsShortcuts: IShortcutDescription[] = [{
     ctrlMeta: true,
+    eventKeyName: "s",
     shift: true,
   }];
-  private readonly openShortcuts: ShortcutDescription[] = [{
-    eventKeyName: "o",
+  private readonly openShortcuts: IShortcutDescription[] = [{
     ctrlMeta: true,
+    eventKeyName: "o",
   }];
-  private readonly deleteSelectionShortcuts: ShortcutDescription[] = [
+  private readonly deleteSelectionShortcuts: IShortcutDescription[] = [
     {
       eventKeyName: "delete",
     },
@@ -109,18 +115,22 @@ export class KeyboardHandler {
     });
 
     document.addEventListener("keydown", async (ev) => {
-      if (!divSelected) return;
-      if (dialogManager.isADialogOpen()) return;
+      if (!divSelected) {
+        return;
+      }
+      if (dialogManager.isADialogOpen()) {
+        return;
+      }
 
       const shortcutMatches = KeyboardHandler.matchShortcuts(ev, {
-        undo: this.undoShortcuts,
-        redo: this.redoShortcuts,
         delete: this.deleteSelectionShortcuts,
         escape: [{ eventKeyName: "escape" }],
-        selectAll: this.selectAllShortcuts,
+        open: this.openShortcuts,
+        redo: this.redoShortcuts,
         save: this.saveShortcuts,
         saveAs: this.saveAsShortcuts,
-        open: this.openShortcuts,
+        selectAll: this.selectAllShortcuts,
+        undo: this.undoShortcuts,
       });
 
       if (shortcutMatches.length !== 0) {

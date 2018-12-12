@@ -1,5 +1,8 @@
+import {
+  RequestInfoFunc,
+  RequestVersioningChangeFunc,
+} from "../../messenger.js";
 import { Dialog } from "./dialog.js";
-import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../../messenger.js";
 
 export class OpenDialog extends Dialog {
   constructor(

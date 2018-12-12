@@ -1,5 +1,5 @@
-import { GraphicWrapper } from "./graphicWrapper.js";
 import { StageInterface } from "../stageInterface.js";
+import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class PortWrapper extends GraphicWrapper {
   private static readonly texturePadding = 4;
@@ -37,7 +37,6 @@ export class PortWrapper extends GraphicWrapper {
 
   private readonly isOutput: boolean;
   private readonly sprite: PIXI.Sprite;
-
 
   constructor(
     stageInterface: StageInterface,

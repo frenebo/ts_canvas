@@ -1,7 +1,9 @@
 import {
-  ModelInterface, ViewInterface, ModelChangeRequest,
+  ModelChangeRequest,
   ModelInfoReqs,
+  IModelInterface,
   ModelVersioningRequest,
+  IViewInterface,
 } from "./interfaces.js";
 
 export type RequestModelChangesFunc = (...reqs: ModelChangeRequest[]) => Promise<void>;
@@ -11,10 +13,10 @@ export type RequestInfoFunc = <V extends keyof ModelInfoReqs>(
 ) => Promise<ModelInfoReqs[V]["response"]>;
 
 export class Messenger {
-  private readonly model: ModelInterface;
-  private readonly views: ViewInterface[];
+  private readonly model: IModelInterface;
+  private readonly views: IViewInterface[];
 
-  constructor(model: ModelInterface) {
+  constructor(model: IModelInterface) {
     this.model = model;
     this.views = [];
 
@@ -26,7 +28,7 @@ export class Messenger {
     });
   }
 
-  public async addView(view: ViewInterface): Promise<void> {
+  public async addView(view: IViewInterface): Promise<void> {
     this.views.push(view);
     view.setGraphData(await this.model.getGraphData());
   }

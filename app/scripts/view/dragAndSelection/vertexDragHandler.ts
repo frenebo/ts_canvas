@@ -1,7 +1,7 @@
 import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
-import { DragListeners } from "./dragRegistry.js";
 import { SelectionManager } from "../selectionManager.js";
 import { StageInterface } from "../stageInterface.js";
+import { IDragListeners } from "./dragRegistry.js";
 
 export class VertexDragHandler {
   private static readonly dragThreshold = 5;
@@ -22,7 +22,7 @@ export class VertexDragHandler {
   constructor(
     private readonly vertexId: string,
     private readonly vtxWrapper: VertexWrapper,
-    listeners: DragListeners,
+    listeners: IDragListeners,
     private readonly selectionManager: SelectionManager,
     private readonly stageInterface: StageInterface,
   ) {
@@ -43,7 +43,9 @@ export class VertexDragHandler {
   }
 
   private beginClick(event: PIXI.interaction.InteractionEvent): void {
-    if (this.clickData !== null) throw new Error("Click already in progress");
+    if (this.clickData !== null) {
+      throw new Error("Click already in progress");
+    }
 
     const mouseLocalX = this.vtxWrapper.getDataRelativeLoc(event.data).x - this.vtxWrapper.localX();
     const mouseLocalY = this.vtxWrapper.getDataRelativeLoc(event.data).y - this.vtxWrapper.localY();
@@ -51,12 +53,12 @@ export class VertexDragHandler {
     const ctrlOrMetaDown = event.data.originalEvent.ctrlKey || event.data.originalEvent.metaKey;
 
     this.clickData = {
+      isCtrlOrMetaClick: ctrlOrMetaDown,
+      isDrag: false,
       mouseStartLocal: {
         x: mouseLocalX,
         y: mouseLocalY,
       },
-      isCtrlOrMetaClick: ctrlOrMetaDown,
-      isDrag: false,
       selectionUpdated: false,
     };
 
@@ -71,20 +73,21 @@ export class VertexDragHandler {
   }
 
   private continueClick(event: PIXI.interaction.InteractionEvent): void {
-    if (this.clickData === null) throw new Error("No click in progress");
+    if (this.clickData === null) {
+      throw new Error("No click in progress");
+    }
+
     const mouseLocalX = this.vtxWrapper.getDataRelativeLoc(event.data).x - this.vtxWrapper.localX();
     const mouseLocalY = this.vtxWrapper.getDataRelativeLoc(event.data).y - this.vtxWrapper.localY();
 
     const dx = mouseLocalX - this.clickData.mouseStartLocal.x;
     const dy = mouseLocalY - this.clickData.mouseStartLocal.y;
 
-
     // If the current click doesn't count as a drag
     if (!this.clickData.isDrag && this.selectionManager.vertexIsSelected(this.vertexId)) {
 
-
-      const scaledThreshold = VertexDragHandler.dragThreshold/this.stageInterface.getScale();
-      if (dx*dx + dy*dy > scaledThreshold*scaledThreshold) {
+      const scaledThreshold = VertexDragHandler.dragThreshold / this.stageInterface.getScale();
+      if (dx * dx + dy * dy > scaledThreshold * scaledThreshold) {
         // begin drag
         this.clickData.isDrag = true;
         this.selectionManager.startSelectionDrag(dx, dy, this.clickData.isCtrlOrMetaClick);
@@ -97,7 +100,9 @@ export class VertexDragHandler {
   }
 
   private endClick(event: PIXI.interaction.InteractionEvent): void {
-    if (this.clickData === null) throw new Error("No click in progress");
+    if (this.clickData === null) {
+      throw new Error("No click in progress");
+    }
 
     const mouseLocalX = this.vtxWrapper.getDataRelativeLoc(event.data).x - this.vtxWrapper.localX();
     const mouseLocalY = this.vtxWrapper.getDataRelativeLoc(event.data).y - this.vtxWrapper.localY();
@@ -126,7 +131,9 @@ export class VertexDragHandler {
   }
 
   private abortClick() {
-    if (this.clickData === null) return;
+    if (this.clickData === null) {
+      return;
+    }
 
     if (this.clickData.isDrag) {
       this.selectionManager.abortSelectionDrag();

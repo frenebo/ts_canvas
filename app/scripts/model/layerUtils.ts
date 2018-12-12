@@ -1,28 +1,34 @@
 import {
-  Layer,
-  LayerJsonInfo,
-} from "./layers.js";
-import {
-  LayerData,
+  ILayerData,
   ModelInfoReqs,
-} from "../../interfaces.js";
+} from "../interfaces.js";
+import {
+  ILayerJsonInfo,
+  Layer,
+} from "./layers/layers.js";
 
-export interface LayerClassDict {
+export interface ILayerClassDict {
   [key: string]: Layer;
 }
 
-export interface LayerClassDictJson {
-  [key: string]: LayerJsonInfo;
+export interface ILayerClassDictJson {
+  [key: string]: ILayerJsonInfo;
 }
 
 export class LayerUtils {
   public static getPortInfo(args: {
-    layers: LayerClassDict;
+    layers: ILayerClassDict;
     portId: string;
     layerId: string;
   }): ModelInfoReqs["getPortInfo"]["response"] {
-    if (args.layers[args.layerId] === undefined) return {couldFindPort: false};
-    if (args.layers[args.layerId].getPortIds().indexOf(args.portId) === -1) return {couldFindPort: false};
+    if (args.layers[args.layerId] === undefined) {
+      return {couldFindPort: false};
+    }
+
+    if (args.layers[args.layerId].getPortIds().indexOf(args.portId) === -1) {
+      return {couldFindPort: false};
+    }
+
     const valueId = args.layers[args.layerId].getPortInfo(args.portId).valueKey;
     const portVal = args.layers[args.layerId].getValueWrapper(valueId).stringify();
     return {
@@ -32,13 +38,17 @@ export class LayerUtils {
   }
 
   public static getLayerInfo(args: {
-    layers: LayerClassDict;
+    layers: ILayerClassDict;
     layerId: string;
   }): ModelInfoReqs["getLayerInfo"]["response"] {
     const layer = args.layers[args.layerId];
-    if (layer === undefined) return {layerExists: false};
+    if (layer === undefined) {
+      return {
+        layerExists: false,
+      };
+    }
 
-    const data: LayerData = {
+    const data: ILayerData = {
       ports: {},
       fields: {},
     };
@@ -54,20 +64,22 @@ export class LayerUtils {
     }
 
     return {
-      layerExists: true,
       data: data,
+      layerExists: true,
     };
   }
 
   public static setLayerFields(args: {
-    layers: LayerClassDict;
+    layers: ILayerClassDict;
     layerId: string;
     fieldValues: {[key: string]: string};
   }): void {
     const layer = args.layers[args.layerId];
-    if (layer === undefined) throw new Error(`No layer found with id ${args.layerId}`);
+    if (layer === undefined) {
+      throw new Error(`No layer found with id ${args.layerId}`);
+    }
 
-    for (const fieldId in args.fieldValues) {
+    for (const fieldId of Object.keys(args.fieldValues)) {
       if (!layer.hasField(fieldId)) throw new Error(`Layer has no field named ${fieldId}`);
 
       if (layer.isReadonlyField(fieldId)) throw new Error(`Field ${fieldId} is readonly`);
@@ -78,18 +90,20 @@ export class LayerUtils {
   }
 
   public static validateLayerFields(args: {
-    layers: LayerClassDict;
+    layers: ILayerClassDict;
     layerId: string;
     fieldValues: {[key: string]: string};
   }): ModelInfoReqs["validateLayerFields"]["response"] {
     const errors: string[] = [];
 
     const origLayer = args.layers[args.layerId];
-    if (origLayer === undefined) return {requestError: "layer_nonexistent"};
+    if (origLayer === undefined) {
+      return {requestError: "layer_nonexistent"};
+    }
 
     const cloneLayer = Layer.clone(origLayer);
 
-    for (const fieldId in args.fieldValues) {
+    for (const fieldId of Object.keys(args.fieldValues)) {
       if (!cloneLayer.hasField(fieldId)) {
         return {requestError: "field_nonexistent", fieldName: fieldId};
       }
@@ -110,53 +124,64 @@ export class LayerUtils {
     const validated = cloneLayer.validateUpdate();
 
     return {
-      requestError: null,
       errors: validated.errors,
+      requestError: null,
       warnings: validated.warnings,
     };
   }
 
   public static validateValue(args: {
-    layers: LayerClassDict;
+    layers: ILayerClassDict;
     layerId: string;
     valueId: string;
     newValueString: string;
   }): ModelInfoReqs["validateValue"]["response"] {
     const layer = args.layers[args.layerId];
-    if (layer === undefined) return {requestError: "layer_nonexistent"};
+    if (layer === undefined) {
+      return {requestError: "layer_nonexistent"};
+    }
 
-    if (!layer.hasField(args.valueId)) return {requestError: "field_nonexistent", fieldName: args.valueId};
+    if (!layer.hasField(args.valueId)) {
+      return {requestError: "field_nonexistent", fieldName: args.valueId};
+    }
 
     return {
-      requestError: null,
       fieldValidationError: layer.getValueWrapper(args.valueId).validateString(args.newValueString),
+      requestError: null,
     };
   }
 
   public static compareValue(args: {
-    layers: LayerClassDict;
+    layers: ILayerClassDict;
     layerId: string;
     valueId: string;
     compareString: string;
   }): ModelInfoReqs["compareValue"]["response"] {
     const layer = args.layers[args.layerId];
-    if (layer === undefined) return {requestError: "layer_nonexistent"};
+    if (layer === undefined) {
+      return {requestError: "layer_nonexistent"};
+    }
 
-    if (!layer.hasField(args.valueId)) return {requestError: "field_nonexistent"};
+    if (!layer.hasField(args.valueId)) {
+      return {requestError: "field_nonexistent"};
+    }
 
     return {
-      requestError: null,
       isEqual: layer.getValueWrapper(args.valueId).compareToString(args.compareString),
+      requestError: null,
     };
   }
 
   public static cloneLayer(args: {
-    layers: LayerClassDict;
+    layers: ILayerClassDict;
     layerId: string;
     newLayerId: string;
   }): void {
     const origLayer = args.layers[args.layerId];
-    if (origLayer === undefined) throw new Error(`No layer found with id ${args.layerId}`);
+    if (origLayer === undefined) {
+      throw new Error(`No layer found with id ${args.layerId}`);
+    }
+
     if (args.layers[args.newLayerId] !== undefined) {
       throw new Error(`A layer with the id ${args.newLayerId} already exists`);
     }
@@ -165,7 +190,7 @@ export class LayerUtils {
   }
 
   public static addLayer(args: {
-    layers: LayerClassDict;
+    layers: ILayerClassDict;
     newLayerId: string;
     layer: Layer;
   }): void {
@@ -177,26 +202,28 @@ export class LayerUtils {
   }
 
   public static deleteLayer(args: {
-    layers: LayerClassDict;
+    layers: ILayerClassDict;
     layerId: string;
   }): void {
-    if (args.layers[args.layerId] === undefined) throw new Error(`No layer found with id ${args.layerId}`);
+    if (args.layers[args.layerId] === undefined) {
+      throw new Error(`No layer found with id ${args.layerId}`);
+    }
 
     delete args.layers[args.layerId];
   }
 
-  public static toJson(layers: LayerClassDict): LayerClassDictJson {
-    const layerDictJson: LayerClassDictJson = {};
-    for (const layerKey in layers) {
+  public static toJson(layers: ILayerClassDict): ILayerClassDictJson {
+    const layerDictJson: ILayerClassDictJson = {};
+    for (const layerKey of Object.keys(layers)) {
       layerDictJson[layerKey] = Layer.toJson(layers[layerKey]);
     }
 
     return layerDictJson;
   }
 
-  public static fromJson(layerDictjson: LayerClassDictJson): LayerClassDict {
-    const layers: LayerClassDict = {};
-    for (const layerKey in layerDictjson) {
+  public static fromJson(layerDictjson: ILayerClassDictJson): ILayerClassDict {
+    const layers: ILayerClassDict = {};
+    for (const layerKey of Object.keys(layerDictjson)) {
       layers[layerKey] = Layer.fromJson(layerDictjson[layerKey]);
     }
 

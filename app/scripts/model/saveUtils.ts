@@ -1,6 +1,6 @@
 import {
-  ModelDataObj,
-  SessionData,
+  IModelDataObj,
+  ISessionData,
 } from "./model.js";
 import { SessionUtils } from "./sessionUtils.js";
 
@@ -18,25 +18,25 @@ export class SaveUtils {
     return savedFileKeysWithoutPrefix;
   }
 
-  public static saveFile(fileName: string, session: SessionData): void {
+  public static saveFile(fileName: string, session: ISessionData): void {
     window.localStorage.setItem(
       `${SaveUtils.saveFilePrefix}${fileName}`,
       JSON.stringify(SessionUtils.toJson(session.data)),
     );
   }
 
-  public static openFile(fileName: string, session: SessionData): void {
+  public static openFile(fileName: string, session: ISessionData): void {
     const dataStringOrNull = window.localStorage.getItem(`${SaveUtils.saveFilePrefix}${fileName}`);
 
     if (dataStringOrNull !== null) {
-      const modelData: ModelDataObj = SessionUtils.fromJson(JSON.parse(dataStringOrNull));
+      const modelData: IModelDataObj = SessionUtils.fromJson(JSON.parse(dataStringOrNull));
 
       // @TODO type checking?
       session.data = modelData;
     }
   }
 
-  public static deleteFile(fileName: string, session: SessionData): void {
+  public static deleteFile(fileName: string, session: ISessionData): void {
     window.localStorage.removeItem(`${SaveUtils.saveFilePrefix}${fileName}`);
   }
 }

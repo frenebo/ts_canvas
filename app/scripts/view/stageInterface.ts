@@ -26,7 +26,7 @@ export class StageInterface {
     return this.renderer.generateTexture(
       displayObject,
       undefined,
-      this.renderer.resolution*4,
+      this.renderer.resolution * 4,
       region,
     );
   }

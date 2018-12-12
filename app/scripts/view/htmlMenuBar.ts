@@ -1,7 +1,11 @@
+import {
+  RequestInfoFunc,
+  RequestModelChangesFunc,
+  RequestVersioningChangeFunc,
+} from "../messenger.js";
+import { DialogManager } from "./dialogs/dialogManager.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { SelectionManager } from "./selectionManager.js";
-import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../messenger.js";
 
 export class HtmlMenuBar {
   public static readonly menuHeight = 50;
@@ -34,7 +38,9 @@ export class HtmlMenuBar {
       let listToLeaveOpen: HTMLUListElement | undefined;
       if (ev.target instanceof Element) {
         for (const list of that.lists) {
-          if (list.contains(ev.target)) listToLeaveOpen = list;
+          if (list.contains(ev.target)) {
+            listToLeaveOpen = list;
+          }
         }
       }
       that.collapseMenus(listToLeaveOpen);
@@ -48,8 +54,6 @@ export class HtmlMenuBar {
 
     this.addMenuList("File", [
       {
-        text: "Save",
-        tooltip: keyboardHandler.saveShortcutString(),
         onclick: async () => {
           const openFileData = await sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"});
           if (openFileData.fileIsOpen) {
@@ -60,54 +64,56 @@ export class HtmlMenuBar {
             fileMenu.saveAsDialog();
           }
         },
+        text: "Save",
+        tooltip: keyboardHandler.saveShortcutString(),
       },
       {
-        text: "Save As",
-        tooltip: keyboardHandler.saveAsShortcutString(),
         onclick: () => {
           fileMenu.saveAsDialog();
         },
+        text: "Save As",
+        tooltip: keyboardHandler.saveAsShortcutString(),
       },
       {
-        text: "Open",
-        tooltip: keyboardHandler.openShortcutString(),
         onclick: () => {
           fileMenu.openDialog();
         },
+        text: "Open",
+        tooltip: keyboardHandler.openShortcutString(),
       },
     ]);
     this.addMenuList("Edit", [
       {
-        text: "Undo",
-        tooltip: keyboardHandler.undoShortcutString(),
         onclick: () => {
           sendModelVersioningRequest({type: "undo"}).catch((reason) => {
             throw new Error(`Error undoing: ${reason}`);
           });
         },
+        text: "Undo",
+        tooltip: keyboardHandler.undoShortcutString(),
       },
       {
-        text: "Redo",
-        tooltip: keyboardHandler.redoShortcutString(),
         onclick: () => {
           sendModelVersioningRequest({type: "redo"}).catch((reason) => {
             throw new Error(`Error redoing: ${reason}`);
           });
         },
+        text: "Redo",
+        tooltip: keyboardHandler.redoShortcutString(),
       },
       {
-        text: "Select All",
-        tooltip: keyboardHandler.selectAllShortcutString(),
         onclick: () => {
           selectionManager.selectAll();
         },
+        text: "Select All",
+        tooltip: keyboardHandler.selectAllShortcutString(),
       },
       {
-        text: "Delete Selection",
-        tooltip: keyboardHandler.deleteSelectionShortcutString(),
         onclick: () => {
           selectionManager.deleteSelection();
         },
+        text: "Delete Selection",
+        tooltip: keyboardHandler.deleteSelectionShortcutString(),
       },
     ]);
 
@@ -198,7 +204,9 @@ export class HtmlMenuBar {
       let aListIsOpen = false;
 
       for (const otherList of that.lists.filter((l) => l !== list)) {
-        if (otherList.style.overflow !== "hidden") aListIsOpen = true;
+        if (otherList.style.overflow !== "hidden") {
+          aListIsOpen = true;
+        }
       }
 
       if (aListIsOpen) {
@@ -216,7 +224,9 @@ export class HtmlMenuBar {
     extraPadding = false,
   ): void {
     const bottomBorderHeight = 5;
-    if (typeof tooltip === "string") el.title = tooltip;
+    if (typeof tooltip === "string") {
+      el.title = tooltip;
+    }
     // el.style.verticalAlign = "top";
     el.style.border = "none";
     el.style.borderBottom = `${bottomBorderHeight}px solid #2c3e50`;
@@ -245,7 +255,6 @@ export class HtmlMenuBar {
     // make text non-selectable
     el.style.userSelect = "none";
     el.style.webkitUserSelect = "none";
-
 
     el.addEventListener("mouseover", () => {
       el.style.backgroundColor = HtmlMenuBar.menuItemMouseoverBackground;

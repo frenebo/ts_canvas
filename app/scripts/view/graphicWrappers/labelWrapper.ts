@@ -1,5 +1,5 @@
-import { GraphicWrapper } from "./graphicWrapper.js";
 import { StageInterface } from "../stageInterface.js";
+import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class LabelWrapper extends GraphicWrapper {
   private static readonly cachedLabels = new Map<string, PIXI.RenderTexture>();
@@ -56,7 +56,10 @@ export class LabelWrapper extends GraphicWrapper {
 
   public setText(text: string): void {
     if (this.text !== text) {
-      if (this.sprite !== null) this.removeChild(this.sprite);
+      if (this.sprite !== null) {
+        this.removeChild(this.sprite);
+      }
+
       this.sprite = LabelWrapper.drawLabel(this.stageInterface, text);
       this.addChild(this.sprite);
       this.text = text;

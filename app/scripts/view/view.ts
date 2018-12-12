@@ -1,18 +1,22 @@
 import {
-  ViewInterface,
-  GraphData,
+  IGraphData,
+  IViewInterface,
 } from "../interfaces.js";
+import {
+  RequestInfoFunc,
+  RequestModelChangesFunc,
+  RequestVersioningChangeFunc,
+} from "../messenger.js";
+import { DialogManager } from "./dialogs/dialogManager.js";
 import {
   GraphManager,
   GraphManagerCommand,
 } from "./graphManager.js";
 import { HtmlMenuBar } from "./htmlMenuBar.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
-import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc, RequestVersioningChangeFunc } from "../messenger.js";
 
-export class View implements ViewInterface {
-  private data: GraphData = {vertices: {}, edges: {}};
+export class View implements IViewInterface {
+  private data: IGraphData = {vertices: {}, edges: {}};
   private readonly graphManager: GraphManager;
   private readonly menuBar: HtmlMenuBar;
 
@@ -33,7 +37,9 @@ export class View implements ViewInterface {
     // div.style.width = "100%";
     // div.style.height = "100%";
     const onResize = () => {
-      if (document.documentElement === null) return;
+      if (document.documentElement === null) {
+        return;
+      }
       this.menuBar.setWidth(window.innerWidth);
       this.graphManager.setDimensions(window.innerWidth, window.innerHeight - HtmlMenuBar.menuHeight);
     };
@@ -83,7 +89,7 @@ export class View implements ViewInterface {
     onResize();
   }
 
-  public async setGraphData(newData: GraphData): Promise<void> {
+  public async setGraphData(newData: IGraphData): Promise<void> {
     const newVertexKeys = Object.keys(newData.vertices);
     const oldVertexKeys = Object.keys(this.data.vertices);
 
@@ -109,9 +115,9 @@ export class View implements ViewInterface {
     // remove an edge if its data changed
     for (const removedEdgeKey of removedEdgeKeys.concat(changedEdgeKeys)) {
       graphManagerCommands.push({
-        type: "removeEdge",
-        edgeKey: removedEdgeKey,
         edgeData: this.data.edges[removedEdgeKey],
+        edgeKey: removedEdgeKey,
+        type: "removeEdge",
       });
     }
 
@@ -125,8 +131,8 @@ export class View implements ViewInterface {
     for (const addedVertexKey of addedVertexKeys) {
       graphManagerCommands.push({
         type: "addVertex",
-        vertexKey: addedVertexKey,
         vertexData: newData.vertices[addedVertexKey],
+        vertexKey: addedVertexKey,
       });
     }
 
@@ -135,8 +141,8 @@ export class View implements ViewInterface {
       if (JSON.stringify(this.data.vertices[sharedVertexKey]) !== JSON.stringify(newData.vertices[sharedVertexKey])) {
         graphManagerCommands.push({
           type: "updateVertex",
-          vertexKey: sharedVertexKey,
           vertexData: newData.vertices[sharedVertexKey],
+          vertexKey: sharedVertexKey,
         });
       }
     }
@@ -144,12 +150,11 @@ export class View implements ViewInterface {
     // add back an edge if its data changed
     for (const addedEdgeKey of addedEdgeKeys.concat(changedEdgeKeys)) {
       graphManagerCommands.push({
-        type: "addEdge",
-        edgeKey: addedEdgeKey,
         edgeData: newData.edges[addedEdgeKey],
+        edgeKey: addedEdgeKey,
+        type: "addEdge",
       });
     }
-
 
     this.data = JSON.parse(JSON.stringify(newData));
 

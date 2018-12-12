@@ -1,38 +1,41 @@
-import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
-import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import {
-  VertexData,
-  EdgeData,
+  IEdgeData,
+  IVertexData,
 } from "../interfaces.js";
+import {
+  RequestInfoFunc,
+  RequestModelChangesFunc,
+} from "../messenger.js";
+import { CullingManager } from "./cullingManager/cullingManager.js";
+import { DialogManager } from "./dialogs/dialogManager.js";
+import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
+import { EdgeWrapper } from "./graphicWrappers/edgeWrapper.js";
 import { EditIconWrapper } from "./graphicWrappers/editIconWrapper.js";
 import { PortWrapper } from "./graphicWrappers/portWrapper.js";
-import { DragRegistry } from "./dragAndSelection/dragRegistry.js";
-import { SelectionManager } from "./selectionManager.js";
-import { CullingManager } from "./cullingManager.js";
+import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import { PortPreviewManager } from "./portPreviewManager.js";
-import { DialogManager } from "./dialogs/dialogManager.js";
-import { RequestModelChangesFunc, RequestInfoFunc } from "../messenger.js";
+import { SelectionManager } from "./selectionManager.js";
 import { StageManager } from "./stageManager.js";
 
 export type GraphManagerCommand = {
   type: "removeEdge";
   edgeKey: string;
-  edgeData: EdgeData;
+  edgeData: IEdgeData;
 } | {
   type: "removeVertex";
   vertexKey: string;
 } | {
   type: "addVertex";
   vertexKey: string;
-  vertexData: VertexData;
+  vertexData: IVertexData;
 } | {
   type: "addEdge";
   edgeKey: string;
-  edgeData: EdgeData;
+  edgeData: IEdgeData;
 } | {
   type: "updateVertex";
   vertexKey: string;
-  vertexData: VertexData;
+  vertexData: IVertexData;
 };
 
 export class GraphManager {
@@ -121,12 +124,12 @@ export class GraphManager {
     }
 
     // after changes have been made, edges may need to be moved
-    for (const edgeKey in this.edgeWrappers) {
+    for (const edgeKey of Object.keys(this.edgeWrappers)) {
       this.edgeWrappers[edgeKey].refresh();
     }
   }
 
-  private addVertex(vertexKey: string, vertexData: VertexData) {
+  private addVertex(vertexKey: string, vertexData: IVertexData) {
     if (this.vertexWrappers[vertexKey] !== undefined) {
       throw new Error(`A vertex with the key ${vertexKey} is already present`);
     }
@@ -159,8 +162,10 @@ export class GraphManager {
     this.updateVertex(vertexKey, vertexData);
   }
 
-  private addEdge(edgeKey: string, edgeData: EdgeData) {
-    if (this.edgeWrappers[edgeKey] !== undefined) throw new Error(`An edge with the key ${edgeKey} is already present`);
+  private addEdge(edgeKey: string, edgeData: IEdgeData) {
+    if (this.edgeWrappers[edgeKey] !== undefined) {
+      throw new Error(`An edge with the key ${edgeKey} is already present`);
+    }
 
     const edgeWrapper = new EdgeWrapper(
       this.vertexWrappers[edgeData.sourceVertexId],
@@ -181,7 +186,9 @@ export class GraphManager {
   }
 
   private removeVertex(vertexKey: string) {
-    if (this.vertexWrappers[vertexKey] === undefined) throw new Error(`No vertex with key ${vertexKey} is present`);
+    if (this.vertexWrappers[vertexKey] === undefined) {
+      throw new Error(`No vertex with key ${vertexKey} is present`);
+    }
 
     const vertexWrapper = this.vertexWrappers[vertexKey];
     delete this.vertexWrappers[vertexKey];
@@ -193,8 +200,10 @@ export class GraphManager {
     this.portPreviewManager.removeVertex(vertexKey);
   }
 
-  private removeEdge(edgeKey: string, edgeData: EdgeData) {
-    if (this.edgeWrappers[edgeKey] === undefined) throw new Error(`No edge with key ${edgeKey} is present`);
+  private removeEdge(edgeKey: string, edgeData: IEdgeData) {
+    if (this.edgeWrappers[edgeKey] === undefined) {
+      throw new Error(`No edge with key ${edgeKey} is present`);
+    }
 
     const edgeWrapper = this.edgeWrappers[edgeKey];
 
@@ -209,7 +218,7 @@ export class GraphManager {
     this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].splice(tgtIdx, 1);
   }
 
-  private updateVertex(vertexId: string, vertexData: VertexData) {
+  private updateVertex(vertexId: string, vertexData: IVertexData) {
     const vertexWrapper = this.vertexWrappers[vertexId];
 
     vertexWrapper.setPosition(vertexData.geo.x, vertexData.geo.y);

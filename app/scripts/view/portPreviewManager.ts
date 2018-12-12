@@ -1,6 +1,6 @@
+import { RequestInfoFunc } from "../messenger";
 import { PortWrapper } from "./graphicWrappers/portWrapper";
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper";
-import { RequestInfoFunc } from "../messenger";
 import { StageInterface } from "./stageInterface";
 
 export class PortPreviewManager {
@@ -36,14 +36,14 @@ export class PortPreviewManager {
     }
 
     this.previewData = {
+      overlay: new PIXI.Container(),
       port: port,
       portId: portId,
       vertexId: vertexId,
-      overlay: new PIXI.Container(),
     };
 
     this.stageInterface.addDisplayObject(this.previewData.overlay);
-    this.previewData.overlay.scale.set(1/this.stageInterface.getScale());
+    this.previewData.overlay.scale.set(1 / this.stageInterface.getScale());
 
     const textBackground = new PIXI.Graphics();
     this.previewData.overlay.addChild(textBackground);
@@ -61,8 +61,8 @@ export class PortPreviewManager {
 
     this.previewData.overlay.position.set(previewX, previewY);
 
-    const backgroundWidth = text.width + PortPreviewManager.textPadding*2;
-    const backgroundHeight = text.height + PortPreviewManager.textPadding*2;
+    const backgroundWidth = text.width + PortPreviewManager.textPadding * 2;
+    const backgroundHeight = text.height + PortPreviewManager.textPadding * 2;
 
     textBackground.beginFill(0x333333);
     textBackground.drawRoundedRect(0, 0, backgroundWidth, backgroundHeight, PortPreviewManager.cornerRadius);

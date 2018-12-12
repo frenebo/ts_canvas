@@ -1,10 +1,9 @@
-// import { VertexData, PortData } from "../../interfaces.js";
+import { StageInterface } from "../stageInterface.js";
 import { EditIconWrapper } from "./editIconWrapper.js";
-import { PortWrapper } from "./portWrapper.js";
 import { GraphicWrapper } from "./graphicWrapper.js";
 import { LabelWrapper } from "./labelWrapper.js";
+import { PortWrapper } from "./portWrapper.js";
 import { VtxBackgroundWrapper } from "./vertexBackgroundWrapper.js";
-import { StageInterface } from "../stageInterface.js";
 
 export class VertexWrapper extends GraphicWrapper {
   public static readonly width = 250;
@@ -44,6 +43,37 @@ export class VertexWrapper extends GraphicWrapper {
     this.redrawBackground();
   }
 
+  public positionPort(portWrapper: PortWrapper, position: number, side: "top" | "bottom" | "left" | "right"): void {
+    let portX: number;
+    let portY: number;
+    if (side === "top" || side === "bottom") {
+      portX = VertexWrapper.width * position - PortWrapper.width / 2;
+    } else if (side === "left") {
+      portX = - PortWrapper.width / 2;
+    } else if (side === "right") {
+      portX = VertexWrapper.width - PortWrapper.width / 2;
+    } else {
+      throw new Error(`Invalid side type ${side}`);
+    }
+
+    if (side === "left" || side === "right") {
+      portY = VertexWrapper.height * position - PortWrapper.height / 2;
+    } else if (side === "top") {
+      portY = - PortWrapper.height / 2;
+    } else if (side === "bottom") {
+      portY = VertexWrapper.height - PortWrapper.height / 2;
+    } else {
+      throw new Error(`Invalid side type ${side}`);
+    }
+
+    portWrapper.setPosition(portX, portY);
+  }
+
+  public setLabelText(text: string): void {
+    this.label.setText(text);
+    this.positionChildren();
+  }
+
   private redrawBackground(): void {
     this.background.redraw(
       this.isSelected,
@@ -56,7 +86,7 @@ export class VertexWrapper extends GraphicWrapper {
   private positionChildren(): void {
     let widthForLabel: number;
     if (this.editIcon !== null) {
-      const editIconPadding = (VertexWrapper.height - EditIconWrapper.height)/2;
+      const editIconPadding = (VertexWrapper.height - EditIconWrapper.height) / 2;
       widthForLabel = VertexWrapper.width - EditIconWrapper.width - editIconPadding;
       this.editIcon.setPosition(
         widthForLabel,
@@ -67,39 +97,8 @@ export class VertexWrapper extends GraphicWrapper {
     }
 
     this.label.setPosition(
-      (widthForLabel - this.label.getWidth())/2,
-      (VertexWrapper.height - this.label.getHeight())/2,
+      (widthForLabel - this.label.getWidth()) / 2,
+      (VertexWrapper.height - this.label.getHeight()) / 2,
     );
-  }
-
-  public positionPort(portWrapper: PortWrapper, position: number, side: "top" | "bottom" | "left" | "right"): void {
-    let portX: number;
-    let portY: number;
-    if (side === "top" || side === "bottom") {
-      portX = VertexWrapper.width*position - PortWrapper.width/2;
-    } else if (side === "left") {
-      portX = - PortWrapper.width/2;
-    } else if (side === "right") {
-      portX = VertexWrapper.width - PortWrapper.width/2;
-    } else {
-      throw new Error(`Invalid side type ${side}`);
-    }
-
-    if (side === "left" || side === "right") {
-      portY = VertexWrapper.height*position - PortWrapper.height/2;
-    } else if (side === "top") {
-      portY = - PortWrapper.height/2;
-    } else if (side === "bottom") {
-      portY = VertexWrapper.height - PortWrapper.height/2;
-    } else {
-      throw new Error(`Invalid side type ${side}`);
-    }
-
-    portWrapper.setPosition(portX, portY);
-  }
-
-  public setLabelText(text: string): void {
-    this.label.setText(text);
-    this.positionChildren();
   }
 }

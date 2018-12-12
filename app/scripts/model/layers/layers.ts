@@ -1,22 +1,20 @@
-import {
-  ValueWrapper,
-  ShapeWrapper,
-  NumberWrapper,
-} from "./valueWrappers/valueWrapper.js";
+import { ValueWrapper } from "../valueWrappers/valueWrapper.js";
+import { AddLayer } from "./addLayer.js";
+import { RepeatLayer } from "./repeatLayer.js";
 
-interface LayerPortInfo {
+export interface ILayerPortInfo {
   valueKey: string;
   type: "input" | "output";
 }
 
 const layerDict = {
-  "Repeat": () => new RepeatLayer(),
   "AddLayer": () => new AddLayer(),
+  "Repeat": () => new RepeatLayer(),
 };
 
 export type LayerType = keyof typeof layerDict;
 
-export interface LayerJsonInfo {
+export interface ILayerJsonInfo {
   layerType: string;
   valDict: {[key: string]: string};
 }
@@ -31,23 +29,25 @@ export abstract class Layer {
     return layerConstructor() as ReturnType<(typeof layerDict)[T]>;
   }
 
-  public static toJson(layer: Layer): LayerJsonInfo {
-    const info: LayerJsonInfo = {
+  public static toJson(layer: Layer): ILayerJsonInfo {
+    const info: ILayerJsonInfo = {
       layerType: layer.getType(),
       valDict: {},
     };
-    for (const valueKey in layer.fields) {
+    for (const valueKey of Object.keys(layer.fields)) {
       info.valDict[valueKey] = layer.fields[valueKey].wrapper.stringify();
     }
     return info;
   }
 
-  public static fromJson(info: LayerJsonInfo): Layer {
-    if (!Layer.isLayerType(info.layerType)) throw new Error(`Unknown layer type ${info.layerType}`);
+  public static fromJson(info: ILayerJsonInfo): Layer {
+    if (!Layer.isLayerType(info.layerType)) {
+      throw new Error(`Unknown layer type ${info.layerType}`);
+    }
 
     const layer = Layer.getLayer(info.layerType);
 
-    for (const valueKey in info.valDict) {
+    for (const valueKey of Object.keys(info.valDict)) {
       if (!layer.hasField(valueKey)) {
         throw new Error(`${info.layerType} type layer does not have value named ${valueKey}`);
       }
@@ -62,7 +62,7 @@ export abstract class Layer {
   }
 
   protected abstract ports: {
-    [key: string]: LayerPortInfo;
+    [key: string]: ILayerPortInfo;
   };
 
   protected abstract fields: {
@@ -89,8 +89,6 @@ export abstract class Layer {
     return Layer.clone(this).updateFunc();
   }
 
-  protected abstract updateFunc(): {errors: string[]; warnings: string[]};
-
   public getType(): string {
     return this.type;
   }
@@ -103,9 +101,11 @@ export abstract class Layer {
     return Object.keys(this.fields);
   }
 
-  public getPortInfo(portId: string): LayerPortInfo {
+  public getPortInfo(portId: string): ILayerPortInfo {
     const portInfo = this.ports[portId];
-    if (portInfo === undefined) throw new Error(`No port found with id ${portId}`);
+    if (portInfo === undefined) {
+      throw new Error(`No port found with id ${portId}`);
+    }
 
     return portInfo;
   }
@@ -121,92 +121,6 @@ export abstract class Layer {
   public hasField(fieldKey: string): boolean {
     return this.fields[fieldKey] !== undefined;
   }
-}
 
-class RepeatLayer extends Layer {
-  protected type = "Repeat";
-  protected ports: {
-    [key: string]: LayerPortInfo;
-  } = {
-    "input0": {
-      valueKey: "inputShape",
-      type: "input",
-    },
-    "output0": {
-      valueKey: "outputShape",
-      type: "output",
-    },
-  };
-
-  protected fields = {
-    inputShape: {
-      wrapper: new ShapeWrapper([224, 224, 3]),
-      readonly: false,
-    },
-    outputShape: {
-      wrapper: new ShapeWrapper([224, 224, 3]),
-      readonly: true,
-    },
-  };
-
-  constructor() {
-    super();
-  }
-
-  public updateFunc() {
-    const inputShape = this.fields.inputShape.wrapper.getValue();
-    this.fields.outputShape.wrapper.setValue(inputShape);
-
-    return {errors: [], warnings: []};
-  }
-}
-
-class AddLayer extends Layer {
-  protected type = "AddLayer";
-  protected ports: {
-    [key: string]: LayerPortInfo;
-  } = {
-    "inputValue1": {
-      valueKey: "inputValue1",
-      type: "input",
-    },
-    "inputValue2": {
-      valueKey: "inputValue2",
-      type: "input",
-    },
-    "outputValue": {
-      valueKey: "outputShape",
-      type: "output",
-    },
-  };
-
-  protected fields = {
-    inputValue1: {
-      wrapper: new NumberWrapper(0),
-      readonly: false,
-    },
-    inputValue2: {
-      wrapper: new NumberWrapper(0),
-      readonly: false,
-    },
-    outputShape: {
-      wrapper: new NumberWrapper(0),
-      readonly: true,
-    },
-  };
-
-  constructor() {
-    super();
-  }
-
-  protected updateFunc(): {errors: string[]; warnings: string[]} {
-    const outNum = this.fields.inputValue1.wrapper.getValue() + this.fields.inputValue2.wrapper.getValue();
-
-    const validated = this.fields.outputShape.wrapper.validateValue(outNum);
-    if (validated !== null) return {errors: [`Problem adding inputs: ${validated}`], warnings: []};
-
-
-    this.fields.outputShape.wrapper.setValue(outNum);
-    return {errors: [], warnings: []};
-  }
+  protected abstract updateFunc(): {errors: string[]; warnings: string[]};
 }

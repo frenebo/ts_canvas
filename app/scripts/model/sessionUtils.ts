@@ -1,24 +1,24 @@
-import { ModelDataObj } from "./model.js";
+import { IGraphData, ModelInfoReqs } from "../interfaces.js";
 import {
-  LayerUtils,
-  LayerClassDictJson,
-  LayerClassDict,
-} from "./layers/layerUtils.js";
-import {
-  EdgesByVertex,
   GraphUtils,
+  IEdgesByVertex,
 } from "./graphUtils.js";
-import { GraphData, ModelInfoReqs } from "../interfaces.js";
 import { Layer } from "./layers/layers.js";
+import {
+  ILayerClassDict,
+  ILayerClassDictJson,
+  LayerUtils,
+} from "./layerUtils.js";
+import { IModelDataObj } from "./model.js";
 
-export interface SessionDataJson {
-  edgesByVertex: EdgesByVertex;
-  graph: GraphData;
-  layers: LayerClassDictJson;
+export interface ISessionDataJson {
+  edgesByVertex: IEdgesByVertex;
+  graph: IGraphData;
+  layers: ILayerClassDictJson;
 }
 
 export class SessionUtils {
-  public static toJson(data: ModelDataObj): SessionDataJson {
+  public static toJson(data: IModelDataObj): ISessionDataJson {
     const jsonData = {
       edgesByVertex: JSON.parse(JSON.stringify(data.edgesByVertex)),
       graph: JSON.parse(JSON.stringify(data.graph)),
@@ -27,8 +27,8 @@ export class SessionUtils {
     return jsonData;
   }
 
-  public static fromJson(jsonData: SessionDataJson): ModelDataObj {
-    const modelData: ModelDataObj = {
+  public static fromJson(jsonData: ISessionDataJson): IModelDataObj {
+    const modelData: IModelDataObj = {
       edgesByVertex: JSON.parse(JSON.stringify(jsonData.edgesByVertex)),
       graph: JSON.parse(JSON.stringify(jsonData.graph)),
       layers: LayerUtils.fromJson(jsonData.layers),
@@ -37,9 +37,9 @@ export class SessionUtils {
   }
 
   public static validateCreateEdge(args: {
-    graphData: GraphData;
-    edgesByVertex: EdgesByVertex;
-    layers: LayerClassDict;
+    graphData: IGraphData;
+    edgesByVertex: IEdgesByVertex;
+    layers: ILayerClassDict;
     edgeId: string;
     sourceVtxId: string;
     sourcePortId: string;
@@ -47,29 +47,33 @@ export class SessionUtils {
     targetPortId: string;
   }): string | null {
     const graphValidated = GraphUtils.validateCreateEdge({
-      graphData: args.graphData,
       edgesByVertex: args.edgesByVertex,
+      graphData: args.graphData,
       newEdgeId: args.edgeId,
-      sourceVtxId: args.sourceVtxId,
       sourcePortId: args.sourcePortId,
-      targetVtxId: args.targetVtxId,
+      sourceVtxId: args.sourceVtxId,
       targetPortId: args.targetPortId,
+      targetVtxId: args.targetVtxId,
     });
 
-    if (graphValidated !== null) return graphValidated;
+    if (graphValidated !== null) {
+      return graphValidated;
+    }
 
     const sourceLayer = args.layers[args.sourceVtxId];
     const targetLayer = args.layers[args.targetVtxId];
 
     const targetValueOccupied = SessionUtils.getValueIsReadonly({
+    edgesByVertex: args.edgesByVertex,
       graphData: args.graphData,
-      edgesByVertex: args.edgesByVertex,
-      layers: args.layers,
       layerId: args.targetVtxId,
+      layers: args.layers,
       valueId: targetLayer.getPortInfo(args.targetPortId).valueKey,
     });
 
-    if (targetValueOccupied.requestError !== null) return "Target does not exist";
+    if (targetValueOccupied.requestError !== null) {
+      return "Target does not exist";
+    }
 
     if (targetValueOccupied.isReadonly) {
       if (targetValueOccupied.reason === "port_is_occupied") {
@@ -83,15 +87,17 @@ export class SessionUtils {
     const targetValue = targetLayer.getValueWrapper(targetLayer.getPortInfo(args.targetPortId).valueKey);
 
     const targetValidatedValue = targetValue.validateValue(sourceValue.getValue());
-    if (targetValidatedValue !== null) return `Incompatible source and target: ${targetValidatedValue}`;
+    if (targetValidatedValue !== null) {
+      return `Incompatible source and target: ${targetValidatedValue}`;
+    }
 
     return null;
   }
 
   public static createEdge(args: {
-    graphData: GraphData;
-    edgesByVertex: EdgesByVertex;
-    layers: LayerClassDict;
+    graphData: IGraphData;
+    edgesByVertex: IEdgesByVertex;
+    layers: ILayerClassDict;
     edgeId: string;
     sourceVtxId: string;
     sourcePortId: string;
@@ -100,79 +106,56 @@ export class SessionUtils {
   }): void {
 
     GraphUtils.createEdge({
-      graphData: args.graphData,
       edgesByVertex: args.edgesByVertex,
+      graphData: args.graphData,
       newEdgeId: args.edgeId,
-      sourceVtxId: args.sourceVtxId,
       sourcePortId: args.sourcePortId,
-      targetVtxId: args.targetVtxId,
+      sourceVtxId: args.sourceVtxId,
       targetPortId: args.targetPortId,
+      targetVtxId: args.targetVtxId,
     });
   }
 
   public static setLayerFields(args: {
-    graph: GraphData;
-    edgesByVertex: EdgesByVertex;
-    layers: LayerClassDict;
+    graph: IGraphData;
+    edgesByVertex: IEdgesByVertex;
+    layers: ILayerClassDict;
     layerId: string;
     fieldValues: {[key: string]: string};
   }): void {
     LayerUtils.setLayerFields({
-      layers: args.layers,
-      layerId: args.layerId,
       fieldValues: args.fieldValues,
+      layerId: args.layerId,
+      layers: args.layers,
     });
   }
 
-  private static vertexTopoSort(args: {
-    graphData: GraphData;
-    edgesByVertex: EdgesByVertex;
-  }): string[] {
-    const topToBottom: string[] = [];
-    const remainingVertexIds = new Set(Object.keys(args.graphData.vertices));
-    while (remainingVertexIds.size !== 0) {
-      const roots = Object.keys(args.graphData.vertices).filter((key) => {
-        for (const edgeId of args.edgesByVertex[key].in) {
-          const edge = args.graphData.edges[edgeId];
-          if (remainingVertexIds.has(edge.sourceVertexId)) return false;
-        }
-        return true;
-      });
-      for (const root of roots) {
-        topToBottom.push(root);
-        remainingVertexIds.delete(root);
-      }
-    }
-
-    return topToBottom;
-  }
-
   public static propagateEdges(args: {
-    graphData: GraphData;
-    edgesByVertex: EdgesByVertex;
-    layers: LayerClassDict;
+    graphData: IGraphData;
+    edgesByVertex: IEdgesByVertex;
+    layers: ILayerClassDict;
   }): void {
     const sortedVertices = this.vertexTopoSort({
-      graphData: args.graphData,
       edgesByVertex: args.edgesByVertex,
+      graphData: args.graphData,
     });
 
     for (const propagateVtxId of sortedVertices) {
       for (const edgeOutId of args.edgesByVertex[propagateVtxId].out) {
         SessionUtils.propagateEdge({
-          graphData: args.graphData,
-          edgesByVertex: args.edgesByVertex,
-          layers: args.layers,
           edgeId: edgeOutId,
+          edgesByVertex: args.edgesByVertex,
+          graphData: args.graphData,
+          layers: args.layers,
         });
       }
     }
   }
 
   public static validateCloneVertex(args: {
-    graphData: GraphData;
-    layers: LayerClassDict;
-    edgesByVertex: EdgesByVertex;
+    graphData: IGraphData;
+    layers: ILayerClassDict;
+    edgesByVertex: IEdgesByVertex;
     newVtxId: string;
     oldVtxId: string;
     x: number;
@@ -183,9 +166,9 @@ export class SessionUtils {
   }
 
   public static validateDeleteVertex(args: {
-    graphData: GraphData;
-    edgesByVertex: EdgesByVertex;
-    layers: LayerClassDict;
+    graphData: IGraphData;
+    edgesByVertex: IEdgesByVertex;
+    layers: ILayerClassDict;
     vertexId: string;
   }): string | null {
     const graphValidation = GraphUtils.validateDeleteVertex(args);
@@ -194,55 +177,60 @@ export class SessionUtils {
   }
 
   public static deleteEdge(args: {
-    graphData: GraphData;
-    edgesByVertex: EdgesByVertex;
+    graphData: IGraphData;
+    edgesByVertex: IEdgesByVertex;
     edgeId: string;
   }): void {
     GraphUtils.deleteEdge(args);
   }
 
   public static validateSetLayerFields(args: {
-    graph: GraphData;
-    edgesByVertex: EdgesByVertex;
-    layers: LayerClassDict;
+    graph: IGraphData;
+    edgesByVertex: IEdgesByVertex;
+    layers: ILayerClassDict;
     layerId: string;
     fieldValues: {[key: string]: string};
   }): string | null {
     const validated = LayerUtils.validateLayerFields(args);
-    if (validated.requestError !== null) return validated.requestError;
-    if (validated.errors.length === 0) return null;
-    else return validated.errors.join(", ");
+    if (validated.requestError !== null) {
+      return validated.requestError;
+    }
+    if (validated.errors.length === 0) {
+      return null;
+    } else {
+      return validated.errors.join(", ");
+    }
   }
 
   public static validateDeleteEdge(args: {
-    graphData: GraphData;
-    edgesByVertex: EdgesByVertex;
+    graphData: IGraphData;
+    edgesByVertex: IEdgesByVertex;
     edgeId: string;
   }): string | null {
     return GraphUtils.validateDeleteEdge(args);
   }
 
   public static deleteVertex(args: {
-    graphData: GraphData;
-    edgesByVertex: EdgesByVertex;
-    layers: LayerClassDict;
+    graphData: IGraphData;
+    edgesByVertex: IEdgesByVertex;
+    layers: ILayerClassDict;
     vertexId: string;
   }): void {
     GraphUtils.deleteVertex({
-      graphData: args.graphData,
       edgesByVertex: args.edgesByVertex,
+      graphData: args.graphData,
       vertexId: args.vertexId,
     });
     LayerUtils.deleteLayer({
-      layers: args.layers,
       layerId: args.vertexId,
+      layers: args.layers,
     });
   }
 
   public static cloneVertex(args: {
-    graphData: GraphData;
-    layers: LayerClassDict;
-    edgesByVertex: EdgesByVertex;
+    graphData: IGraphData;
+    layers: ILayerClassDict;
+    edgesByVertex: IEdgesByVertex;
     newVtxId: string;
     oldVtxId: string;
     x: number;
@@ -250,38 +238,42 @@ export class SessionUtils {
   }): void {
 
     GraphUtils.cloneVertex({
-      graphData: args.graphData,
       edgesByVertex: args.edgesByVertex,
+      graphData: args.graphData,
       newVtxId: args.newVtxId,
       oldVtxId: args.oldVtxId,
       x: args.x,
       y: args.y,
     });
     LayerUtils.cloneLayer({
-      layers: args.layers,
       layerId: args.oldVtxId,
+      layers: args.layers,
       newLayerId: args.newVtxId,
     });
   }
 
   public static getValueIsReadonly(args: {
-    graphData: GraphData;
-    layers: LayerClassDict;
-    edgesByVertex: EdgesByVertex;
+    graphData: IGraphData;
+    layers: ILayerClassDict;
+    edgesByVertex: IEdgesByVertex;
     layerId: string;
     valueId: string;
   }): ModelInfoReqs["valueIsReadonly"]["response"] {
     const vertex = args.graphData.vertices[args.layerId];
-    if (vertex === undefined) return {requestError: "layer_nonexistent"};
+    if (vertex === undefined) {
+      return {requestError: "layer_nonexistent"};
+    }
 
     const layer = args.layers[args.layerId];
-    if (!layer.hasField(args.valueId)) return {requestError: "field_nonexistent"};
+    if (!layer.hasField(args.valueId)) {
+      return {requestError: "field_nonexistent"};
+    }
 
     if (layer.isReadonlyField(args.valueId)) {
       return {
-        requestError: null,
         isReadonly: true,
         reason: "value_is_not_modifiable",
+        requestError: null,
       };
     }
 
@@ -293,22 +285,22 @@ export class SessionUtils {
 
     if (layerOccupiedValueIds.indexOf(args.valueId) !== -1) {
       return {
-        requestError: null,
         isReadonly: true,
         reason: "port_is_occupied",
+        requestError: null,
       };
     } else {
       return {
-        requestError: null,
         isReadonly: false,
+        requestError: null,
       };
     }
   }
 
   public static propagateEdge(args: {
-    graphData: GraphData;
-    edgesByVertex: EdgesByVertex;
-    layers: LayerClassDict;
+    graphData: IGraphData;
+    edgesByVertex: IEdgesByVertex;
+    layers: ILayerClassDict;
     edgeId: string;
   }): void {
     const edge = args.graphData.edges[args.edgeId];
@@ -343,5 +335,30 @@ export class SessionUtils {
     } else {
       edge.consistency = "consistent";
     }
+  }
+
+  private static vertexTopoSort(args: {
+    graphData: IGraphData;
+    edgesByVertex: IEdgesByVertex;
+  }): string[] {
+    const topToBottom: string[] = [];
+    const remainingVertexIds = new Set(Object.keys(args.graphData.vertices));
+    while (remainingVertexIds.size !== 0) {
+      const roots = Object.keys(args.graphData.vertices).filter((key) => {
+        for (const edgeId of args.edgesByVertex[key].in) {
+          const edge = args.graphData.edges[edgeId];
+          if (remainingVertexIds.has(edge.sourceVertexId)) {
+            return false;
+          }
+        }
+        return true;
+      });
+      for (const root of roots) {
+        topToBottom.push(root);
+        remainingVertexIds.delete(root);
+      }
+    }
+
+    return topToBottom;
   }
 }

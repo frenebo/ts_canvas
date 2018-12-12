@@ -1,5 +1,5 @@
-import { GraphicWrapper } from "./graphicWrapper.js";
 import { StageInterface } from "../stageInterface.js";
+import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class VtxBackgroundWrapper extends GraphicWrapper {
   private static readonly cachedTextures = new Map<string, PIXI.RenderTexture>();
@@ -77,7 +77,9 @@ export class VtxBackgroundWrapper extends GraphicWrapper {
       this.width = width;
       this.height = height;
       this.alpha = alpha;
-      if (this.sprite !== null) this.removeChild(this.sprite);
+      if (this.sprite !== null) {
+        this.removeChild(this.sprite);
+      }
       this.sprite = VtxBackgroundWrapper.drawSprite(
         this.stageInterface,
         this.selected,
