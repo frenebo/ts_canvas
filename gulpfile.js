@@ -33,6 +33,7 @@ gulp.task("serve", gulp.series(
   "clean",
   "ts",
   "copy",
+  "copy_deps",
   "start_server",
 ));
 
