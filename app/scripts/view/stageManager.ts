@@ -25,8 +25,10 @@ export class StageManager {
     this.app.stage.addChild(this.overlayContainer);
 
     this.app.view.addEventListener("wheel", (ev) => {
-      const mouseXInStageFrame = this.getMousePos().x;
-      const mouseYInStageFrame = this.getMousePos().y;
+      let mouseXInStageFrame = this.getMousePos().x;
+      let mouseYInStageFrame = this.getMousePos().y;
+
+      console.log(`x:${mouseXInStageFrame}, y:${mouseYInStageFrame}`);
 
       const scrollFactor = Math.pow(1.003, -ev.deltaY);
       this.setScale(this.getScale() * scrollFactor);
@@ -87,16 +89,26 @@ export class StageManager {
   }
 
   public getMousePos(): {x: number; y: number} {
+    // @WARNING @TODO is -999999 if use hasn't moved mouse over page yet
     const mouseX: number =
       this.app.renderer.plugins.interaction.mouse.global.x / this.getScale() - this.stageXOffset() / this.getScale();
 
     const mouseY: number =
       this.app.renderer.plugins.interaction.mouse.global.y / this.getScale() - this.stageYOffset() / this.getScale();
 
-    return {
-      x: mouseX,
-      y: mouseY,
-    };
+    // The renderer may not know the mouse position, resulting in it returning
+    // very low numbers for x and y.
+    if (mouseX < -10000 && mouseY < -10000) {
+      return {
+        x: 0,
+        y: 0,
+      };
+    } else {
+      return {
+        x: mouseX,
+        y: mouseY,
+      };
+    }
   }
 
   private setStagePosAbsolute(x: number, y: number): void {

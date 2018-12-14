@@ -1,4 +1,3 @@
-import { RequestInfoFunc } from "../messenger";
 import { PortWrapper } from "./graphicWrappers/portWrapper";
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper";
 import { StageInterface } from "./stageInterface";
@@ -15,7 +14,6 @@ export class PortPreviewManager {
   } | null = null;
   constructor(
     private readonly stageInterface: StageInterface,
-    private readonly sendModelInfoRequests: RequestInfoFunc,
   ) {
     // empty
   }

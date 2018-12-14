@@ -79,7 +79,6 @@ export class GraphManager {
 
     this.portPreviewManager = new PortPreviewManager(
       this.stageManager.getStageInterface(),
-      sendModelInfoRequests,
     );
 
     this.dragRegistry = new DragRegistry(
