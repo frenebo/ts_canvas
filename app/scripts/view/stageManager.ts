@@ -28,8 +28,6 @@ export class StageManager {
       let mouseXInStageFrame = this.getMousePos().x;
       let mouseYInStageFrame = this.getMousePos().y;
 
-      console.log(`x:${mouseXInStageFrame}, y:${mouseYInStageFrame}`);
-
       const scrollFactor = Math.pow(1.003, -ev.deltaY);
       this.setScale(this.getScale() * scrollFactor);
 
