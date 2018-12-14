@@ -1,2 +1,3 @@
 node_modules/
 build/
+python_server/__pycache__

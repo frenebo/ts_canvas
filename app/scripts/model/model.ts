@@ -21,6 +21,7 @@ import {
   SessionUtils,
 } from "./sessionUtils.js";
 import { VersioningManager } from "./versioningUtils.js";
+import { ServerUtils } from "./server_utils/server_utils.js";
 
 export interface IModelDataObj {
   graph: IGraphData;
@@ -49,6 +50,7 @@ export class Model implements IModelInterface {
   private readonly versioningManager: VersioningManager<ISessionDataJson>;
 
   constructor() {
+    ServerUtils.postTest();
     this.requestQueue = new Queue();
     for (let i = 0; i < 5; i++) {
       const layer = Layer.getLayer(i % 2 === 0 ? "Repeat" : "AddLayer");
