@@ -16,12 +16,12 @@ import {
   LayerUtils,
 } from "./layerUtils.js";
 import { SaveUtils } from "./saveUtils.js";
+import { ServerUtils } from "./server_utils/server_utils.js";
 import {
   ISessionDataJson,
   SessionUtils,
 } from "./sessionUtils.js";
 import { VersioningManager } from "./versioningUtils.js";
-import { ServerUtils } from "./server_utils/server_utils.js";
 
 export interface IModelDataObj {
   graph: IGraphData;
@@ -50,10 +50,14 @@ export class Model implements IModelInterface {
   private readonly versioningManager: VersioningManager<ISessionDataJson>;
 
   constructor() {
-    ServerUtils.postTest();
+    ServerUtils.makeLayerInfoReq<"requestTest">({type: "requestTest"}).then((val) => {
+      console.log(val.example_val);
+    }).catch((reason) => {
+      console.log("Request failed: ", reason);
+    });
     this.requestQueue = new Queue();
     for (let i = 0; i < 5; i++) {
-      const layer = Layer.getLayer(i % 2 === 0 ? "Repeat" : "AddLayer");
+      const layer = Layer.getLayer(i % 2 === 0 ? "Repeat" : "Conv2D");
       LayerUtils.addLayer({
         layer: layer,
         layers: this.session.data.layers,
@@ -90,7 +94,7 @@ export class Model implements IModelInterface {
         await this.requestSingleModelChange(req);
       }
 
-      SessionUtils.propagateEdges({
+      await SessionUtils.propagateEdges({
         edgesByVertex: this.session.data.edgesByVertex,
         graphData: this.session.data.graph,
         layers: this.session.data.layers,
@@ -334,14 +338,16 @@ export class Model implements IModelInterface {
         });
       }
     } else if (req.type === "setLayerFields") {
-      if (SessionUtils.validateSetLayerFields({
-        edgesByVertex: this.session.data.edgesByVertex,
-        fieldValues: req.fieldValues,
-        graph: this.session.data.graph,
-        layerId: req.layerId,
-        layers: this.session.data.layers,
-      }) === null) {
-        SessionUtils.setLayerFields({
+      if (
+        (await SessionUtils.validateSetLayerFields({
+          edgesByVertex: this.session.data.edgesByVertex,
+          fieldValues: req.fieldValues,
+          graph: this.session.data.graph,
+          layerId: req.layerId,
+          layers: this.session.data.layers,
+        })) === null
+      ) {
+        await SessionUtils.setLayerFields({
           edgesByVertex: this.session.data.edgesByVertex,
           fieldValues: req.fieldValues,
           graph: this.session.data.graph,

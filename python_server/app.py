@@ -22,5 +22,4 @@ def send_file(path):
 
 @app.route("/server_request", methods = ["POST"])
 def post_req():
-    process_request_string(request.data)
-    return "response text example";
+    return process_request_string(request.data)

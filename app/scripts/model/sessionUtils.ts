@@ -116,25 +116,25 @@ export class SessionUtils {
     });
   }
 
-  public static setLayerFields(args: {
+  public static async setLayerFields(args: {
     graph: IGraphData;
     edgesByVertex: IEdgesByVertex;
     layers: ILayerClassDict;
     layerId: string;
     fieldValues: {[key: string]: string};
-  }): void {
-    LayerUtils.setLayerFields({
+  }): Promise<void> {
+    await LayerUtils.setLayerFields({
       fieldValues: args.fieldValues,
       layerId: args.layerId,
       layers: args.layers,
     });
   }
 
-  public static propagateEdges(args: {
+  public static async propagateEdges(args: {
     graphData: IGraphData;
     edgesByVertex: IEdgesByVertex;
     layers: ILayerClassDict;
-  }): void {
+  }): Promise<void> {
     const sortedVertices = this.vertexTopoSort({
       edgesByVertex: args.edgesByVertex,
       graphData: args.graphData,
@@ -142,7 +142,7 @@ export class SessionUtils {
 
     for (const propagateVtxId of sortedVertices) {
       for (const edgeOutId of args.edgesByVertex[propagateVtxId].out) {
-        SessionUtils.propagateEdge({
+        await SessionUtils.propagateEdge({
           edgeId: edgeOutId,
           edgesByVertex: args.edgesByVertex,
           graphData: args.graphData,
@@ -184,14 +184,14 @@ export class SessionUtils {
     GraphUtils.deleteEdge(args);
   }
 
-  public static validateSetLayerFields(args: {
+  public static async validateSetLayerFields(args: {
     graph: IGraphData;
     edgesByVertex: IEdgesByVertex;
     layers: ILayerClassDict;
     layerId: string;
     fieldValues: {[key: string]: string};
-  }): string | null {
-    const validated = LayerUtils.validateLayerFields(args);
+  }): Promise<string | null> {
+    const validated = await LayerUtils.validateLayerFields(args);
     if (validated.requestError !== null) {
       return validated.requestError;
     }
@@ -297,12 +297,12 @@ export class SessionUtils {
     }
   }
 
-  public static propagateEdge(args: {
+  public static async propagateEdge(args: {
     graphData: IGraphData;
     edgesByVertex: IEdgesByVertex;
     layers: ILayerClassDict;
     edgeId: string;
-  }): void {
+  }): Promise<void> {
     const edge = args.graphData.edges[args.edgeId];
     const sourceLayer = args.layers[edge.sourceVertexId];
     const targetLayer = args.layers[edge.targetVertexId];
@@ -323,12 +323,12 @@ export class SessionUtils {
       } else {
         const testClone = Layer.clone(targetLayer);
         testClone.getValueWrapper(targetValueId).setValue(sourceValue.getValue());
-        const validatedUpdate = testClone.validateUpdate();
+        const validatedUpdate = await testClone.validateUpdate();
         if (validatedUpdate.errors.length !== 0) {
           edge.consistency = "inconsistent";
         } else {
           targetValue.setValue(sourceValue.getValue());
-          targetLayer.update();
+          await targetLayer.update();
           edge.consistency = "consistent";
         }
       }

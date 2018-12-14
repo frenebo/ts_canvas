@@ -30,6 +30,8 @@
       }
     ],
     "object-literal-shorthand": false,
-    "no-console": false
+    "no-console": false,
+    "no-floating-promises": true,
+    "strict-boolean-expressions": true
   }
 }

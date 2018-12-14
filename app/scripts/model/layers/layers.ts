@@ -1,3 +1,4 @@
+import { ServerUtils } from "../server_utils/server_utils.js";
 import { NumberWrapper } from "../valueWrappers/numberWrapper.js";
 import { ShapeWrapper } from "../valueWrappers/shapeWrapper.js";
 import { ValueWrapper } from "../valueWrappers/valueWrapper.js";
@@ -11,6 +12,7 @@ export interface ILayerPortInfo {
 
 const layerDict = {
   "AddLayer": () => new AddLayer(),
+  "Conv2D": () => new Conv2DLayer(),
   "Repeat": () => new RepeatLayer(),
 };
 
@@ -75,20 +77,16 @@ export abstract class Layer {
   };
   protected abstract type: string;
 
-  constructor() {
-    // empty
-  }
-
-  public update(): void {
-    const status = this.updateFunc();
+  public async update(): Promise<void> {
+    const status = await this.updateFunc();
 
     if (status.errors.length !== 0) {
       throw new Error(`Error updating: ${status.errors.join(",")}`);
     }
   }
 
-  public validateUpdate(): {errors: string[]; warnings: string[]} {
-    return Layer.clone(this).updateFunc();
+  public async validateUpdate(): Promise<{errors: string[]; warnings: string[]}> {
+    return await Layer.clone(this).updateFunc();
   }
 
   public getType(): string {
@@ -124,7 +122,7 @@ export abstract class Layer {
     return this.fields[fieldKey] !== undefined;
   }
 
-  protected abstract updateFunc(): {errors: string[]; warnings: string[]};
+  protected abstract updateFunc(): Promise<{errors: string[]; warnings: string[]}>;
 }
 
 export class AddLayer extends Layer {
@@ -161,11 +159,7 @@ export class AddLayer extends Layer {
     },
   };
 
-  constructor() {
-    super();
-  }
-
-  protected updateFunc(): {errors: string[]; warnings: string[]} {
+  protected async updateFunc() {
     const outNum = this.fields.inputValue1.wrapper.getValue() + this.fields.inputValue2.wrapper.getValue();
 
     const validated = this.fields.outputShape.wrapper.validateValue(outNum);
@@ -174,6 +168,52 @@ export class AddLayer extends Layer {
     }
 
     this.fields.outputShape.wrapper.setValue(outNum);
+    return {errors: [], warnings: []};
+  }
+}
+
+export class Conv2DLayer extends Layer {
+  protected type = "Conv2D";
+  protected ports: {
+    [key: string]: ILayerPortInfo;
+  } = {
+    "inputShape": {
+      type: "input",
+      valueKey: "inputShape",
+    },
+    "outputShape": {
+      type: "output",
+      valueKey: "outputShape",
+    },
+  };
+
+  protected fields = {
+    inputShape: {
+      readonly: false,
+      wrapper: new ShapeWrapper([224, 224, 3]),
+    },
+    outputShape: {
+      readonly: true,
+      wrapper: new ShapeWrapper([224, 224, 3]),
+    },
+  };
+
+  protected async updateFunc() {
+    const inputShape = this.fields.inputShape.wrapper.getValue();
+
+    const getFieldInfo = await ServerUtils.makeLayerInfoReq<"getConv2dFields">({
+      fields: {
+        input_shape: inputShape,
+      },
+      type: "getConv2dFields",
+    });
+
+    console.log(getFieldInfo);
+
+    const outputShape = getFieldInfo.fields.output_shape;
+
+    this.fields.outputShape.wrapper.setValue(outputShape);
+
     return {errors: [], warnings: []};
   }
 }
@@ -204,12 +244,9 @@ export class RepeatLayer extends Layer {
     },
   };
 
-  constructor() {
-    super();
-  }
-
-  public updateFunc() {
+  protected async updateFunc() {
     const inputShape = this.fields.inputShape.wrapper.getValue();
+
     this.fields.outputShape.wrapper.setValue(inputShape);
 
     return {errors: [], warnings: []};

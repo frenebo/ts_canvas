@@ -70,11 +70,11 @@ export class LayerUtils {
     };
   }
 
-  public static setLayerFields(args: {
+  public static async setLayerFields(args: {
     layers: ILayerClassDict;
     layerId: string;
     fieldValues: {[key: string]: string};
-  }): void {
+  }): Promise<void> {
     const layer = args.layers[args.layerId];
     if (layer === undefined) {
       throw new Error(`No layer found with id ${args.layerId}`);
@@ -91,14 +91,14 @@ export class LayerUtils {
 
       layer.getValueWrapper(fieldId).setFromString(args.fieldValues[fieldId]);
     }
-    layer.update();
+    await layer.update();
   }
 
-  public static validateLayerFields(args: {
+  public static async validateLayerFields(args: {
     layers: ILayerClassDict;
     layerId: string;
     fieldValues: {[key: string]: string};
-  }): IModelInfoReqs["validateLayerFields"]["response"] {
+  }): Promise<IModelInfoReqs["validateLayerFields"]["response"]> {
     const errors: string[] = [];
 
     const origLayer = args.layers[args.layerId];
@@ -126,7 +126,7 @@ export class LayerUtils {
       valWrapper.setFromString(args.fieldValues[fieldId]);
     }
 
-    const validated = cloneLayer.validateUpdate();
+    const validated = await cloneLayer.validateUpdate();
 
     return {
       errors: validated.errors,
