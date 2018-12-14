@@ -72,14 +72,17 @@ export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperCon
     for (const trimmedDimStr of trimmedDims) {
       // optional plus/minus, 0 or more spaces, series of digits
       if (!/^[+\-]? *(?:\d+(?:\.\d*)?|\.\d+)$/.test(trimmedDimStr)) {
-      return null;
-    }
+        return null;
+      }
     }
 
     return trimmedDims.map((dim) => parseInt(dim));
   }
   private static stringify(val: number[]): string {
     return `(${val.join(",")})`;
+  }
+  private static copyValue(val: number[]): number[] {
+    return val.slice();
   }
   private static compareEquals(val1: number[], val2: number[]): boolean {
     if (val1.length !== val2.length) {
@@ -99,6 +102,7 @@ export class ShapeWrapper extends AbstractValueWrapper<number[], ShapeWrapperCon
       val,
       config,
       {
+        copyValue: ShapeWrapper.copyValue,
         compareEquals: ShapeWrapper.compareEquals,
         factory: (factoryVal: number[], factoryConfig: ShapeWrapperConfig) => {
           return new ShapeWrapper(factoryVal, factoryConfig);

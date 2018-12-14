@@ -36,12 +36,16 @@ export class NumberWrapper extends AbstractValueWrapper<number, NumberWrapperCon
   private static compareEquals(val1: number, val2: number): boolean {
     return val1 === val2;
   }
+  private static copyValue(val: number): number {
+    return val;
+  }
 
   constructor(val: number, config: NumberWrapperConfig = {}) {
     super(
       val,
       config,
       {
+        copyValue: NumberWrapper.copyValue,
         compareEquals: NumberWrapper.compareEquals,
         factory: (factoryVal: number, factoryConfig: NumberWrapperConfig) => {
           return new NumberWrapper(factoryVal, factoryConfig);

@@ -90,30 +90,40 @@ export class View implements IViewInterface {
   }
 
   public async setGraphData(newData: IGraphData): Promise<void> {
-    const newVertexKeys = Object.keys(newData.vertices);
-    const oldVertexKeys = Object.keys(this.data.vertices);
+    const removedVertexKeys = new Set(Object.keys(this.data.vertices));
+    const addedVertexKeys = new Set(Object.keys(newData.vertices));
+    const sharedVertexKeys = new Set<string>();
 
-    const removedVertexKeys = oldVertexKeys.filter((key) => newVertexKeys.indexOf(key) === -1);
-    const addedVertexKeys = newVertexKeys.filter((key) => oldVertexKeys.indexOf(key) === -1);
-    const sharedVertexKeys = oldVertexKeys.filter((key) => newVertexKeys.indexOf(key) !== -1);
+    for (const vertexKey of removedVertexKeys) {
+      if (addedVertexKeys.has(vertexKey)) {
+        removedVertexKeys.delete(vertexKey);
+        addedVertexKeys.delete(vertexKey);
+        sharedVertexKeys.add(vertexKey);
+      }
+    }
 
-    const newEdgeKeys = Object.keys(newData.edges);
-    const oldEdgeKeys = Object.keys(this.data.edges);
+    const removedEdgeKeys = new Set(Object.keys(this.data.edges));
+    const addedEdgeKeys = new Set(Object.keys(newData.edges));
+    const changedEdgeKeys = new Set<string>();
 
-    const removedEdgeKeys = oldEdgeKeys.filter((key) => newEdgeKeys.indexOf(key) === -1);
-    const addedEdgeKeys = newEdgeKeys.filter((key) => oldEdgeKeys.indexOf(key) === -1);
-    const sharedEdgeKeys = oldEdgeKeys.filter((key) => newEdgeKeys.indexOf(key) !== -1);
-    const changedEdgeKeys = sharedEdgeKeys.filter((key) => {
-      const newEdge = newData.edges[key];
-      const oldEdge = this.data.edges[key];
+    for (const edgeKey of removedEdgeKeys) {
+      if (addedEdgeKeys.has(edgeKey)) {
+        removedEdgeKeys.delete(edgeKey);
+        addedEdgeKeys.delete(edgeKey);
 
-      return JSON.stringify(newEdge) !== JSON.stringify(oldEdge);
-    });
+        const newEdge = newData.edges[edgeKey];
+        const oldEdge = this.data.edges[edgeKey];
+
+        if (JSON.stringify(newEdge) !== JSON.stringify(oldEdge)) {
+          changedEdgeKeys.add(edgeKey);
+        }
+      }
+    }
 
     const graphManagerCommands: GraphManagerCommand[] = [];
 
     // remove an edge if its data changed
-    for (const removedEdgeKey of removedEdgeKeys.concat(changedEdgeKeys)) {
+    for (const removedEdgeKey of [...removedEdgeKeys, ...changedEdgeKeys]) {
       graphManagerCommands.push({
         edgeData: this.data.edges[removedEdgeKey],
         edgeKey: removedEdgeKey,
@@ -148,7 +158,7 @@ export class View implements IViewInterface {
     }
 
     // add back an edge if its data changed
-    for (const addedEdgeKey of addedEdgeKeys.concat(changedEdgeKeys)) {
+    for (const addedEdgeKey of [...addedEdgeKeys, ...changedEdgeKeys]) {
       graphManagerCommands.push({
         edgeData: newData.edges[addedEdgeKey],
         edgeKey: addedEdgeKey,

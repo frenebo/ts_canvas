@@ -8,19 +8,20 @@ export abstract class AbstractValueWrapper<T, V extends {} & CloneableConfig> {
   constructor(
     val: T,
     private readonly config: V,
-    private readonly utils: Readonly<{
+    private readonly utils: {
+      copyValue(val: T): T;
       validate(val: unknown, config: V): null | string;
       parse(str: string): T | null;
       stringify(val: T): string;
       compareEquals(val1: T, val2: T): boolean;
       factory(val: T, config: V): AbstractValueWrapper<T, V>;
-    }>,
+    },
   ) {
-    this.value = this.utils.parse(this.utils.stringify(val)) as T;
+    this.value = this.utils.copyValue(val);
   }
 
   public getValue(): T {
-    return this.utils.parse(this.utils.stringify(this.value)) as T;
+    return this.utils.copyValue(this.value);
   }
   public setValue(val: T): void {
     const validateMssg = this.utils.validate(val, this.config);
@@ -28,7 +29,7 @@ export abstract class AbstractValueWrapper<T, V extends {} & CloneableConfig> {
       throw new Error(`Error validating value: ${validateMssg}`);
     }
 
-    this.value = this.utils.parse(this.utils.stringify(val)) as T;
+    this.value = this.utils.copyValue(val);
   }
   public stringify(): string {
     return this.utils.stringify(this.value);

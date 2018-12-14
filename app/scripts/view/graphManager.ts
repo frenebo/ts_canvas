@@ -223,12 +223,17 @@ export class GraphManager {
     vertexWrapper.setPosition(vertexData.geo.x, vertexData.geo.y);
     vertexWrapper.setLabelText(vertexData.label);
 
-    const beforePorts = Object.keys(this.ports[vertexId]);
-    const afterPorts = Object.keys(vertexData.ports);
+    const removedPortIds = new Set(Object.keys(this.ports[vertexId]));
+    const addedPortIds = new Set(Object.keys(vertexData.ports));
+    const sharedPortIds = new Set<string>();
 
-    const removedPortIds = beforePorts.filter((k) => afterPorts.indexOf(k) === -1);
-    const addedPortIds = afterPorts.filter((k) => beforePorts.indexOf(k) === -1);
-    const sharedPortIds = beforePorts.filter((k) => afterPorts.indexOf(k) !== -1);
+    for (const portId of removedPortIds) {
+      if (addedPortIds.has(portId)) {
+        removedPortIds.delete(portId);
+        addedPortIds.delete(portId);
+        sharedPortIds.add(portId);
+      }
+    }
 
     for (const removedPortId of removedPortIds) {
       const port = this.ports[vertexId][removedPortId];
