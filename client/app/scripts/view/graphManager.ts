@@ -1,7 +1,4 @@
-import {
-  IEdgeData,
-  IVertexData,
-} from "../interfaces.js";
+
 import {
   RequestInfoFunc,
   RequestModelChangesFunc,

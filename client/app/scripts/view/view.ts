@@ -1,7 +1,4 @@
-import {
-  IGraphData,
-  IViewInterface,
-} from "../interfaces.js";
+
 import {
   RequestInfoFunc,
   RequestModelChangesFunc,

@@ -3,7 +3,7 @@
     "target": "es6",
     "charset": "utf8",
     "strict": true,
-    "typeRoots" : ["./node_modules/@types"],
+    "typeRoots" : ["../node_modules/@types"],
     "moduleResolution": "node"
   }
 }

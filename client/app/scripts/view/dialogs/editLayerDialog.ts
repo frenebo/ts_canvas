@@ -1,5 +1,4 @@
 import { MONOSPACE_STYLE } from "../../constants.js";
-import { IModelInfoReqs } from "../../interfaces.js";
 import {
   RequestInfoFunc,
   RequestModelChangesFunc,

@@ -1,4 +1,4 @@
-import { IModelInfoReqs } from "../../interfaces.js";
+
 import {
   RequestInfoFunc,
   RequestModelChangesFunc,

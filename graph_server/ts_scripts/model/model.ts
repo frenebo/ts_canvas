@@ -1,11 +1,6 @@
-import {
-  IGraphData,
-  IModelInfoReqs,
-  IModelInterface,
-  ModelChangeRequest,
-  ModelVersioningRequest,
-} from "../interfaces.js";
-import { Queue } from "../queue.js";
+
+/// <reference path="../../../interfaces/interfaces.d.ts"/>
+import { Queue } from "./queue.js";
 import {
   GraphUtils,
   IEdgesByVertex,

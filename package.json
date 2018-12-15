@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "gulpfile.js",
-  "dependencies": {
-    "@types/node": "^10.12.12"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@types/node": "^10.12.15",
     "@types/pixi.js": "^4.8.3",
     "del": "^3.0.0",
     "gulp": "^4.0.0",

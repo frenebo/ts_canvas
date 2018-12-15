@@ -11,5 +11,3 @@ const monospaceFontFamilies = [
   "monospace",
 ];
 export const MONOSPACE_STYLE = monospaceFontFamilies.join(",");
-export const UNDO_HISTORY_SIZE = 100;
-export const SERVER_REQUEST_PATH = "server_request";

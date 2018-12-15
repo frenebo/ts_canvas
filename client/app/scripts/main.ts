@@ -1,11 +1,8 @@
 import { Messenger } from "./messenger.js";
-import { Model } from "./model/model.js";
 import { View } from "./view/view.js";
 
 export function main(div: HTMLDivElement): void {
-  const model = new Model();
-  const messenger = new Messenger(model);
-
+  const messenger = new Messenger();
   const pixiDiv = document.createElement("div");
   div.appendChild(pixiDiv);
   const layerDiv = document.createElement("div");

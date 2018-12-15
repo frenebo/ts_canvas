@@ -1,3 +1,5 @@
 node_modules/
 build/
 python_server/__pycache__
+
+graph_server/**/*.js

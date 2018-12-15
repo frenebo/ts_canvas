@@ -1,11 +1,11 @@
 
-export interface IPortData {
+interface IPortData {
   side: "top" | "bottom" | "left" | "right";
   position: number; // 0 to 1
   portType: "input" | "output";
 }
 
-export interface IVertexData {
+interface IVertexData {
   label: string;
   geo: {
     x: number;
@@ -16,7 +16,7 @@ export interface IVertexData {
   };
 }
 
-export interface IEdgeData {
+interface IEdgeData {
   consistency: "consistent" | "inconsistent";
   sourceVertexId: string;
   sourcePortId: string;
@@ -24,7 +24,7 @@ export interface IEdgeData {
   targetPortId: string;
 }
 
-export interface IGraphData {
+interface IGraphData {
   vertices: {
     [key: string]: IVertexData;
   };
@@ -33,7 +33,7 @@ export interface IGraphData {
   };
 }
 
-export interface ILayerData {
+interface ILayerData {
   ports: {
     [key: string]: {
       valueName: string;
@@ -46,13 +46,13 @@ export interface ILayerData {
   };
 }
 
-export interface IViewInterface {
+interface IViewInterface {
   setGraphData(data: IGraphData): void;
 }
 
-export interface IModelInterface {
+interface IModelInterface {
   getGraphData(): Promise<IGraphData>;
-  onDataChanged(listener: () => void): void;
+  onDataChanged(listener: () => void): Promise<void>;
   requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void>;
   requestModelVersioningChange(req: ModelVersioningRequest): Promise<void>;
   requestModelInfo<T extends keyof IModelInfoReqs>(
@@ -60,7 +60,7 @@ export interface IModelInterface {
   ): Promise<IModelInfoReqs[T]["response"]>;
 }
 
-export type ModelChangeRequest = {
+type ModelChangeRequest = {
   type: "moveVertex";
   vertexId: string;
   x: number;
@@ -92,7 +92,7 @@ export type ModelChangeRequest = {
   };
 };
 
-export type ModelVersioningRequest = {
+type ModelVersioningRequest = {
   type: "undo";
 } | {
   type: "redo";
@@ -114,7 +114,7 @@ type ReqMapType<T extends string> = {
   };
 };
 
-export interface IModelInfoReqs extends ReqMapType<keyof IModelInfoReqs> {
+interface IModelInfoReqs extends ReqMapType<keyof IModelInfoReqs> {
   "validateEdge": {
     "request": {
       type: "validateEdge";

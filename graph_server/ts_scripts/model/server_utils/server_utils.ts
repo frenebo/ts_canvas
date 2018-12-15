@@ -1,5 +1,5 @@
-import { SERVER_REQUEST_PATH } from "../../constants.js";
 
+const SERVER_REQUEST_PATH = "server_request";
 type IEnforceRequestType<T extends string> = {
   [key in T]: {
     request: {type: T};

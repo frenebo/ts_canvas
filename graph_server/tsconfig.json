@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es6",
+    "lib": ["es2015"],
+    "moduleResolution": "node",
+    "charset": "utf8",
+    "strict": true,
+    "typeRoots" : ["../node_modules/@types"],
+    "moduleResolution": "node"
+  },
+  "exclude": ["../node_modules/@types/pixi.js/**/*"]
+}

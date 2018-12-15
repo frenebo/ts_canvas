@@ -1,9 +1,5 @@
-import {
-  IEdgeData,
-  IGraphData,
-  IModelInfoReqs,
-  IVertexData,
-} from "../interfaces.js";
+
+/// <reference path="../../../interfaces/interfaces.d.ts"/>
 import { Layer } from "./layers/layers.js";
 
 export interface IEdgesByVertex {

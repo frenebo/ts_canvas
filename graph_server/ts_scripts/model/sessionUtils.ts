@@ -1,4 +1,5 @@
-import { IGraphData, IModelInfoReqs } from "../interfaces.js";
+
+/// <reference path="../../../interfaces/interfaces.d.ts"/>
 import {
   GraphUtils,
   IEdgesByVertex,
