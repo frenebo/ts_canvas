@@ -74,6 +74,7 @@ def process_request_string(req_string):
                 "reason": "Layer compute error: {0}".format(str(e)),
             })
         except Exception as e:
+            print(e)
             return json.dumps({
                 "success": False,
                 "error_type": UNKNOWN_ERROR_TYPE,

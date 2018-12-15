@@ -10,7 +10,7 @@ class InvalidFieldValueException(Exception):
 class LayerComputeException(Exception):
     """Raise when there's a problem calculating layer fields"""
 
-def assert_field_value(name, arr, dim_count=None):
+def assert_shape_list_value(name, arr, dim_count=None):
     if not isinstance(arr, list):
         raise InvalidFieldValueException(name, "Value must be number array")
 
@@ -36,6 +36,12 @@ def assert_num_value(name, val, require_integer=None):
         if int(val) != val:
             raise InvalidFieldValueException(name, "Value must be an integer")
 
+def get_output_shape(layer, input_shape):
+    # first dimension None is for batch
+    input_with_none = [None] + input_shape
+    output_with_none = list(layer.compute_output_shape([None] + input_shape))
+    return output_with_none[1:]
+
 def get_conv2d_fields(fields):
     input_shape = None
     kernel_size = None
@@ -48,8 +54,8 @@ def get_conv2d_fields(fields):
     except KeyError as e:
         raise LayerMissingFieldException(str(e))
 
-    assert_field_value("input_shape", input_shape, 3)
-    assert_field_value("kernel_size", kernel_size, 2)
+    assert_shape_list_value("input_shape", input_shape, 3)
+    assert_shape_list_value("kernel_size", kernel_size, 2)
     assert_num_value("filters", filters, require_integer=True)
 
     layer = Conv2D(kernel_size=kernel_size, filters=filters)
@@ -58,10 +64,11 @@ def get_conv2d_fields(fields):
     print("kernel_size", kernel_size)
     print("filters", filters)
 
-    output_shape = list(layer.compute_output_shape(input_shape))
+    # first dimension None is for batch
+    output_shape = get_output_shape(layer, input_shape)
 
     try:
-        assert_field_value("output_shape", output_shape)
+        assert_shape_list_value("output_shape", output_shape)
     except InvalidFieldValueException:
         raise LayerComputeException("Could not create valid output shape")
 
