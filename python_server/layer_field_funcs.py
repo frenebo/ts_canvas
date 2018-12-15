@@ -60,10 +60,6 @@ def get_conv2d_fields(fields):
 
     layer = Conv2D(kernel_size=kernel_size, filters=filters)
 
-    print("input_shape", input_shape)
-    print("kernel_size", kernel_size)
-    print("filters", filters)
-
     # first dimension None is for batch
     output_shape = get_output_shape(layer, input_shape)
 

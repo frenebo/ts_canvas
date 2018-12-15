@@ -23,3 +23,9 @@ def send_file(path):
 @app.route("/server_request", methods = ["POST"])
 def post_req():
     return process_request_string(request.data)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        raise Exception("App takes one argument: IP address")
+    print(sys.argv[1])
+    app.run(host=sys.argv[1], port="5000")
