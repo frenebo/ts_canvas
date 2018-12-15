@@ -199,7 +199,7 @@ export class Conv2DLayer extends Layer {
     },
     kernelShape: {
       readonly: false,
-      wrapper: new ShapeWrapper([3, 3], {
+      wrapper: new ShapeWrapper([1, 1], {
         dimConstraints: {
           type: "equals",
           value: 2,
