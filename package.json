@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "gulpfile.js",
-  "dependencies": {},
+  "dependencies": {
+    "socket.io": "^2.2.0"
+  },
   "devDependencies": {
     "@types/node": "^10.12.15",
     "@types/pixi.js": "^4.8.3",

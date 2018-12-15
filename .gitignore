@@ -3,3 +3,4 @@ build/
 python_server/__pycache__
 
 graph_server/**/*.js
+.DS_Store

@@ -52,7 +52,7 @@ interface IViewInterface {
 
 interface IModelInterface {
   getGraphData(): Promise<IGraphData>;
-  onDataChanged(listener: () => void): Promise<void>;
+  onDataChanged(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void>;
   requestModelVersioningChange(req: ModelVersioningRequest): Promise<void>;
   requestModelInfo<T extends keyof IModelInfoReqs>(

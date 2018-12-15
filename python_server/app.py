@@ -2,13 +2,15 @@ import sys
 import os
 from flask import Flask, send_from_directory, request
 from request_processor import process_request_string
-from subprocess import call
-from flask_sockets import Sockets
+from flask_socketio import SocketIO, send, emit, Namespace
+import json
+from graph_server_interface import GraphServerInterface
 
-# @TODO: Find better way to get directory?
-arg_directory = os.path.abspath("../build")
+script_dir = os.path.dirname(os.path.realpath(__file__))
+APP_DIRECTORY = os.path.abspath(os.path.join(script_dir, '../client/build'))
+
 app = Flask(__name__)
-sockets = Sockets(app)
+socketio = SocketIO(app)
 
 # turn off Flask logging
 import logging
@@ -17,24 +19,42 @@ log.setLevel(logging.ERROR)
 
 @app.route("/")
 def indexDefaultPath():
-    return send_from_directory(arg_directory, "index.html")
+    return send_from_directory(APP_DIRECTORY, "index.html")
 
 @app.route("/<path:path>")
 def send_file(path):
-    return send_from_directory(arg_directory, path)
+    return send_from_directory(APP_DIRECTORY, path)
 
 @app.route("/server_request", methods = ["POST"])
 def post_req():
     return process_request_string(request.data)
 
-@sockets.route("/socket_path")
-def socket_req(ws):
-    while not ws.closed():
-        message = ws.receive()
-        ws.send(message)
+server_interface = GraphServerInterface()
+
+namespaces = {}
+
+class MyCustomNamespace(Namespace):
+    def on_connect(self):
+        # print("connect")
+        pass
+
+    def on_disconnect(self):
+        # print("ondisconnect")
+        pass
+
+    def on_model_request(self, data):
+        server_interface.send_model_req(request.sid, data)
+
+namespace = MyCustomNamespace('/socket_path')
+namespaces["a"] = namespace
+socketio.on_namespace(namespace)
+# @socketio.on("model_request", namespace="/socket_path")
+# def handle_model_request(message):
+#     print("Model request: ", message)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        raise Exception("App takes one argument: IP address")
-    print(sys.argv[1])
-    app.run(host=sys.argv[1], port="5000")
+    # if len(sys.argv) != 2:
+        # raise Exception("App takes one argument: IP address")
+    # print(sys.argv[1])
+    socketio.run(app)
+    # app.run(host=sys.argv[1], port="5000")

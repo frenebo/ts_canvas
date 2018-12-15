@@ -1,8 +1,8 @@
-import { Messenger } from "./messenger.js";
+import { createMessenger } from "./messenger.js";
 import { View } from "./view/view.js";
 
-export function main(div: HTMLDivElement): void {
-  const messenger = new Messenger();
+export async function main(div: HTMLDivElement): Promise<void> {
+  const messenger = await createMessenger();
   const pixiDiv = document.createElement("div");
   div.appendChild(pixiDiv);
   const layerDiv = document.createElement("div");
