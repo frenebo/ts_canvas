@@ -15,6 +15,7 @@ import {
   SessionUtils,
 } from "./sessionUtils.js";
 import { VersioningManager } from "./versioningUtils.js";
+import { IServerUtils } from "./server_utils/server_utils.js";
 
 export interface IModelDataObj {
   graph: IGraphData;
@@ -42,12 +43,14 @@ export class Model implements IModelInterface {
   private readonly requestQueue: Queue;
   private readonly versioningManager: VersioningManager<ISessionDataJson>;
 
-  constructor() {
+  constructor(
+    private readonly serverUtils: IServerUtils,
+  ) {
     this.requestQueue = new Queue();
     const exampleLayers: Array<"Repeat" | "Conv2D" | "AddLayer"> = ["Repeat", "Conv2D", "AddLayer"];
     for (let i = 0; i < 8; i++) {
       const layerType = exampleLayers[i % exampleLayers.length];
-      const layer = Layer.getLayer(layerType);
+      const layer = Layer.getLayer(layerType, this.serverUtils);
       LayerUtils.addLayer({
         layer: layer,
         layers: this.session.data.layers,
@@ -103,9 +106,9 @@ export class Model implements IModelInterface {
   public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
     return this.requestQueue.addToQueue(async () => {
       if (req.type === "undo") {
-        this.session.data = SessionUtils.fromJson(this.versioningManager.undo());
+        this.session.data = SessionUtils.fromJson(this.versioningManager.undo(), this.serverUtils);
       } else if (req.type === "redo") {
-        this.session.data = SessionUtils.fromJson(this.versioningManager.redo());
+        this.session.data = SessionUtils.fromJson(this.versioningManager.redo(), this.serverUtils);
       } else if (req.type === "saveFile") {
         SaveUtils.saveFile(req.fileName, this.session);
         this.versioningManager.onFileSave(req.fileName);

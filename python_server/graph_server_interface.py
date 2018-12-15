@@ -3,6 +3,7 @@ import os
 import io
 from threading import Thread
 import json
+from request_processor import run_layer_request
 
 class GraphServerInterface():
     def __init__(self):
@@ -20,8 +21,8 @@ class GraphServerInterface():
         t = Thread(target=self.listen_output, args=[])
         t.start()
 
-        self.graph_change_listeners = []
-        self.request_response_listeners = []
+        self.on_graph_change = None
+        self.on_request_response = None
 
     def listen_output(self):
         # self.node_process.stdout
@@ -38,11 +39,23 @@ class GraphServerInterface():
 
             elif response_obj["type"] == "request_response":
                 if self.on_request_response is not None:
-                    self.on_request_response(response_obj["response"])
-            # print(response_obj["type"])
+                    self.on_request_response(response_obj["response"], response_obj["request_id"])
+            elif response_obj["type"] == "requesting_layer_info":
+                response = run_layer_request(response_obj["request"])
+                self.send_model_layer_info_response(response, response_obj["request_id"])
+
+    def send_model_layer_info_response(self, response, request_id):
+        request_contents = {
+            "type": "layer_data_response",
+            "response": response,
+            "request_id": request_id,
+        }
+        self.node_process.stdin.write(json.dumps(request_contents).encode())
+        self.node_process.stdin.flush()
 
     def send_model_req(self, session_id, data):
         request_contents = {
+            "type": "client_request",
             "client_id": "asdf",
             "client_message": data,
         }

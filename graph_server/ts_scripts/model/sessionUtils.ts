@@ -11,6 +11,7 @@ import {
   LayerUtils,
 } from "./layerUtils.js";
 import { IModelDataObj } from "./model.js";
+import { IServerUtils } from "./server_utils/server_utils.js";
 
 export interface ISessionDataJson {
   edgesByVertex: IEdgesByVertex;
@@ -28,11 +29,11 @@ export class SessionUtils {
     return jsonData;
   }
 
-  public static fromJson(jsonData: ISessionDataJson): IModelDataObj {
+  public static fromJson(jsonData: ISessionDataJson, serverUtils: IServerUtils): IModelDataObj {
     const modelData: IModelDataObj = {
       edgesByVertex: JSON.parse(JSON.stringify(jsonData.edgesByVertex)),
       graph: JSON.parse(JSON.stringify(jsonData.graph)),
-      layers: LayerUtils.fromJson(jsonData.layers),
+      layers: LayerUtils.fromJson(jsonData.layers, serverUtils),
     };
     return modelData;
   }

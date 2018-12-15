@@ -1,12 +1,11 @@
 
-const SERVER_REQUEST_PATH = "server_request";
 type IEnforceRequestType<T extends string> = {
   [key in T]: {
     request: {type: T};
   };
 };
 
-interface ILayerReqTypes extends IEnforceRequestType<keyof ILayerReqTypes> {
+export interface ILayerReqTypes extends IEnforceRequestType<keyof ILayerReqTypes> {
   getConv2dFields: {
     request: {
       type: "getConv2dFields";
@@ -24,7 +23,7 @@ interface ILayerReqTypes extends IEnforceRequestType<keyof ILayerReqTypes> {
   };
 }
 
-type ServerResponse<T extends keyof ILayerReqTypes> = {
+export type ServerResponse<T extends keyof ILayerReqTypes> = {
   success: true;
   response: ILayerReqTypes[T]["response"];
 } | {
@@ -50,40 +49,8 @@ type ServerResponse<T extends keyof ILayerReqTypes> = {
   reason: string;
 };
 
-export class ServerUtils {
-  public static makeLayerInfoReq<T extends keyof ILayerReqTypes>(
+export interface IServerUtils {
+  makeLayerInfoReq<T extends keyof ILayerReqTypes>(
     req: ILayerReqTypes[T]["request"],
-  ): Promise<ServerResponse<T>> {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", SERVER_REQUEST_PATH, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.send(JSON.stringify(req));
-
-    return new Promise<ServerResponse<T>>((resolve, reject) => {
-      xhr.onreadystatechange = () => {
-        // if data isn't fully received
-        if (xhr.readyState !== 4) {
-          return;
-        }
-
-        if (xhr.status === 200) {
-          try {
-            resolve(ServerUtils.processResponse<T>(xhr.responseText));
-          } catch (e) {
-            reject(["Failed request", e]);
-          }
-        } else {
-          throw new Error(`Request error no. ${xhr.status}`);
-        }
-      };
-    });
-  }
-
-  private static processResponse<T extends keyof ILayerReqTypes>(
-    serverResponse: string,
-  ): ServerResponse<T> {
-    const parsedResponse: ServerResponse<T> = JSON.parse(serverResponse)
-
-    return parsedResponse;
-  }
+  ): Promise<ServerResponse<T>>;
 }

@@ -4,6 +4,7 @@ import {
   ILayerJsonInfo,
   Layer,
 } from "./layers/layers.js";
+import { IServerUtils } from "./server_utils/server_utils.js";
 
 export interface ILayerClassDict {
   [key: string]: Layer;
@@ -189,7 +190,7 @@ export class LayerUtils {
       throw new Error(`A layer with the id ${args.newLayerId} already exists`);
     }
 
-    args.layers[args.newLayerId] = Layer.fromJson(Layer.toJson(origLayer));
+    args.layers[args.newLayerId] = Layer.clone(origLayer);
   }
 
   public static addLayer(args: {
@@ -224,10 +225,10 @@ export class LayerUtils {
     return layerDictJson;
   }
 
-  public static fromJson(layerDictjson: ILayerClassDictJson): ILayerClassDict {
+  public static fromJson(layerDictjson: ILayerClassDictJson, serverUtils: IServerUtils): ILayerClassDict {
     const layers: ILayerClassDict = {};
     for (const layerKey of Object.keys(layerDictjson)) {
-      layers[layerKey] = Layer.fromJson(layerDictjson[layerKey]);
+      layers[layerKey] = Layer.fromJson(layerDictjson[layerKey], serverUtils);
     }
 
     return layers;

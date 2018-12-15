@@ -1,4 +1,4 @@
-import { ServerUtils } from "../server_utils/server_utils.js";
+import { IServerUtils } from "../server_utils/server_utils.js";
 import { NumberWrapper } from "../valueWrappers/numberWrapper.js";
 import { ShapeWrapper } from "../valueWrappers/shapeWrapper.js";
 import { ValueWrapper } from "../valueWrappers/valueWrapper.js";
@@ -11,9 +11,9 @@ export interface ILayerPortInfo {
 }
 
 const layerDict = {
-  "AddLayer": () => new AddLayer(),
-  "Conv2D": () => new Conv2DLayer(),
-  "Repeat": () => new RepeatLayer(),
+  "AddLayer": (serverUtils: IServerUtils) => new AddLayer(serverUtils),
+  "Conv2D": (serverUtils: IServerUtils) => new Conv2DLayer(serverUtils),
+  "Repeat": (serverUtils: IServerUtils) => new RepeatLayer(serverUtils),
 };
 
 export type LayerType = keyof typeof layerDict;
@@ -28,9 +28,9 @@ export abstract class Layer {
     return Object.keys(layerDict).indexOf(type) !== -1;
   }
 
-  public static getLayer<T extends LayerType>(type: T): ReturnType<(typeof layerDict)[T]> {
+  public static getLayer<T extends LayerType>(type: T, serverUtils: IServerUtils): ReturnType<(typeof layerDict)[T]> {
     const layerConstructor = layerDict[type];
-    return layerConstructor() as ReturnType<(typeof layerDict)[T]>;
+    return layerConstructor(serverUtils) as ReturnType<(typeof layerDict)[T]>;
   }
 
   public static toJson(layer: Layer): ILayerJsonInfo {
@@ -44,12 +44,12 @@ export abstract class Layer {
     return info;
   }
 
-  public static fromJson(info: ILayerJsonInfo): Layer {
+  public static fromJson(info: ILayerJsonInfo, serverUtils: IServerUtils): Layer {
     if (!Layer.isLayerType(info.layerType)) {
       throw new Error(`Unknown layer type ${info.layerType}`);
     }
 
-    const layer = Layer.getLayer(info.layerType);
+    const layer = Layer.getLayer(info.layerType, serverUtils);
 
     for (const valueKey of Object.keys(info.valDict)) {
       if (!layer.hasField(valueKey)) {
@@ -62,7 +62,7 @@ export abstract class Layer {
   }
 
   public static clone(layer: Layer): Layer {
-    return Layer.fromJson(Layer.toJson(layer));
+    return Layer.fromJson(Layer.toJson(layer), layer.serverUtils);
   }
 
   protected abstract ports: {
@@ -76,6 +76,12 @@ export abstract class Layer {
     };
   };
   protected abstract type: string;
+
+  constructor(
+    protected readonly serverUtils: IServerUtils,
+  ) {
+
+  }
 
   public async update(): Promise<void> {
     const status = await this.updateFunc();
@@ -224,7 +230,7 @@ export class Conv2DLayer extends Layer {
     const kernelShape = this.fields.kernelShape.wrapper.getValue();
     const filters = this.fields.filters.wrapper.getValue();
 
-    const getFieldInfo = await ServerUtils.makeLayerInfoReq<"getConv2dFields">({
+    const getFieldInfo = await this.serverUtils.makeLayerInfoReq<"getConv2dFields">({
       fields: {
         input_shape: inputShape,
         kernel_size: kernelShape,
@@ -238,6 +244,7 @@ export class Conv2DLayer extends Layer {
     }
 
     const outputShape = getFieldInfo.response.fields.output_shape;
+    process.stderr.write(JSON.stringify(outputShape) + "\n");
 
     const validatedOutput = this.fields.outputShape.wrapper.validateValue(outputShape);
     if (validatedOutput !== null) {

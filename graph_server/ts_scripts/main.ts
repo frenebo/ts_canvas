@@ -3,106 +3,122 @@
 /// <reference path="../../interfaces/serverRequestInterfaces.d.ts"/>
 // import { spawn } from "child_process"
 import { Model } from "./model/model";
+import { IServerUtils, ILayerReqTypes, ServerResponse } from "./model/server_utils/server_utils";
 
-const model = new Model();
+const pendingLayerInfoReqs: {[key: string]: (val: ServerResponse<keyof ILayerReqTypes>) => void} = {};
+function uniqueLayerReqId(): string {
+  const num = Math.random();
+  let multiplier = 10;
+  while (pendingLayerInfoReqs[Math.floor(num*multiplier).toString()] !== undefined) {
+    multiplier *= 10;
+  }
+
+  return Math.floor(num*multiplier).toString();
+}
+
+const serverUtils: IServerUtils = {
+  makeLayerInfoReq: function<T extends keyof ILayerReqTypes>(
+    req: ILayerReqTypes[T]["request"],
+  ): Promise<ServerResponse<T>> {
+    const reqId: string = uniqueLayerReqId();
+    stdoutMssg({
+      type: "requesting_layer_info",
+      request: req,
+      request_id: reqId,
+    });
+    return new Promise<ServerResponse<T>>((resolve) => {
+      pendingLayerInfoReqs[reqId] = (val: ServerResponse<T>) => {
+        resolve(val);
+      }
+    });
+  }
+}
+
+const model = new Model(serverUtils);
+
+type IStdoutMssg = {
+  type: "request_response";
+  request_id: string;
+  client_id: string;
+  response: IServerReqTypes[keyof IServerReqTypes]["response"];
+} | {
+  type: "data_changed_notification";
+} | {
+  type: "requesting_layer_info";
+  request: ILayerReqTypes[keyof ILayerReqTypes]["request"];
+  request_id: string;
+};
+
+function stdoutMssg(mssg: IStdoutMssg) {
+  console.log(JSON.stringify(mssg));
+}
 
 model.onDataChanged(() => {
-  console.log(JSON.stringify({
+  stdoutMssg({
     type: "data_changed_notification",
-  }));
+  });
 });
+
 process.stdin.on("data", function (chunk) {
   const mssg: {
+    type: "client_request";
     client_id: string;
     client_message: MessageToServer;
+  } | {
+    type: "layer_data_response";
+    response: ServerResponse<keyof ILayerReqTypes>;
+    request_id: string;
   } = JSON.parse(chunk);
-  if (mssg.client_message.request.type === "get_graph_data") {
-    model.getGraphData().then((data) => {
-      const response: IServerReqTypes["get_graph_data"]["response"] = {success: true, data: data}
-      console.log(JSON.stringify({
-        type: "request_response",
-        request_id: mssg.client_message.requestId,
-        client_id: mssg.client_id,
-        response: response,
-      }));
-    });
-  } else if (mssg.client_message.request.type === "request_model_changes") {
-    model.requestModelChanges(...mssg.client_message.request.reqs).then(() => {
-      const response: IServerReqTypes["request_model_changes"]["response"] = {};
-      console.log(JSON.stringify({
-        type: "request_response",
-        request_id: mssg.client_message.requestId,
-        client_id: mssg.client_id,
-        response: response,
-      }));
-    });
-  } else if (mssg.client_message.request.type === "request_versioning_change") {
-    model.requestModelVersioningChange(mssg.client_message.request.req).then(() => {
-      const response: IServerReqTypes["request_versioning_change"]["response"] = {};
-      console.log(JSON.stringify({
-        type: "request_response",
-        request_id: mssg.client_message.requestId,
-        client_id: mssg.client_id,
-        response: response,
-      }));
-    });
-  } else if (mssg.client_message.request.type === "request_model_info") {
-    model.requestModelInfo(mssg.client_message.request.req).then((modelResponse) => {
-      const response: IServerReqTypes["request_model_info"]["response"] ={info:modelResponse};
-      console.log(JSON.stringify({
-        type: "request_response",
-        request_id: mssg.client_message.requestId,
-        client_id: mssg.client_id,
-        response: response,
-      }));
-    })
+  if (mssg.type === "client_request") {
+    if (mssg.client_message.request.type === "get_graph_data") {
+      model.getGraphData().then((data) => {
+        const response: IServerReqTypes["get_graph_data"]["response"] = {success: true, data: data}
+        stdoutMssg({
+          type: "request_response",
+          request_id: mssg.client_message.requestId,
+          client_id: mssg.client_id,
+          response: response,
+        });
+      });
+    } else if (mssg.client_message.request.type === "request_model_changes") {
+      model.requestModelChanges(...mssg.client_message.request.reqs).then(() => {
+        const response: IServerReqTypes["request_model_changes"]["response"] = {};
+        stdoutMssg({
+          type: "request_response",
+          request_id: mssg.client_message.requestId,
+          client_id: mssg.client_id,
+          response: response,
+        });
+      });
+    } else if (mssg.client_message.request.type === "request_versioning_change") {
+      model.requestModelVersioningChange(mssg.client_message.request.req).then(() => {
+        const response: IServerReqTypes["request_versioning_change"]["response"] = {};
+        stdoutMssg({
+          type: "request_response",
+          request_id: mssg.client_message.requestId,
+          client_id: mssg.client_id,
+          response: response,
+        });
+      });
+    } else if (mssg.client_message.request.type === "request_model_info") {
+      model.requestModelInfo(mssg.client_message.request.req).then((modelResponse) => {
+        const response: IServerReqTypes["request_model_info"]["response"] ={info:modelResponse};
+        stdoutMssg({
+          type: "request_response",
+          request_id: mssg.client_message.requestId,
+          client_id: mssg.client_id,
+          response: response,
+        });
+      })
+    }
+  } else if (mssg.type === "layer_data_response") {
+    const pending = pendingLayerInfoReqs[mssg.request_id];
+    if (pending === undefined) return;
+
+    pending(mssg.response);
+    delete pendingLayerInfoReqs[mssg.request_id];
   }
 });
 
-// without this, we would only get streams once enter is pressed
-// process.stdin.setRawMode!( true );
-
-// resume stdin in the parent process (node app won't quit all by itself
-// unless an error or process.exit() happens)
 process.stdin.resume();
-
 process.stdin.setEncoding( 'utf8' );
-// var stdin = process.openStdin();
-// // require('tty').setRawMode(true);
-//
-// stdin.on('data', function (chunk, key) {
-//   console.log("data recceived");
-//   // process.stdout.write('Get Chunk: ' + chunk + '\n');
-//   // if (key && key.ctrl && key.name == 'c') process.exit();
-// });
-
-// process.stdin.on('data', function() {
-//   var chunk = process.stdin.read();
-//   if (chunk !== null) {
-//     process.stdout.write('data: ' + chunk);
-//   }
-// });
-// let data = "";
-// process.stdin.on('readable', function() {
-//   var chunk;
-//   while (chunk = process.stdin.read()) {
-//     data += chunk;
-//   }
-// });
-//
-// process.stdin.on('end', function () {
-//   // There will be a trailing \n from the user hitting enter. Get rid of it.
-//   data = data.replace(/\n$/, '');
-//   processData();
-// });
-// function processData () {
-//   console.log(data);
-//   console.info(Buffer.byteLength(data, encoding));
-// }
-// // function showArrEl (key) {
-// //   console.log(arr[key]);
-// // }
-//
-// // process.stdin.on("data", (chunk) => {
-// //   console.log(chunk);
-// // });
