@@ -190,7 +190,28 @@ export class Conv2DLayer extends Layer {
   protected fields = {
     inputShape: {
       readonly: false,
-      wrapper: new ShapeWrapper([224, 224, 3]),
+      wrapper: new ShapeWrapper([224, 224, 3], {
+        dimConstraints: {
+          type: "equals",
+          value: 3,
+        },
+      }),
+    },
+    kernelShape: {
+      readonly: false,
+      wrapper: new ShapeWrapper([3, 3], {
+        dimConstraints: {
+          type: "equals",
+          value: 2,
+        },
+      }),
+    },
+    filters: {
+      readonly: false,
+      wrapper: new NumberWrapper(3, {
+        requireInteger: true,
+        lowerBound: {inclusive: true, val: 1},
+      }),
     },
     outputShape: {
       readonly: true,
@@ -200,18 +221,31 @@ export class Conv2DLayer extends Layer {
 
   protected async updateFunc() {
     const inputShape = this.fields.inputShape.wrapper.getValue();
+    const kernelShape = this.fields.kernelShape.wrapper.getValue();
+    const filters = this.fields.filters.wrapper.getValue();
 
     const getFieldInfo = await ServerUtils.makeLayerInfoReq<"getConv2dFields">({
       fields: {
         input_shape: inputShape,
+        kernel_size: kernelShape,
+        filters: filters,
       },
       type: "getConv2dFields",
     });
 
-    console.log(getFieldInfo);
+    if (!getFieldInfo.success) {
+      return {errors: [getFieldInfo.error_type], warnings: []}
+    }
 
-    const outputShape = getFieldInfo.fields.output_shape;
+    const outputShape = getFieldInfo.response.fields.output_shape;
 
+    const validatedOutput = this.fields.outputShape.wrapper.validateValue(outputShape);
+    if (validatedOutput !== null) {
+      return {
+        errors: ["Could not calculate output shape"],
+        warnings: [],
+      };
+    }
     this.fields.outputShape.wrapper.setValue(outputShape);
 
     return {errors: [], warnings: []};

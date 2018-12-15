@@ -50,14 +50,11 @@ export class Model implements IModelInterface {
   private readonly versioningManager: VersioningManager<ISessionDataJson>;
 
   constructor() {
-    ServerUtils.makeLayerInfoReq<"requestTest">({type: "requestTest"}).then((val) => {
-      console.log(val.example_val);
-    }).catch((reason) => {
-      console.log("Request failed: ", reason);
-    });
     this.requestQueue = new Queue();
-    for (let i = 0; i < 5; i++) {
-      const layer = Layer.getLayer(i % 2 === 0 ? "Repeat" : "Conv2D");
+    const exampleLayers: Array<"Repeat" | "Conv2D" | "AddLayer"> = ["Repeat", "Conv2D", "AddLayer"];
+    for (let i = 0; i < 8; i++) {
+      const layerType = exampleLayers[i % exampleLayers.length];
+      const layer = Layer.getLayer(layerType);
       LayerUtils.addLayer({
         layer: layer,
         layers: this.session.data.layers,

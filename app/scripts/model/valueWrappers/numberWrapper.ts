@@ -1,19 +1,48 @@
 import { AbstractValueWrapper, CloneableConfig } from "./valueWrapper.js";
 
 export type NumberWrapperConfig = CloneableConfig & {
-
+  requireInteger?: boolean;
+  lowerBound?: {
+    inclusive: boolean;
+    val: number;
+  };
+  upperBound?: {
+    inclusive: boolean;
+    val: number;
+  };
 };
 
 export class NumberWrapper extends AbstractValueWrapper<number, NumberWrapperConfig> {
-  private static validate(val: unknown): string | null {
+  private static validate(val: unknown, config: NumberWrapperConfig): string | null {
     if (typeof val !== "number") {
-      return "Value is not a number";
+      return "Value must be a number";
     }
     if (isNaN(val)) {
-      return "Value is not a number";
+      return "Value must be a number";
     }
     if (Math.abs(val) >= Number.MAX_SAFE_INTEGER) {
       return "Value too large";
+    }
+    if (config.requireInteger === true && !Number.isInteger(val)) {
+      return "Value must be an integer"
+    }
+
+    if (config.lowerBound !== undefined) {
+      if (config.lowerBound.inclusive && val < config.lowerBound.val) {
+        return `Value must be at least ${config.lowerBound.val}`;
+      }
+      if (!config.lowerBound.inclusive && val <= config.lowerBound.val) {
+        return `Value must be more than ${config.lowerBound.val}`;
+      }
+    }
+
+    if (config.upperBound !== undefined) {
+      if (config.upperBound.inclusive && val > config.upperBound.val) {
+        return `Value must be no more than ${config.upperBound.val}`;
+      }
+      if (!config.upperBound.inclusive && val >= config.upperBound.val) {
+        return `Value must be less than ${config.upperBound.val}`;
+      }
     }
 
     return null;

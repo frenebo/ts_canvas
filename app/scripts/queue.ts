@@ -4,13 +4,13 @@ export class Queue {
   private currentPromise: Promise<unknown> | null = null;
 
   public async addToQueue<T>(addedFunc: () => Promise<T>): Promise<T> {
-    return new Promise<T>((resolve) => {
+    return new Promise<T>((resolve, reject) => {
       const modifiedFunc = async () => {
         const promise = addedFunc();
         promise.then((val: T) => {
           resolve(val);
         }).catch((reason) => {
-          throw new Error(`Item in queue failed to run: ${reason}`);
+          reject(reason);
         });
 
         return promise;
@@ -34,7 +34,7 @@ export class Queue {
         this.setAsCurrentPromise(nextPromise());
       }
     }).catch((reason) => {
-      throw new Error(`Item in queue failed to run: ${reason}`);
+      throw new Error(reason);
     });
   }
 }
