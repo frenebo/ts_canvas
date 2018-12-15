@@ -29,11 +29,21 @@ def send_file(path):
 def post_req():
     return process_request_string(request.data)
 
-server_interface = GraphServerInterface()
-
-namespaces = {}
 
 class MyCustomNamespace(Namespace):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+        self.server_interface = GraphServerInterface()
+        self.server_interface.on_graph_change = self.on_graph_change
+        self.server_interface.on_request_response = self.on_request_response
+
+    def on_request_response(self, response):
+        print("request response: ", response)
+
+    def on_graph_change(self):
+        print("graph changed")
+
     def on_connect(self):
         # print("connect")
         pass
@@ -43,11 +53,9 @@ class MyCustomNamespace(Namespace):
         pass
 
     def on_model_request(self, data):
-        server_interface.send_model_req(request.sid, data)
+        self.server_interface.send_model_req(request.sid, data)
 
-namespace = MyCustomNamespace('/socket_path')
-namespaces["a"] = namespace
-socketio.on_namespace(namespace)
+socketio.on_namespace(MyCustomNamespace('/socket_path'))
 # @socketio.on("model_request", namespace="/socket_path")
 # def handle_model_request(message):
 #     print("Model request: ", message)

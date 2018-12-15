@@ -19,13 +19,6 @@ interface IServerReqTypes extends IEnforceRequestType<keyof IServerReqTypes> {
       success: false
     };
   };
-  add_data_changed_listener: {
-    request: {
-      type: "add_data_changed_listener";
-    };
-    response: {
-    };
-  };
   request_model_changes: {
     request: {
       type: "request_model_changes";
