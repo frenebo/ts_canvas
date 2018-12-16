@@ -87,7 +87,9 @@ function processStdinLine(line: string) {
   } = JSON.parse(line);
   if (mssg.type === "client_request") {
     if (mssg.client_message.request.type === "get_graph_data") {
-      model.getGraphData().then((data) => {
+      model.requestModelInfo<"getGraphData">({
+        type: "getGraphData",
+      }).then(({data}) => {
         const response: IServerReqTypes["get_graph_data"]["response"] = {success: true, data: data}
         stdoutMssg({
           type: "request_response",

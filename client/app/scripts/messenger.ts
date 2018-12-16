@@ -19,13 +19,17 @@ export async function createMessenger(): Promise<Messenger> {
 class Messenger {
   private views!: IViewInterface[];
   private model!: IModelInterface;
+  private currentVersionId: string | undefined;
 
   public async init() {
     this.model = await getModelStandIn();
     this.views = [];
 
     this.model.onDataChanged(async () => {
-      const graphData = await this.model.getGraphData();
+      const response = await this.model.requestModelInfo<"getGraphData">({
+      type: "getGraphData",
+      });
+      const graphData = response.data;
       for (const view of this.views) {
         view.setGraphData(graphData);
       }
@@ -34,7 +38,11 @@ class Messenger {
 
   public async addView(view: IViewInterface): Promise<void> {
     this.views.push(view);
-    view.setGraphData(await this.model.getGraphData());
+    const response = await this.model.requestModelInfo<"getGraphData">({
+      type: "getGraphData",
+    });
+    const graphData = response.data;
+    view.setGraphData(graphData);
   }
 
   public newRequestHandler(): RequestModelChangesFunc {

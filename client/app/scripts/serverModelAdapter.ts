@@ -33,18 +33,6 @@ class ModelStandIn implements IModelInterface {
     })
   }
 
-  public async getGraphData(): Promise<IGraphData> {
-    const response = await this.makeRequest<"get_graph_data">({
-      type: "get_graph_data"
-    });
-
-    if (!response.success) {
-      return Promise.reject();
-    }
-
-    return response.data;
-  }
-
   public async onDataChanged(listener: () => void): Promise<void> {
     this.graphDataChangedListeners.push(listener);
   }
@@ -98,6 +86,7 @@ class ModelStandIn implements IModelInterface {
 
     return promise;
   }
+
   private getUniqueRequestId(): string {
     const num = Math.random();
     let multiplier = 1000;

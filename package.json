@@ -4,6 +4,7 @@
   "description": "",
   "main": "gulpfile.js",
   "dependencies": {
+    "@types/deep-diff": "^1.0.0",
     "socket.io": "^2.2.0"
   },
   "devDependencies": {

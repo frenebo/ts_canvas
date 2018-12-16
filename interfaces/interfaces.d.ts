@@ -1,4 +1,5 @@
 
+
 interface IPortData {
   side: "top" | "bottom" | "left" | "right";
   position: number; // 0 to 1
@@ -52,7 +53,6 @@ interface IViewInterface {
 }
 
 interface IModelInterface {
-  getGraphData(): Promise<IGraphData>;
   onDataChanged(listener: () => void): void;
   requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void>;
   requestModelVersioningChange(req: ModelVersioningRequest): Promise<void>;
@@ -280,5 +280,14 @@ interface IModelInfoReqs extends ReqMapType<keyof IModelInfoReqs> {
     } | {
       requestError: "field_nonexistent";
     };
+  };
+  "getGraphData": {
+    "request": {
+      type: "getGraphData";
+    };
+    "response": {
+      data: IGraphData;
+      versionId: string;
+    }
   };
 }

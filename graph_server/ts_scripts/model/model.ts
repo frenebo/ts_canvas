@@ -71,10 +71,6 @@ export class Model implements IModelInterface {
     this.versioningManager = new VersioningManager(SessionUtils.toJson(this.session.data));
   }
 
-  public async getGraphData(): Promise<IGraphData> {
-    return this.session.data.graph;
-  }
-
   public onDataChanged(listener: () => void): void {
     this.graphChangedListeners.push(listener);
   }
@@ -235,6 +231,11 @@ export class Model implements IModelInterface {
           layers: this.session.data.layers,
           valueId: (req as IModelInfoReqs["valueIsReadonly"]["request"]).valueId,
         });
+      } else if (req.type === "getGraphData") {
+        return {
+          data: this.session.data.graph,
+          versionId: this.versioningManager.getCurrentVersionId(),
+        };
       } else {
         throw new Error(`Unimplemented request ${req.type}`);
       }
