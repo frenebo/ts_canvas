@@ -25,7 +25,6 @@ def indexDefaultPath():
 def send_file(path):
     return send_from_directory(APP_DIRECTORY, path)
 
-
 class MyCustomNamespace(Namespace):
     def __init__(self, *args):
         super().__init__(*args)

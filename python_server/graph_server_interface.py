@@ -50,7 +50,7 @@ class GraphServerInterface():
             "response": response,
             "request_id": request_id,
         }
-        self.node_process.stdin.write(json.dumps(request_contents).encode())
+        self.node_process.stdin.write((json.dumps(request_contents) + "\n").encode())
         self.node_process.stdin.flush()
 
     def send_model_req(self, session_id, data):
@@ -59,5 +59,5 @@ class GraphServerInterface():
             "client_id": "asdf",
             "client_message": data,
         }
-        self.node_process.stdin.write(json.dumps(request_contents).encode())
+        self.node_process.stdin.write((json.dumps(request_contents) + "\n").encode())
         self.node_process.stdin.flush()

@@ -59,7 +59,23 @@ model.onDataChanged(() => {
   });
 });
 
-process.stdin.on("data", function (chunk) {
+let currentLine = "";
+process.stdin.on("data", function (newText: string) {
+  let unprocessedText = newText;
+  let returnIdx: number;
+  while ((returnIdx = unprocessedText.indexOf("\n")) !== -1) {
+    const beforeReturn = unprocessedText.slice(0, returnIdx);
+    unprocessedText = unprocessedText.slice(returnIdx + 1);
+    if (beforeReturn.trim() !== "") {
+      currentLine += beforeReturn;
+      processStdinLine(currentLine);
+      currentLine = "";
+    }
+  }
+  currentLine += unprocessedText;
+});
+
+function processStdinLine(line: string) {
   const mssg: {
     type: "client_request";
     client_id: string;
@@ -68,7 +84,7 @@ process.stdin.on("data", function (chunk) {
     type: "layer_data_response";
     response: ServerResponse<keyof ILayerReqTypes>;
     request_id: string;
-  } = JSON.parse(chunk);
+  } = JSON.parse(line);
   if (mssg.type === "client_request") {
     if (mssg.client_message.request.type === "get_graph_data") {
       model.getGraphData().then((data) => {
@@ -118,7 +134,7 @@ process.stdin.on("data", function (chunk) {
     pending(mssg.response);
     delete pendingLayerInfoReqs[mssg.request_id];
   }
-});
+}
 
 process.stdin.resume();
 process.stdin.setEncoding( 'utf8' );
