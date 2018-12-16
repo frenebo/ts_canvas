@@ -1,4 +1,4 @@
-from subprocess import Popen, PIPE, STDOUT
+from eventlet.green import subprocess
 import os
 import io
 from threading import Thread
@@ -10,11 +10,11 @@ class GraphServerInterface():
         script_dir = os.path.dirname(os.path.realpath(__file__))
         GRAPH_MAIN_JS_PATH = os.path.abspath(os.path.join(script_dir, "../graph_server/build/main.js"))
 
-        self.node_process = Popen(
+        self.node_process = subprocess.Popen(
             ["node", GRAPH_MAIN_JS_PATH],
             shell=False,
-            stdout=PIPE,
-            stdin=PIPE,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
             # stderr=PIPE,
         )
 
@@ -25,12 +25,7 @@ class GraphServerInterface():
         self.on_request_response = None
 
     def listen_output(self):
-        # self.node_process.stdout
-        sout = io.open(self.node_process.stdout.fileno(), 'rb', closefd=False)
-        while True:
-            buf = sout.readline()
-            if len(buf) == 0:
-                break
+        for buf in iter(self.node_process.stdout.readline, b''):
             response_obj = json.loads(buf.decode())
 
             if response_obj["type"] == "data_changed_notification":

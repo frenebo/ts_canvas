@@ -3,6 +3,8 @@ import os
 from flask import Flask, send_from_directory, request
 from flask_socketio import SocketIO, send, Namespace
 from graph_server_interface import GraphServerInterface
+import eventlet
+eventlet.monkey_patch()
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 APP_DIRECTORY = os.path.abspath(os.path.join(script_dir, '../client/build'))
@@ -43,21 +45,12 @@ class MyCustomNamespace(Namespace):
     def on_graph_change(self):
         socketio.emit("graph_changed", {}, namespace=SOCKET_NAMESPACE_STR)
 
-    def on_join(self, sid, message):
-        print(sid, message)
-
-    def on_connect(self):
-        # print("connect")
-        pass
-
-    def on_disconnect(self):
-        # print("ondisconnect")
-        pass
-
     def on_model_request(self, data):
         self.server_interface.send_model_req(request.sid, data)
 
 socketio.on_namespace(MyCustomNamespace(SOCKET_NAMESPACE_STR))
 
 if __name__ == "__main__":
-    socketio.run(app)
+    if len(sys.argv) != 2:
+        raise Exception("App takes one argument: host")
+    socketio.run(app, host=sys.argv[1], port=5000)
