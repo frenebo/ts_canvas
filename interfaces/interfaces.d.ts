@@ -42,6 +42,7 @@ interface ILayerData {
   fields: {
     [key: string]: {
       value: string;
+      readonly: boolean;
     };
   };
 }

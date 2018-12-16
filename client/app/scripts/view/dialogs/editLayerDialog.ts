@@ -75,21 +75,13 @@ export class EditLayerDialog extends Dialog {
     this.root.appendChild(fieldDiv);
 
     for (const fieldId of Object.keys(layerData.fields)) {
-      const fieldReadonlyInfo = await this.sendModelInfoRequests<"valueIsReadonly">({
-        layerId: this.layerId,
-        type: "valueIsReadonly",
-        valueId: fieldId,
-      });
+      // const fieldReadonlyInfo = await this.sendModelInfoRequests<"valueIsReadonly">({
+      //   layerId: this.layerId,
+      //   type: "valueIsReadonly",
+      //   valueId: fieldId,
+      // });
 
-      if (fieldReadonlyInfo.requestError === "layer_nonexistent") {
-        this.alertLayerNonexistent();
-        break;
-      } else if (fieldReadonlyInfo.requestError === "field_nonexistent") {
-        this.alertFieldNonexistent(fieldId);
-        break;
-      }
-
-      this.fieldsReadonlyDict[fieldId] = {isReadonly: fieldReadonlyInfo.isReadonly};
+      this.fieldsReadonlyDict[fieldId] = {isReadonly: layerInfoResponse.data.fields[fieldId].readonly};
 
       const row = this.createFieldRow(fieldId, layerData.fields[fieldId].value);
       fieldDiv.appendChild(row);
@@ -125,34 +117,32 @@ export class EditLayerDialog extends Dialog {
 
     const label = document.createElement("div");
     row.appendChild(label);
-
-    const input = document.createElement("input");
-    row.appendChild(input);
-    this.inputFields[fieldId] = input;
-
-    const errorText = document.createElement("div");
-    row.appendChild(errorText);
-
     label.style.display = "inline-block";
     label.textContent = fieldId;
     label.style.width = "25%";
     label.style.marginLeft = "10%";
+
+    const input = document.createElement("input");
+    row.appendChild(input);
+    this.inputFields[fieldId] = input;
     input.style.display = "inline-block";
     input.style.width = "10em";
+    input.style.padding = "3px";
+    input.style.border = "1px solid black";
+    input.style.fontFamily = MONOSPACE_STYLE;
     input.value = value;
+
+    const errorText = document.createElement("div");
+    row.appendChild(errorText);
+    errorText.style.display = "inline-block";
+    errorText.style.color = "red";
+    errorText.style.fontSize = "10px";
+    errorText.style.marginLeft = "10px";
 
     if (this.fieldsReadonlyDict[fieldId].isReadonly) {
       input.disabled = true;
       input.style.backgroundColor = "#999999";
     }
-
-    input.style.padding = "3px";
-    input.style.border = "1px solid black";
-    input.style.fontFamily = MONOSPACE_STYLE;
-    errorText.style.display = "inline-block";
-    errorText.style.color = "red";
-    errorText.style.fontSize = "10px";
-    errorText.style.marginLeft = "10px";
 
     let currentValidation: {
       promise: Promise<IModelInfoReqs["validateValue"]["response"]>;
@@ -163,6 +153,7 @@ export class EditLayerDialog extends Dialog {
       if (currentValidation === null) {
         const icon = Dialog.createSmallLoadIcon();
         row.appendChild(icon);
+        icon.style.marginBottom = `${row.clientHeight/2}px`;
         icon.style.display = "inline-block";
         errorText.textContent = "";
         this.pendingFields.add(fieldId);

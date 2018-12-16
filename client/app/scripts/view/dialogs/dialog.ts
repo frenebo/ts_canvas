@@ -3,9 +3,10 @@ export class Dialog {
 
   public static createSmallLoadIcon() {
     const div = document.createElement("div");
+    div.style.height = "0";
+    div.style.overflow = "visible";
     const loadIcon = document.createElement("div");
     div.appendChild(loadIcon);
-    // loadIcon.classList.add("loader");
     loadIcon.style.width = `10px`;
     loadIcon.style.height = `10px`;
     loadIcon.style.margin = "0 auto";
@@ -13,8 +14,8 @@ export class Dialog {
     loadIcon.style.borderTop = "3px solid #3498db"; /* Blue */
     loadIcon.style.borderRadius = "50%";
     loadIcon.style.animation = "spin 2s linear infinite"; // spin is from css file
-    loadIcon.style.marginTop = "0px";
-    loadIcon.style.marginBottom = "0px";
+    // loadIcon.style.marginTop = "0px";
+    // loadIcon.style.marginBottom = "0px";
     return div;
   }
 

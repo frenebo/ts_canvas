@@ -60,6 +60,7 @@ export class LayerUtils {
     for (const valueId of layer.getFieldIds()) {
       data.fields[valueId] = {
         value: layer.getValueWrapper(valueId).stringify(),
+        readonly: layer.isReadonlyField(valueId),
       };
     }
 

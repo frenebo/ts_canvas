@@ -44,6 +44,9 @@ class MyCustomNamespace(Namespace):
     def on_graph_change(self):
         socketio.emit("graph_changed", {}, namespace=SOCKET_NAMESPACE_STR)
 
+    def on_join(self, sid, message):
+        print(sid, message)
+
     def on_connect(self):
         # print("connect")
         pass
@@ -56,13 +59,6 @@ class MyCustomNamespace(Namespace):
         self.server_interface.send_model_req(request.sid, data)
 
 socketio.on_namespace(MyCustomNamespace(SOCKET_NAMESPACE_STR))
-# @socketio.on("model_request", namespace="/socket_path")
-# def handle_model_request(message):
-#     print("Model request: ", message)
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 2:
-        # raise Exception("App takes one argument: IP address")
-    # print(sys.argv[1])
     socketio.run(app)
-    # app.run(host=sys.argv[1], port="5000")

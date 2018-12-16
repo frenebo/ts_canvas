@@ -244,7 +244,6 @@ export class Conv2DLayer extends Layer {
     }
 
     const outputShape = getFieldInfo.response.fields.output_shape;
-    process.stderr.write(JSON.stringify(outputShape) + "\n");
 
     const validatedOutput = this.fields.outputShape.wrapper.validateValue(outputShape);
     if (validatedOutput !== null) {
