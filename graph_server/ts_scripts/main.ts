@@ -1,9 +1,10 @@
 
 /// <reference path="../../interfaces/interfaces.d.ts"/>
 /// <reference path="../../interfaces/serverRequestInterfaces.d.ts"/>
-// import { spawn } from "child_process"
+
 import { Model } from "./model/model";
 import { IServerUtils, ILayerReqTypes, ServerResponse } from "./model/server_utils/server_utils";
+const createDiff: DiffCreator = require("./deps/diff/diff.js").createDiff;
 
 const pendingLayerInfoReqs: {[key: string]: (val: ServerResponse<keyof ILayerReqTypes>) => void} = {};
 function uniqueLayerReqId(): string {
@@ -34,7 +35,7 @@ const serverUtils: IServerUtils = {
   }
 }
 
-const model = new Model(serverUtils);
+const model = new Model(serverUtils, createDiff);
 
 type IStdoutMssg = {
   type: "request_response";
@@ -86,19 +87,7 @@ function processStdinLine(line: string) {
     request_id: string;
   } = JSON.parse(line);
   if (mssg.type === "client_request") {
-    if (mssg.client_message.request.type === "get_graph_data") {
-      model.requestModelInfo<"getGraphData">({
-        type: "getGraphData",
-      }).then(({data}) => {
-        const response: IServerReqTypes["get_graph_data"]["response"] = {success: true, data: data}
-        stdoutMssg({
-          type: "request_response",
-          request_id: mssg.client_message.requestId,
-          client_id: mssg.client_id,
-          response: response,
-        });
-      });
-    } else if (mssg.client_message.request.type === "request_model_changes") {
+    if (mssg.client_message.request.type === "request_model_changes") {
       model.requestModelChanges(...mssg.client_message.request.reqs).then(() => {
         const response: IServerReqTypes["request_model_changes"]["response"] = {};
         stdoutMssg({

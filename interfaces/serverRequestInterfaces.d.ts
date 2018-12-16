@@ -8,17 +8,6 @@ type IEnforceRequestType<T extends string> = {
 };
 
 interface IServerReqTypes extends IEnforceRequestType<keyof IServerReqTypes> {
-  get_graph_data: {
-    request: {
-      type: "get_graph_data";
-    };
-    response: {
-      success: true;
-      data: IGraphData;
-    } | {
-      success: false
-    };
-  };
   request_model_changes: {
     request: {
       type: "request_model_changes";

@@ -45,6 +45,7 @@ export class Model implements IModelInterface {
 
   constructor(
     private readonly serverUtils: IServerUtils,
+    private readonly createDiff: DiffCreator,
   ) {
     this.requestQueue = new Queue();
     const exampleLayers: Array<"Repeat" | "Conv2D" | "AddLayer"> = ["Repeat", "Conv2D", "AddLayer"];
@@ -236,8 +237,20 @@ export class Model implements IModelInterface {
           data: this.session.data.graph,
           versionId: this.versioningManager.getCurrentVersionId(),
         };
+      } else if (req.type === "getGraphDiff") {
+        const fromId = (req as IModelInfoReqs["getGraphDiff"]["request"]).fromId;
+        const fromGraph = this.versioningManager.getValByVersionId(fromId).graph;
+        const response: IModelInfoReqs["getGraphDiff"]["response"] = {
+          diff: this.createDiff<IGraphData & Diffable>(
+            fromGraph as IGraphData & Diffable,
+            this.session.data.graph as IGraphData & Diffable,
+          ),
+          versionId: this.versioningManager.getCurrentVersionId(),
+        }
+
+        return response;
       } else {
-        throw new Error(`Unimplemented request ${req.type}`);
+        throw new Error("unimplemented");
       }
     });
   }
@@ -349,8 +362,6 @@ export class Model implements IModelInterface {
           layers: this.session.data.layers,
         });
       }
-    } else {
-      throw new Error("Unimplemented");
     }
   }
 }
