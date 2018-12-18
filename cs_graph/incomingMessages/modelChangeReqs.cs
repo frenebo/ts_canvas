@@ -3,42 +3,33 @@ using Newtonsoft.Json;
 
 // fields are assigned to from json
 #pragma warning disable 0649
-namespace ModelChangeReqs {
-  class ChangeReqDispatcher {
-    public static void dispatchReqString(string str) {
-      GenericReq genericReq = GenericReq.fromJson(str);
+namespace ModelChangeRequests {
+  public static class Dispatcher {
+    public static void dispatch(string str) {
+      GenericReq genericReq = JsonConvert.DeserializeObject<GenericReq>(str);
 
       if (genericReq.type == "moveVertex") {
-        System.Console.WriteLine("moveVertex");
+        MoveVertex.dispatch(str);
       } else if (genericReq.type == "cloneVertex") {
-        System.Console.WriteLine("cloneVertex");
+        CloneVertex.dispatch(str);
       } else if (genericReq.type == "createEdge") {
-        System.Console.WriteLine("createEdge");
+        CreateEdge.dispatch(str);
       } else if (genericReq.type == "deleteVertex") {
-        System.Console.WriteLine("deleteVertex");
+        DeleteEdge.dispatch(str);
       } else if (genericReq.type == "setLayerFields") {
         System.Console.WriteLine("setLayerFields");
       }
     }
   }
 
-  class GenericReq {
-    public static GenericReq fromJson(string str) {
-      return JsonConvert.DeserializeObject<GenericReq>(str);
-    }
-    public string toJson() {
-      return JsonConvert.SerializeObject(this);
-    }
-
+  internal class GenericReq {
     public string type;
   }
 
-  class MoveVertex {
-    public static MoveVertex fromJson(string str) {
-      return JsonConvert.DeserializeObject<MoveVertex>(str);
-    }
-    public string toJson() {
-      return JsonConvert.SerializeObject(this);
+  internal class MoveVertex {
+    public static void dispatch(string str) {
+      MoveVertex moveVertexReq = JsonConvert.DeserializeObject<MoveVertex>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string vertexId;
@@ -46,12 +37,10 @@ namespace ModelChangeReqs {
     public float y;
   }
 
-  class CloneVertex {
-    public static CloneVertex fromJson(string str) {
-      return JsonConvert.DeserializeObject<CloneVertex>(str);
-    }
-    public string toJson() {
-      return JsonConvert.SerializeObject(this);
+  internal class CloneVertex {
+    public static void dispatch(string str) {
+      CloneVertex cloneVertexReq = JsonConvert.DeserializeObject<CloneVertex>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string newVertexId;
@@ -60,12 +49,10 @@ namespace ModelChangeReqs {
     public float y;
   }
 
-  class CreateEdge {
-    public static CreateEdge fromJson(string str) {
-      return JsonConvert.DeserializeObject<CreateEdge>(str);
-    }
-    public string toJson() {
-      return JsonConvert.SerializeObject(this);
+  internal class CreateEdge {
+    public static void dispatch(string str) {
+      CreateEdge createEdgeReq = JsonConvert.DeserializeObject<CreateEdge>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string newEdgeId;
@@ -75,34 +62,28 @@ namespace ModelChangeReqs {
     public string targetPortId;
   }
 
-  class DeleteVertex {
-    public static DeleteVertex fromJson(string str) {
-      return JsonConvert.DeserializeObject<DeleteVertex>(str);
-    }
-    public string toJson() {
-      return JsonConvert.SerializeObject(this);
+  internal class DeleteVertex {
+    public static void dispatch(string str) {
+      DeleteVertex deleteVertexReq = JsonConvert.DeserializeObject<DeleteVertex>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string vertexId;
   }
 
-  class DeleteEdge {
-    public static DeleteEdge fromJson(string str) {
-      return JsonConvert.DeserializeObject<DeleteEdge>(str);
-    }
-    public string toJson() {
-      return JsonConvert.SerializeObject(this);
+  internal class DeleteEdge {
+    public static void dispatch(string str) {
+      DeleteEdge deleteEdgeReq = JsonConvert.DeserializeObject<DeleteEdge>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string edgeId;
   }
 
-  class SetLayerFields {
-    public static SetLayerFields fromJson(string str) {
-      return JsonConvert.DeserializeObject<SetLayerFields>(str);
-    }
-    public string toJson() {
-      return JsonConvert.SerializeObject(this);
+  internal class SetLayerFields {
+    public static void dispatch(string str) {
+      SetLayerFields setLayerFieldsReq = JsonConvert.DeserializeObject<SetLayerFields>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string layerId;

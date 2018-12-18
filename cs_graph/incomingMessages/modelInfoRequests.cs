@@ -4,9 +4,46 @@ using System.Collections.Generic;
 // fields are assigned to from json
 #pragma warning disable 0649
 namespace ModelInfoRequests {
-  class ValidateEdge {
-    public static ValidateEdge fromJson(string str) {
-      return JsonConvert.DeserializeObject<ValidateEdge>(str);
+  public static class Dispatcher {
+    public static void dispatch(string str) {
+      GenericModelInfoReq genericReq = JsonConvert.DeserializeObject<GenericModelInfoReq>(str);
+
+      if (genericReq.type == "validateEdge") {
+        ValidateEdge.dispatch(str);
+      } else if (genericReq.type == "edgesBetweenVertices") {
+        EdgesBetweenVertices.dispatch(str);
+      } else if (genericReq.type == "fileIsOpen") {
+        FileIsOpen.dispatch(str);
+      } else if (genericReq.type == "savedFileNames") {
+        SavedFileNames.dispatch(str);
+      } else if (genericReq.type == "getPortInfo") {
+        GetPortInfo.dispatch(str);
+      } else if (genericReq.type == "getLayerInfo") {
+        GetLayerInfo.dispatch(str);
+      } else if (genericReq.type == "validateValue") {
+        ValidateValue.dispatch(str);
+      } else if (genericReq.type == "compareValue") {
+        CompareValue.dispatch(str);
+      } else if (genericReq.type == "validateLayerFields") {
+        ValidateLayerFields.dispatch(str);
+      } else if (genericReq.type == "getUniqueEdgeIds") {
+        GetUniqueEdgeIds.dispatch(str);
+      } else if (genericReq.type == "getUniqueVertexIds") {
+        GetUniqueVertexIds.dispatch(str);
+      } else if (genericReq.type == "valueIsReadonly") {
+        ValueIsReadonly.dispatch(str);
+      } else if (genericReq.type == "getGraphData") {
+        GetGraphData.dispatch(str);
+      }
+    }
+  }
+  internal class GenericModelInfoReq {
+    public string type;
+  }
+  internal class ValidateEdge {
+    public static void dispatch(string str) {
+      ValidateEdge validateEdge = JsonConvert.DeserializeObject<ValidateEdge>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string edgeId;
@@ -16,46 +53,52 @@ namespace ModelInfoRequests {
     public string targetPortId;
   }
 
-  class EdgesBetweenVertices {
-    public static EdgesBetweenVertices fromJson(string str) {
-      return JsonConvert.DeserializeObject<EdgesBetweenVertices>(str);
+  internal class EdgesBetweenVertices {
+    public static void dispatch(string str) {
+      EdgesBetweenVertices edgesBetweenVertices = JsonConvert.DeserializeObject<EdgesBetweenVertices>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string[] vertexIds;
   }
 
-  class FileIsOpen {
-    public static FileIsOpen fromJson(string str) {
-      return JsonConvert.DeserializeObject<FileIsOpen>(str);
+  internal class FileIsOpen {
+    public static void dispatch(string str) {
+      FileIsOpen fileIsOpen = JsonConvert.DeserializeObject<FileIsOpen>(str);
+      System.Console.WriteLine("unimplemented");
     }
   }
 
-  class SavedFileNames {
-    public static SavedFileNames fromJson(string str) {
-      return JsonConvert.DeserializeObject<SavedFileNames>(str);
+  internal class SavedFileNames {
+    public static void dispatch(string str) {
+      SavedFileNames savedFileNames = JsonConvert.DeserializeObject<SavedFileNames>(str);
+      System.Console.WriteLine("unimplemented");
     }
   }
 
-  class GetPortInfo {
-    public static GetPortInfo fromJson(string str) {
-      return JsonConvert.DeserializeObject<GetPortInfo>(str);
+  internal class GetPortInfo {
+    public static void dispatch(string str) {
+      GetPortInfo getPortInfo = JsonConvert.DeserializeObject<GetPortInfo>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string vertexId;
     public string portId;
   }
 
-  class GetLayerInfo {
-    public static GetLayerInfo fromJson(string str) {
-      return JsonConvert.DeserializeObject<GetLayerInfo>(str);
+  internal class GetLayerInfo {
+    public static void dispatch(string str) {
+      GetLayerInfo getLayerInfo = JsonConvert.DeserializeObject<GetLayerInfo>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string layerId;
   }
 
-  class ValidateValue {
-    public static ValidateValue fromJson(string str) {
-      return JsonConvert.DeserializeObject<ValidateValue>(str);
+  internal class ValidateValue {
+    public static void dispatch(string str) {
+      ValidateValue validateValue = JsonConvert.DeserializeObject<ValidateValue>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string layerId;
@@ -63,9 +106,10 @@ namespace ModelInfoRequests {
     public string newValue;
   }
 
-  class CompareValue {
-    public static CompareValue fromJson(string str) {
-      return JsonConvert.DeserializeObject<CompareValue>(str);
+  internal class CompareValue {
+    public static void dispatch(string str) {
+      CompareValue compareValue = JsonConvert.DeserializeObject<CompareValue>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string layerId;
@@ -73,43 +117,48 @@ namespace ModelInfoRequests {
     public string compareValue;
   }
 
-  class ValidateLayerFields {
-    public static ValidateLayerFields fromJson(string str) {
-      return JsonConvert.DeserializeObject<ValidateLayerFields>(str);
+  internal class ValidateLayerFields {
+    public static void dispatch(string str) {
+      ValidateLayerFields validateLayerFields = JsonConvert.DeserializeObject<ValidateLayerFields>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string layerId;
     public Dictionary<string, string> fieldValues;
   }
 
-  class GetUniqueEdgeIds {
-    public static GetUniqueEdgeIds fromJson(string str) {
-      return JsonConvert.DeserializeObject<GetUniqueEdgeIds>(str);
+  internal class GetUniqueEdgeIds {
+    public static void dispatch(string str) {
+      GetUniqueEdgeIds getUniqueEdgeIds = JsonConvert.DeserializeObject<GetUniqueEdgeIds>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public int count;
   }
 
-  class GetUniqueVertexIds {
-    public static GetUniqueVertexIds fromJson(string str) {
-      return JsonConvert.DeserializeObject<GetUniqueVertexIds>(str);
+  internal class GetUniqueVertexIds {
+    public static void dispatch(string str) {
+      GetUniqueVertexIds getUniqueVertexIds = JsonConvert.DeserializeObject<GetUniqueVertexIds>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public int count;
   }
 
-  class ValueIsReadonly {
-    public static ValueIsReadonly fromJson(string str) {
-      return JsonConvert.DeserializeObject<ValueIsReadonly>(str);
+  internal class ValueIsReadonly {
+    public static void dispatch(string str) {
+      ValueIsReadonly valueIsReadonly = JsonConvert.DeserializeObject<ValueIsReadonly>(str);
+      System.Console.WriteLine("unimplemented");
     }
 
     public string layerId;
     public string valueId;
   }
 
-  class GetGraphData {
-    public static GetGraphData fromJson(string str) {
-      return JsonConvert.DeserializeObject<GetGraphData>(str);
+  internal class GetGraphData {
+    public static void dispatch(string str) {
+      GetGraphData getGraphData = JsonConvert.DeserializeObject<GetGraphData>(str);
+      System.Console.WriteLine("unimplemented");
     }
   }
 }

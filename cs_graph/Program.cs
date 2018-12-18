@@ -1,10 +1,9 @@
-using ModelChangeReqs;
 using Newtonsoft.Json;
 
 namespace cs_graph {
   class Program {
     static void Main(string[] args) {
-      Program.listenInput();
+      ServerRequests.Dispatcher.dispatch("{\"type\": \"request_model_changes\", \"reqs\": [{\"a\": 3}, {}]}");
     }
 
     private static async System.Threading.Tasks.Task listenInput() {
