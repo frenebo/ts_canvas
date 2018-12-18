@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GraphInterfaces {
+namespace JsonGraphInterfaces {
   enum SideType {Top, Bottom, Left, Right};
   enum PortType {Input, Output};
   enum ConsistencyType {Consistent, Inconsistent};

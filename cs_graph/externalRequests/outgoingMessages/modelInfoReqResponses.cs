@@ -18,10 +18,10 @@ namespace ModelInfoReqResponses {
 
   class EdgesBetweenVerticesResponseVerticesExist {
     public readonly bool verticesExist = true;
-    public readonly Dictionary<string, GraphInterfaces.IEdgeData> edges;
+    public readonly Dictionary<string, JsonGraphInterfaces.IEdgeData> edges;
 
     public EdgesBetweenVerticesResponseVerticesExist(
-      Dictionary<string, GraphInterfaces.IEdgeData> edges
+      Dictionary<string, JsonGraphInterfaces.IEdgeData> edges
     ) {
       this.edges = edges;
     }
@@ -74,9 +74,9 @@ namespace ModelInfoReqResponses {
 
   class GetLayerInfoResponseLayerExists {
     public readonly bool layerExists = true;
-    public readonly GraphInterfaces.ILayerData data;
+    public readonly JsonGraphInterfaces.ILayerData data;
 
-    public GetLayerInfoResponseLayerExists(GraphInterfaces.ILayerData data) {
+    public GetLayerInfoResponseLayerExists(JsonGraphInterfaces.ILayerData data) {
       this.data = data;
     }
   }
@@ -184,10 +184,10 @@ namespace ModelInfoReqResponses {
   }
 
   class GetGraphDataResponse {
-    public readonly GraphInterfaces.IGraphData data;
+    public readonly JsonGraphInterfaces.IGraphData data;
     public readonly string versionId;
 
-    public GetGraphDataResponse(GraphInterfaces.IGraphData data, string versionId) {
+    public GetGraphDataResponse(JsonGraphInterfaces.IGraphData data, string versionId) {
       this.data = data;
       this.versionId = versionId;
     }
