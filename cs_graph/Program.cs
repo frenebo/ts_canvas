@@ -1,16 +1,29 @@
 using ModelChangeReqs;
+using Newtonsoft.Json;
 
-namespace cs_graph
-{
-  class Program
-  {
-    static void Main(string[] args)
-    {
-      System.IO.TextReader tIn = System.Console.In;
-      System.IO.TextWriter tOut = System.Console.Out;
+namespace cs_graph {
+  class Program {
+    static void Main(string[] args) {
+      Program.listenInput();
+    }
 
-      System.Console.WriteLine("Hello World!");
-      ModelChangeReqs.ChangeReqDispatcher.dispatchReqString("{\"type\": \"moveVertex\", \"vertexId\": \"asdf\", \"x\": 1, \"y\": 2}");
+    private static async System.Threading.Tasks.Task listenInput() {
+      string currentLine = "";
+      while (true) {
+        char[] charBuf = new char[10];
+        await System.Console.In.ReadAsync(charBuf, 0, charBuf.Length);
+
+        string newText = new string(charBuf);
+
+        int returnIdx;
+        while ((returnIdx = newText.IndexOf("\n")) != -1) {
+          currentLine += newText.Substring(0, returnIdx);
+          System.Console.WriteLine("line: " + currentLine);
+          currentLine = "";
+          newText = newText.Substring(returnIdx + 1);
+        }
+        currentLine += newText;
+      }
     }
   }
 }

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
+// fields are assigned to from json
+#pragma warning disable 0649
 namespace ModelChangeReqs {
   class ChangeReqDispatcher {
     public static void dispatchReqString(string str) {
@@ -39,7 +41,6 @@ namespace ModelChangeReqs {
       return JsonConvert.SerializeObject(this);
     }
 
-    public string type = "moveVertex";
     public string vertexId;
     public float x;
     public float y;
@@ -53,7 +54,6 @@ namespace ModelChangeReqs {
       return JsonConvert.SerializeObject(this);
     }
 
-    public string type = "cloneVertex";
     public string newVertexId;
     public string sourceVertexId;
     public float x;
@@ -68,7 +68,6 @@ namespace ModelChangeReqs {
       return JsonConvert.SerializeObject(this);
     }
 
-    public string type = "createEdge";
     public string newEdgeId;
     public string sourceVertexId;
     public string sourcePortId;
@@ -84,7 +83,6 @@ namespace ModelChangeReqs {
       return JsonConvert.SerializeObject(this);
     }
 
-    public string type = "deleteVertex";
     public string vertexId;
   }
 
@@ -96,7 +94,6 @@ namespace ModelChangeReqs {
       return JsonConvert.SerializeObject(this);
     }
 
-    public string type = "deleteEdge";
     public string edgeId;
   }
 
@@ -108,40 +105,8 @@ namespace ModelChangeReqs {
       return JsonConvert.SerializeObject(this);
     }
 
-    public string type = "setLayerFields";
     public string layerId;
     public Dictionary<string, string> fieldValues;
   }
 }
-
-// {
-//   type: "moveVertex";
-//   vertexId: string;
-//   x: number;
-//   y: number;
-// } | {
-//   type: "cloneVertex";
-//   newVertexId: string;
-//   sourceVertexId: string;
-//   x: number;
-//   y: number;
-// } | {
-//   type: "createEdge";
-//   newEdgeId: string;
-//   sourceVertexId: string;
-//   sourcePortId: string;
-//   targetVertexId: string;
-//   targetPortId: string;
-// } | {
-//   type: "deleteVertex";
-//   vertexId: string;
-// } | {
-//   type: "deleteEdge";
-//   edgeId: string;
-// } | {
-//   type: "setLayerFields";
-//   layerId: string;
-//   fieldValues: {
-//     [key: string]: string;
-//   };
-// }
+#pragma warning restore 0649
