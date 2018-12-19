@@ -20,6 +20,7 @@ namespace ModelVersioningRequests {
       }
     }
   }
+
   internal struct GenericReq {
     public string type;
   }

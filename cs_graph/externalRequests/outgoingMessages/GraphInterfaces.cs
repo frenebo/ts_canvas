@@ -1,43 +1,43 @@
 using System.Collections.Generic;
 
 namespace JsonGraphInterfaces {
-  struct IGraphPortData {
-    string side;
-    float location;
-    string portType;
+  public struct IGraphPortData {
+    public string side;
+    public float location;
+    public string portType;
   }
 
-  struct IVertexData {
-    string label;
-    float xPos;
-    float yPos;
-    Dictionary<string, IGraphPortData> ports;
+  public struct IVertexData {
+    public string label;
+    public float xPos;
+    public float yPos;
+    public Dictionary<string, IGraphPortData> ports;
   }
 
-  struct IEdgeData {
-    string consistency;
-    string sourceVertexId;
-    string sourcePortId;
-    string targetVertexId;
-    string targetPortId;
+  public struct IEdgeData {
+    public string consistency;
+    public string sourceVertexId;
+    public string sourcePortId;
+    public string targetVertexId;
+    public string targetPortId;
   }
 
-  struct IGraphData {
-    Dictionary<string, IVertexData> vertices;
-    Dictionary<string, IEdgeData> edges;
+  public struct IGraphData {
+    public Dictionary<string, IVertexData> vertices;
+    public Dictionary<string, IEdgeData> edges;
   }
 
-  struct ILayerPortData {
-    string valueName;
+  public struct ILayerPortData {
+    public string valueName;
   }
 
-  struct ILayerFieldData {
-    string value;
-    bool fieldIsReadonly;
+  public struct ILayerFieldData {
+    public string value;
+    public bool fieldIsReadonly;
   }
 
-  struct ILayerData {
-    Dictionary<string, ILayerPortData> ports;
-    Dictionary<string, ILayerFieldData> fields;
+  public struct ILayerData {
+    public Dictionary<string, ILayerPortData> ports;
+    public Dictionary<string, ILayerFieldData> fields;
   }
 }

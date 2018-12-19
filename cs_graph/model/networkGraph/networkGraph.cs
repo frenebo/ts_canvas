@@ -10,21 +10,21 @@ namespace NetworkGraph {
   }
 
   public struct NetworkVertex {
-    float xPos;
-    float yPos;
-    Dictionary<string, NetworkPort> ports;
+    public float xPos;
+    public float yPos;
+    public Dictionary<string, NetworkPort> ports;
   }
 
   public struct NetworkEdge {
-    string sourceVertexId;
-    string sourcePortId;
-    string targetVertexId;
-    string targetPortId;
+    public string sourceVertexId;
+    public string sourcePortId;
+    public string targetVertexId;
+    public string targetPortId;
   }
 
   public struct NetworkPort {
-    SideType side;
-    float position;
-    PortType type;
+    public SideType side;
+    public float position;
+    public PortType type;
   }
 }
