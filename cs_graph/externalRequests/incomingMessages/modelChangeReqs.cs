@@ -17,19 +17,18 @@ namespace ModelChangeRequests {
       } else if (genericReq.type == "deleteVertex") {
         DeleteEdge.dispatch(str);
       } else if (genericReq.type == "setLayerFields") {
-        System.Console.WriteLine("setLayerFields");
+        SetLayerFields.dispatch(str);
       }
     }
   }
 
-  internal class GenericReq {
+  internal struct GenericReq {
     public string type;
   }
 
-  internal class MoveVertex {
+  internal struct MoveVertex {
     public static void dispatch(string str) {
       MoveVertex moveVertexReq = JsonConvert.DeserializeObject<MoveVertex>(str);
-      System.Console.WriteLine("unimplemented");
     }
 
     public string vertexId;
@@ -37,10 +36,9 @@ namespace ModelChangeRequests {
     public float y;
   }
 
-  internal class CloneVertex {
+  internal struct CloneVertex {
     public static void dispatch(string str) {
       CloneVertex cloneVertexReq = JsonConvert.DeserializeObject<CloneVertex>(str);
-      System.Console.WriteLine("unimplemented");
     }
 
     public string newVertexId;
@@ -49,10 +47,9 @@ namespace ModelChangeRequests {
     public float y;
   }
 
-  internal class CreateEdge {
+  internal struct CreateEdge {
     public static void dispatch(string str) {
       CreateEdge createEdgeReq = JsonConvert.DeserializeObject<CreateEdge>(str);
-      System.Console.WriteLine("unimplemented");
     }
 
     public string newEdgeId;
@@ -62,28 +59,25 @@ namespace ModelChangeRequests {
     public string targetPortId;
   }
 
-  internal class DeleteVertex {
+  internal struct DeleteVertex {
     public static void dispatch(string str) {
       DeleteVertex deleteVertexReq = JsonConvert.DeserializeObject<DeleteVertex>(str);
-      System.Console.WriteLine("unimplemented");
     }
 
     public string vertexId;
   }
 
-  internal class DeleteEdge {
+  internal struct DeleteEdge {
     public static void dispatch(string str) {
       DeleteEdge deleteEdgeReq = JsonConvert.DeserializeObject<DeleteEdge>(str);
-      System.Console.WriteLine("unimplemented");
     }
 
     public string edgeId;
   }
 
-  internal class SetLayerFields {
+  internal struct SetLayerFields {
     public static void dispatch(string str) {
       SetLayerFields setLayerFieldsReq = JsonConvert.DeserializeObject<SetLayerFields>(str);
-      System.Console.WriteLine("unimplemented");
     }
 
     public string layerId;

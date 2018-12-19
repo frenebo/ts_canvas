@@ -1,9 +1,20 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace cs_graph {
   class Program {
     static void Main(string[] args) {
-      ServerRequests.Dispatcher.dispatch("{\"type\": \"request_model_changes\", \"reqs\": [{\"a\": 3}, {}]}");
+      ModelClass.ModelClass model = new ModelClass.ModelClass {
+        layerDict = new LayerDict.LayerDict {
+          layers = new Dictionary<string, Layers.Layer>()
+        },
+        networkGraph = new NetworkGraph.NetworkGraph {
+          vertices = new Dictionary<string, NetworkGraph.NetworkVertex>(),
+          edges = new Dictionary<string, NetworkGraph.NetworkEdge>()
+        }
+      };
+      Program.listenInput();
+      // ServerRequests.Dispatcher.dispatch("{\"type\": \"request_model_changes\", \"reqs\": [{\"a\": 3}, {}]}");
     }
 
     private static async System.Threading.Tasks.Task listenInput() {

@@ -1,47 +1,43 @@
 using System.Collections.Generic;
 
 namespace JsonGraphInterfaces {
-  enum SideType {Top, Bottom, Left, Right};
-  enum PortType {Input, Output};
-  enum ConsistencyType {Consistent, Inconsistent};
-
-  interface IGraphPortData {
-    SideType side { get; }
-    float location { get; }
-    PortType portType { get; }
+  struct IGraphPortData {
+    string side;
+    float location;
+    string portType;
   }
 
-  interface IVertexData {
-    string label { get; }
-    float xPos { get; }
-    float yPos { get; }
-    Dictionary<string, IGraphPortData> ports { get; }
+  struct IVertexData {
+    string label;
+    float xPos;
+    float yPos;
+    Dictionary<string, IGraphPortData> ports;
   }
 
-  interface IEdgeData {
-    ConsistencyType consistency { get; }
-    string sourceVertexId { get; }
-    string sourcePortId { get; }
-    string targetVertexId { get; }
-    string targetPortId { get; }
+  struct IEdgeData {
+    string consistency;
+    string sourceVertexId;
+    string sourcePortId;
+    string targetVertexId;
+    string targetPortId;
   }
 
-  interface IGraphData {
-    Dictionary<string, IVertexData> vertices { get; }
-    Dictionary<string, IEdgeData> edges { get; }
+  struct IGraphData {
+    Dictionary<string, IVertexData> vertices;
+    Dictionary<string, IEdgeData> edges;
   }
 
-  interface ILayerPortData {
-    string valueName { get; }
+  struct ILayerPortData {
+    string valueName;
   }
 
-  interface ILayerFieldData {
-    string value { get; }
-    bool fieldIsReadonly { get; }
+  struct ILayerFieldData {
+    string value;
+    bool fieldIsReadonly;
   }
 
-  interface ILayerData {
-    Dictionary<string, ILayerPortData> ports { get; }
-    Dictionary<string, ILayerFieldData> fields { get; }
+  struct ILayerData {
+    Dictionary<string, ILayerPortData> ports;
+    Dictionary<string, ILayerFieldData> fields;
   }
 }

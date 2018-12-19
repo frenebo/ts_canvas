@@ -20,44 +20,39 @@ namespace ModelVersioningRequests {
       }
     }
   }
-  internal class GenericReq {
+  internal struct GenericReq {
     public string type;
   }
 
-  internal class Undo {
+  internal struct Undo {
     public static void dispatch(string str) {
       Undo undoReq = JsonConvert.DeserializeObject<Undo>(str);
-      System.Console.WriteLine("unimplemented");
     }
   }
 
-  internal class Redo {
+  internal struct Redo {
     public static void dispatch(string str) {
       Redo redoReq = JsonConvert.DeserializeObject<Redo>(str);
-      System.Console.WriteLine("unimplemented");
     }
   }
 
-  internal class SaveFile {
+  internal struct SaveFile {
     public static void dispatch(string str) {
       SaveFile saveFileReq = JsonConvert.DeserializeObject<SaveFile>(str);
-      System.Console.WriteLine("unimplemented");
     }
   }
 
-  internal class OpenFile {
+  internal struct OpenFile {
     public static void dispatch(string str) {
       OpenFile openFileReq = JsonConvert.DeserializeObject<OpenFile>(str);
-      System.Console.WriteLine("unimplemented");
     }
 
     public string fileName;
   }
 
-  internal class DeleteFile {
+  internal struct DeleteFile {
     public static void dispatch(string str) {
       DeleteFile deleteFileReq = JsonConvert.DeserializeObject<DeleteFile>(str);
-      System.Console.WriteLine("unimplemented");
     }
 
     public string fileName;
