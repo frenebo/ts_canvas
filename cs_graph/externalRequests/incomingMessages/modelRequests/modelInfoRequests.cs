@@ -4,36 +4,41 @@ using System.Collections.Generic;
 // fields are assigned to from json
 #pragma warning disable 0649
 namespace ModelInfoRequests {
+  public class InvalidInfoReqType : System.Exception {
+    public InvalidInfoReqType(string message) : base(message) {}
+  }
   public static class Dispatcher {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       GenericModelInfoReq genericReq = JsonConvert.DeserializeObject<GenericModelInfoReq>(str);
 
       if (genericReq.type == "validateEdge") {
-        ValidateEdge.dispatch(str);
+        ValidateEdge.dispatch(str, reqResponder);
       } else if (genericReq.type == "edgesBetweenVertices") {
-        EdgesBetweenVertices.dispatch(str);
+        EdgesBetweenVertices.dispatch(str, reqResponder);
       } else if (genericReq.type == "fileIsOpen") {
-        FileIsOpen.dispatch(str);
+        FileIsOpen.dispatch(str, reqResponder);
       } else if (genericReq.type == "savedFileNames") {
-        SavedFileNames.dispatch(str);
+        SavedFileNames.dispatch(str, reqResponder);
       } else if (genericReq.type == "getPortInfo") {
-        GetPortInfo.dispatch(str);
+        GetPortInfo.dispatch(str, reqResponder);
       } else if (genericReq.type == "getLayerInfo") {
-        GetLayerInfo.dispatch(str);
+        GetLayerInfo.dispatch(str, reqResponder);
       } else if (genericReq.type == "validateValue") {
-        ValidateValue.dispatch(str);
+        ValidateValue.dispatch(str, reqResponder);
       } else if (genericReq.type == "compareValue") {
-        CompareValue.dispatch(str);
+        CompareValue.dispatch(str, reqResponder);
       } else if (genericReq.type == "validateLayerFields") {
-        ValidateLayerFields.dispatch(str);
+        ValidateLayerFields.dispatch(str, reqResponder);
       } else if (genericReq.type == "getUniqueEdgeIds") {
-        GetUniqueEdgeIds.dispatch(str);
+        GetUniqueEdgeIds.dispatch(str, reqResponder);
       } else if (genericReq.type == "getUniqueVertexIds") {
-        GetUniqueVertexIds.dispatch(str);
+        GetUniqueVertexIds.dispatch(str, reqResponder);
       } else if (genericReq.type == "valueIsReadonly") {
-        ValueIsReadonly.dispatch(str);
+        ValueIsReadonly.dispatch(str, reqResponder);
       } else if (genericReq.type == "getGraphData") {
-        GetGraphData.dispatch(str);
+        GetGraphData.dispatch(str, reqResponder);
+      } else {
+        throw new InvalidInfoReqType(genericReq.type);
       }
     }
   }
@@ -43,7 +48,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct ValidateEdge {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       ValidateEdge validateEdge = JsonConvert.DeserializeObject<ValidateEdge>(str);
     }
 
@@ -55,7 +60,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct EdgesBetweenVertices {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       EdgesBetweenVertices edgesBetweenVertices = JsonConvert.DeserializeObject<EdgesBetweenVertices>(str);
     }
 
@@ -63,19 +68,19 @@ namespace ModelInfoRequests {
   }
 
   internal struct FileIsOpen {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       FileIsOpen fileIsOpen = JsonConvert.DeserializeObject<FileIsOpen>(str);
     }
   }
 
   internal struct SavedFileNames {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       SavedFileNames savedFileNames = JsonConvert.DeserializeObject<SavedFileNames>(str);
     }
   }
 
   internal struct GetPortInfo {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       GetPortInfo getPortInfo = JsonConvert.DeserializeObject<GetPortInfo>(str);
     }
 
@@ -84,7 +89,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct GetLayerInfo {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       GetLayerInfo getLayerInfo = JsonConvert.DeserializeObject<GetLayerInfo>(str);
     }
 
@@ -92,7 +97,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct ValidateValue {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       ValidateValue validateValue = JsonConvert.DeserializeObject<ValidateValue>(str);
     }
 
@@ -102,7 +107,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct CompareValue {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       CompareValue compareValue = JsonConvert.DeserializeObject<CompareValue>(str);
     }
 
@@ -112,7 +117,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct ValidateLayerFields {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       ValidateLayerFields validateLayerFields = JsonConvert.DeserializeObject<ValidateLayerFields>(str);
     }
 
@@ -121,7 +126,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct GetUniqueEdgeIds {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       GetUniqueEdgeIds getUniqueEdgeIds = JsonConvert.DeserializeObject<GetUniqueEdgeIds>(str);
     }
 
@@ -129,7 +134,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct GetUniqueVertexIds {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       GetUniqueVertexIds getUniqueVertexIds = JsonConvert.DeserializeObject<GetUniqueVertexIds>(str);
     }
 
@@ -137,7 +142,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct ValueIsReadonly {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       ValueIsReadonly valueIsReadonly = JsonConvert.DeserializeObject<ValueIsReadonly>(str);
     }
 
@@ -146,7 +151,7 @@ namespace ModelInfoRequests {
   }
 
   internal struct GetGraphData {
-    public static void dispatch(string str) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
       GetGraphData getGraphData = JsonConvert.DeserializeObject<GetGraphData>(str);
     }
   }

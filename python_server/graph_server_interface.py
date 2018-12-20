@@ -8,18 +8,27 @@ from request_processor import run_layer_request
 class GraphServerInterface():
     def __init__(self):
         script_dir = os.path.dirname(os.path.realpath(__file__))
+
         GRAPH_MAIN_JS_PATH = os.path.abspath(os.path.join(script_dir, "../graph_server/build/main.js"))
+        CSHARP_PROJECT_PATH = os.path.abspath(os.path.join(script_dir, "../cs_graph"));
 
         self.node_process = subprocess.Popen(
-            ["node", GRAPH_MAIN_JS_PATH],
+            ["dotnet", "run", "--project", CSHARP_PROJECT_PATH, "--no-build"],
             shell=False,
-            stdout=subprocess.PIPE,
+            # stdout=subprocess.PIPE,
             stdin=subprocess.PIPE,
-            # stderr=PIPE,
         )
 
-        t = Thread(target=self.listen_output, args=[])
-        t.start()
+        # self.node_process = subprocess.Popen(
+        #     ["node", GRAPH_MAIN_JS_PATH],
+        #     shell=False,
+        #     stdout=subprocess.PIPE,
+        #     stdin=subprocess.PIPE,
+        #     # stderr=PIPE,
+        # )
+
+        # t = Thread(target=self.listen_output, args=[])
+        # t.start()
 
         self.on_graph_change = None
         self.on_request_response = None
