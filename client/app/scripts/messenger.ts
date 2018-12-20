@@ -19,7 +19,6 @@ export async function createMessenger(): Promise<Messenger> {
 class Messenger {
   private views!: IViewInterface[];
   private model!: IModelInterface;
-  private currentVersionId: string | undefined;
 
   public async init() {
     this.model = await getModelStandIn();
@@ -27,7 +26,7 @@ class Messenger {
 
     this.model.onDataChanged(async () => {
       const response = await this.model.requestModelInfo<"getGraphData">({
-      type: "getGraphData",
+        type: "getGraphData",
       });
       const graphData = response.data;
       for (const view of this.views) {

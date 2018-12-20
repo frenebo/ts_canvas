@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 
-namespace ModelClass {
-  public struct ModelClass {
+namespace ModelStruct {
+  public struct ModelStruct {
     public LayerDict.LayerDict layerDict;
 
-    public NetworkGraph.NetworkGraph networkGraph;
+    public NetworkGraph.Graph graph;
   }
 }

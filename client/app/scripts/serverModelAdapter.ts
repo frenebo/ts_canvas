@@ -10,34 +10,6 @@ declare const io: any;
 declare const applyDiff: DiffApplier;
 
 class ModelStandIn implements IModelInterface {
-  private mostRecentGraph: {
-    currentVersionId: string;
-    currentGraph: IGraphData;
-  } | null = null;
-  public async getGraphData(): Promise<IGraphData> {
-    let newGraph: IGraphData;
-    let newVersionId: string;
-    if (this.mostRecentGraph === null) {
-      const graphInfo = await this.requestModelInfo<"getGraphData">({
-        type: "getGraphData",
-      });
-      newGraph = graphInfo.data;
-      newVersionId = graphInfo.versionId;
-    } else {
-      const diffInfo = await this.requestModelInfo<"getGraphDiff">({
-        type: "getGraphDiff",
-        fromId: this.mostRecentGraph.currentVersionId,
-      });
-      newGraph = applyDiff(this.mostRecentGraph.currentGraph as IGraphData & Diffable, diffInfo.diff)
-      newVersionId = diffInfo.versionId;
-    }
-    this.mostRecentGraph = {
-      currentGraph: newGraph,
-      currentVersionId: newVersionId,
-    };
-
-    return newGraph;
-  }
   public async requestModelInfo<T extends keyof IModelInfoReqs>(
     req: IModelInfoReqs[T]["request"],
   ): Promise<IModelInfoReqs[T]["response"]> {

@@ -3,19 +3,22 @@ using System.Collections.Generic;
 namespace NetworkGraph {
   public enum SideType { Top, Bottom, Left, Right };
   public enum PortType { Input, Output };
+  public enum ConsistencyType { Consistent, Inconsistent };
 
-  public struct NetworkGraph {
-    public Dictionary<string, NetworkVertex> vertices;
-    public Dictionary<string, NetworkEdge> edges;
+  public struct Graph {
+    public Dictionary<string, Vertex> vertices;
+    public Dictionary<string, Edge> edges;
   }
 
-  public struct NetworkVertex {
-    public float xPos;
-    public float yPos;
+  public struct Vertex {
+    public string label;
+    public float xLocation;
+    public float yLocation;
     public Dictionary<string, NetworkPort> ports;
   }
 
-  public struct NetworkEdge {
+  public struct Edge {
+    public ConsistencyType consistency;
     public string sourceVertexId;
     public string sourcePortId;
     public string targetVertexId;

@@ -8,7 +8,11 @@ namespace ModelInfoRequests {
     public InvalidInfoReqType(string message) : base(message) {}
   }
   public static class Dispatcher {
-    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
+    public static void dispatch(
+      string str,
+      RequestResponder.RequestResponder reqResponder,
+      ModelStruct.ModelStruct modelStruct
+    ) {
       GenericModelInfoReq genericReq = JsonConvert.DeserializeObject<GenericModelInfoReq>(str);
 
       if (genericReq.type == "validateEdge") {
@@ -36,7 +40,7 @@ namespace ModelInfoRequests {
       } else if (genericReq.type == "valueIsReadonly") {
         ValueIsReadonly.dispatch(str, reqResponder);
       } else if (genericReq.type == "getGraphData") {
-        GetGraphData.dispatch(str, reqResponder);
+        GetGraphData.dispatch(str, reqResponder, modelStruct);
       } else {
         throw new InvalidInfoReqType(genericReq.type);
       }
@@ -151,8 +155,12 @@ namespace ModelInfoRequests {
   }
 
   internal struct GetGraphData {
-    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
-      GetGraphData getGraphData = JsonConvert.DeserializeObject<GetGraphData>(str);
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
+      ResponseJson.GraphData graphData = ModelUtils.ModelUtils.getResponseJsonData(modelStruct);
+      ModelInfoReqResponses.GetGraphDataResponse response = new ModelInfoReqResponses.GetGraphDataResponse(
+        graphData
+      );
+      reqResponder.sendModelInfoReqResponse(response);
     }
   }
 }

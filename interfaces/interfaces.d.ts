@@ -287,17 +287,6 @@ interface IModelInfoReqs extends ReqMapType<keyof IModelInfoReqs> {
     };
     "response": {
       data: IGraphData;
-      versionId: string;
-    };
-  };
-  "getGraphDiff": {
-    "request": {
-      type: "getGraphDiff";
-      fromId: string;
-    };
-    "response": {
-      diff: DiffType<IGraphData & Diffable>;
-      versionId: string;
     };
   };
 }

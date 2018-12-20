@@ -2,8 +2,6 @@ import { UNDO_HISTORY_SIZE } from "../constants.js";
 
 export class VersioningManager<T> {
   private currentVal!: string;
-  private currentVersionId!: string;
-  private valsByVersion: {[key: string]: string} = {};
   private pastVals: string[] = [];
   private futureVals: string[] = [];
 
@@ -14,21 +12,8 @@ export class VersioningManager<T> {
     this.setCurrent(val);
   }
 
-  private registerNewVersionId(): string {
-    let randomVal = Math.random();
-    let multiplier = 10;
-    while (this.valsByVersion[Math.floor(randomVal*multiplier).toString()] !== undefined) {
-      multiplier *= 10;
-    }
-    const versionId = Math.floor(randomVal*multiplier).toString();
-    return versionId;
-  }
-
   private setCurrent(val: T): void {
-    const versionId = this.registerNewVersionId();
     this.currentVal = JSON.stringify(val);
-    this.currentVersionId = versionId;
-    this.valsByVersion[versionId] = this.currentVal; // string
   }
 
   public recordChange(val: T) {
@@ -83,14 +68,6 @@ export class VersioningManager<T> {
   public onFileSave(fileName: string): void {
     this.openFileName = fileName;
     this.historyPositionFromSave = 0;
-  }
-
-  public getValByVersionId(versionId: string): T {
-    return JSON.parse(this.valsByVersion[versionId]);
-  }
-
-  public getCurrentVersionId(): string {
-    return this.currentVersionId;
   }
 
   public onFileDelete(fileName: string): void {

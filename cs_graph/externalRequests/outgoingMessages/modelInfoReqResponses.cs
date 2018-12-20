@@ -3,11 +3,14 @@ using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
 
 namespace ModelInfoReqResponses {
-  class ValidateEdgeResponseValid {
+  public abstract class ModelInfoReqResponse {
+  }
+
+  public class ValidateEdgeResponseValid : ModelInfoReqResponse {
     public readonly bool valid = true;
   }
 
-  class ValidateEdgeResponseInvalid {
+  public class ValidateEdgeResponseInvalid : ModelInfoReqResponse {
     public readonly bool valid = false;
     public readonly string problem;
 
@@ -16,18 +19,18 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class EdgesBetweenVerticesResponseVerticesExist {
+  public class EdgesBetweenVerticesResponseVerticesExist : ModelInfoReqResponse {
     public readonly bool verticesExist = true;
-    public readonly Dictionary<string, JsonGraphInterfaces.IEdgeData> edges;
+    public readonly Dictionary<string, ResponseJson.EdgeData> edges;
 
     public EdgesBetweenVerticesResponseVerticesExist(
-      Dictionary<string, JsonGraphInterfaces.IEdgeData> edges
+      Dictionary<string, ResponseJson.EdgeData> edges
     ) {
       this.edges = edges;
     }
   }
 
-  class EdgesBetweenVerticesResponseVerticesNonexistent {
+  public class EdgesBetweenVerticesResponseVerticesNonexistent : ModelInfoReqResponse {
     public readonly bool verticesExist = false;
     public readonly string[] requestNonexistentVertices;
 
@@ -36,11 +39,11 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class FileIsOpenResponseNotOpen {
+  public class FileIsOpenResponseNotOpen : ModelInfoReqResponse {
     public readonly bool fileIsOpen = false;
   }
 
-  class FileIsOpenResponseOpen {
+  public class FileIsOpenResponseOpen : ModelInfoReqResponse {
     public readonly bool fileIsOpen = true;
     public readonly string fileName;
     public readonly bool fileIsUpToDate;
@@ -51,7 +54,7 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class SavedFileNamesResponse {
+  public class SavedFileNamesResponse : ModelInfoReqResponse {
     public readonly string[] fileNames;
 
     public SavedFileNamesResponse(string[] fileNames) {
@@ -59,7 +62,7 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class GetPortInfoResponseCouldFindPort {
+  public class GetPortInfoResponseCouldFindPort : ModelInfoReqResponse {
     public readonly bool couldFindPort = true;
     public readonly string portValue;
 
@@ -68,24 +71,24 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class GetPortInfoResponseCouldNotFindPort {
+  public class GetPortInfoResponseCouldNotFindPort : ModelInfoReqResponse {
     public readonly bool couldFindPort = false;
   }
 
-  class GetLayerInfoResponseLayerExists {
+  public class GetLayerInfoResponseLayerExists : ModelInfoReqResponse {
     public readonly bool layerExists = true;
-    public readonly JsonGraphInterfaces.ILayerData data;
+    public readonly ResponseJson.LayerData data;
 
-    public GetLayerInfoResponseLayerExists(JsonGraphInterfaces.ILayerData data) {
+    public GetLayerInfoResponseLayerExists(ResponseJson.LayerData data) {
       this.data = data;
     }
   }
 
-  class GetLayerInfoResponseLayerDoesNotExist {
+  public class GetLayerInfoResponseLayerDoesNotExist : ModelInfoReqResponse {
     public readonly bool layerExists = false;
   }
 
-  class ValidateValueResponseNoError {
+  public class ValidateValueResponseNoError : ModelInfoReqResponse {
     public readonly string requestError = null;
     public readonly string fieldValidationError;
 
@@ -94,11 +97,11 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class ValidateValueResponseLayerNonexistentError {
+  public class ValidateValueResponseLayerNonexistentError : ModelInfoReqResponse {
     public readonly string requestError = "layer_nonexistent";
   }
 
-  class ValidateValueResponseFieldNonexistError {
+  public class ValidateValueResponseFieldNonexistError : ModelInfoReqResponse {
     public readonly string requestError = "field_nonexistent";
     public readonly string fieldName;
 
@@ -107,7 +110,7 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class CompareValueResponseNoError {
+  public class CompareValueResponseNoError : ModelInfoReqResponse {
     public readonly string requestError = null;
     public readonly bool isEqual;
 
@@ -116,15 +119,15 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class CompareValueResponseLayerNonexistentError {
+  public class CompareValueResponseLayerNonexistentError : ModelInfoReqResponse {
     public readonly string requestError = "layer_nonexistent";
   }
 
-  class CompareValueResponseFieldNonexistentError {
+  public class CompareValueResponseFieldNonexistentError : ModelInfoReqResponse {
     public readonly string requestError = "field_nonexistent";
   }
 
-  class ValidateLayerFieldsResponseNoError {
+  public class ValidateLayerFieldsResponseNoError : ModelInfoReqResponse {
     public readonly string requestError = null;
     public readonly string[] errors;
     public readonly string[] warnings;
@@ -135,11 +138,11 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class ValidateLayerFieldsResponseLayerNonexistentError {
+  public class ValidateLayerFieldsResponseLayerNonexistentError : ModelInfoReqResponse {
     public readonly string requestError = "layer_nonexistent";
   }
 
-  class ValidateLayerFieldsResponseFieldNonexistent {
+  public class ValidateLayerFieldsResponseFieldNonexistent : ModelInfoReqResponse {
     public readonly string requestError = "field_nonexistent";
     public readonly string fieldName;
 
@@ -148,7 +151,7 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class GetUniqueEdgeIdsResponse {
+  public class GetUniqueEdgeIdsResponse : ModelInfoReqResponse {
     public readonly string[] edgeIds;
 
     public GetUniqueEdgeIdsResponse(string[] edgeIds) {
@@ -156,7 +159,7 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class UniqueVertexIdsResponse {
+  public class UniqueVertexIdsResponse : ModelInfoReqResponse {
     public readonly string[] vertexIds;
 
     public UniqueVertexIdsResponse(string[] vertexIds) {
@@ -164,14 +167,14 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class ValueIsReadonlyResponseNotReadonly {
+  public class ValueIsReadonlyResponseNotReadonly : ModelInfoReqResponse {
     public readonly string requestError = null;
     public readonly bool isReadonly = false;
   }
 
-  enum ReadonlyReason { port_is_occupied, value_is_not_modifiable }
+  public enum ReadonlyReason { port_is_occupied, value_is_not_modifiable }
 
-  class ValueIsReadonlyResponseIsReadonly {
+  public class ValueIsReadonlyResponseIsReadonly : ModelInfoReqResponse {
     public readonly string requestError = null;
     public readonly bool isReadonly = true;
 
@@ -183,13 +186,11 @@ namespace ModelInfoReqResponses {
     }
   }
 
-  class GetGraphDataResponse {
-    public readonly JsonGraphInterfaces.IGraphData data;
-    public readonly string versionId;
+  public class GetGraphDataResponse : ModelInfoReqResponse {
+    public readonly ResponseJson.GraphData data;
 
-    public GetGraphDataResponse(JsonGraphInterfaces.IGraphData data, string versionId) {
+    public GetGraphDataResponse(ResponseJson.GraphData data) {
       this.data = data;
-      this.versionId = versionId;
     }
   }
 }

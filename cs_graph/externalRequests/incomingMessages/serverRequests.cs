@@ -9,11 +9,11 @@ namespace ServerRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(string str, ModelClass.ModelClass modelClass) {
+    public static void dispatch(string str, ModelStruct.ModelStruct modelStruct) {
       GenericServerReq genericReq = GenericServerReq.fromJson(str);
 
       if (genericReq.type == "client_request") {
-        ClientRequest.dispatch(str, modelClass);
+        ClientRequest.dispatch(str, modelStruct);
       } else if (genericReq.type == "layer_data_response") {
         LayerDataResponse.dispatch(str);
       } else {
@@ -38,14 +38,14 @@ namespace ServerRequests {
   }
 
   internal class ClientRequest {
-    public static void dispatch(string str, ModelClass.ModelClass modelClass) {
+    public static void dispatch(string str, ModelStruct.ModelStruct modelStruct) {
       ClientRequest clientReq = JsonConvert.DeserializeObject<ClientRequest>(str);
       RequestResponder.RequestResponder reqResponder = new RequestResponder.RequestResponder(
-        modelClass,
+        modelStruct,
         clientReq.client_message.requestId,
         clientReq.client_id
       );
-      ModelRequests.Dispatcher.dispatch(clientReq.client_message.request, reqResponder);
+      ModelRequests.Dispatcher.dispatch(clientReq.client_message.request, reqResponder, modelStruct);
     }
 
     public string client_id;

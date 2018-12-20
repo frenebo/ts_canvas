@@ -9,7 +9,7 @@ namespace ModelRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
       GenericModelReq genericReq = JsonConvert.DeserializeObject<GenericModelReq>(str);
 
       if (genericReq.type == "request_model_changes") {
@@ -17,7 +17,7 @@ namespace ModelRequests {
       } else if (genericReq.type == "request_versioning_change") {
         VersioningChangeRequest.dispatch(str);
       } else if (genericReq.type == "request_model_info") {
-        ModelInfoRequest.dispatch(str, reqResponder);
+        ModelInfoRequest.dispatch(str, reqResponder, modelStruct);
       } else {
         throw new InvalidModelReqType(genericReq.type);
       }
@@ -51,9 +51,9 @@ namespace ModelRequests {
   }
 
   internal class ModelInfoRequest {
-    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder) {
+    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
       ModelInfoRequest modelInfoVersioningReq = JsonConvert.DeserializeObject<ModelInfoRequest>(str);
-      ModelInfoRequests.Dispatcher.dispatch(modelInfoVersioningReq.req, reqResponder);
+      ModelInfoRequests.Dispatcher.dispatch(modelInfoVersioningReq.req, reqResponder, modelStruct);
     }
 
     [JsonConverter(typeof(JsonUtils.ConvertObjectToString))]

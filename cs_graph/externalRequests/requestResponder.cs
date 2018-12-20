@@ -19,7 +19,7 @@ namespace RequestResponder {
     private string requestId;
     private string clientId;
 
-    public RequestResponder(ModelClass.ModelClass modelClass, string requestId, string clientId) {
+    public RequestResponder(ModelStruct.ModelStruct modelStruct, string requestId, string clientId) {
       this.requestId = requestId;
       this.clientId = clientId;
     }
@@ -48,8 +48,8 @@ namespace RequestResponder {
       System.Console.WriteLine(responseStr);
     }
 
-    public void sendModelInfoReqResponse(ModelInfoReqResponse response) {
-      ReqResponse<ModelInfoReqResponse> reqResponse = new ReqResponse<ModelInfoReqResponse>(
+    public void sendModelInfoReqResponse(ModelInfoReqResponses.ModelInfoReqResponse response) {
+      ReqResponse<ModelInfoReqResponses.ModelInfoReqResponse> reqResponse = new ReqResponse<ModelInfoReqResponses.ModelInfoReqResponse>(
         this.requestId,
         this.clientId,
         response
