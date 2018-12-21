@@ -1,4 +1,3 @@
-using ServerReqResponses;
 using Newtonsoft.Json;
 
 namespace RequestResponder {
@@ -24,8 +23,8 @@ namespace RequestResponder {
       this.clientId = clientId;
     }
 
-    public void sendModelChangeReqResponse(ModelChangeReqResponse response) {
-      ReqResponse<ModelChangeReqResponse> reqResponse = new ReqResponse<ModelChangeReqResponse>(
+    public void sendModelChangeReqResponse(ModelChangeReqResponses.ModelChangeReqResponse response) {
+      ReqResponse<ModelChangeReqResponses.ModelChangeReqResponse> reqResponse = new ReqResponse<ModelChangeReqResponses.ModelChangeReqResponse>(
         this.requestId,
         this.clientId,
         response
@@ -36,8 +35,8 @@ namespace RequestResponder {
       System.Console.WriteLine(responseStr);
     }
 
-    public void sendVersioningChangeReqResponse(ModelVersioningReqResponse response) {
-      ReqResponse<ModelVersioningReqResponse> reqResponse = new ReqResponse<ModelVersioningReqResponse>(
+    public void sendVersioningChangeReqResponse(ModelVersioningReqResponses.ModelVersioningReqResponse response) {
+      ReqResponse<ModelVersioningReqResponses.ModelVersioningReqResponse> reqResponse = new ReqResponse<ModelVersioningReqResponses.ModelVersioningReqResponse>(
         this.requestId,
         this.clientId,
         response

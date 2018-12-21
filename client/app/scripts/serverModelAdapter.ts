@@ -17,7 +17,7 @@ class ModelStandIn implements IModelInterface {
       type: "request_model_info",
       req: req,
     });
-    return serverResponse.info;
+    return serverResponse;
   }
 
   public async requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void> {

@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
 // fields are assigned to from json
@@ -9,13 +10,13 @@ namespace ServerRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(string str, ModelStruct.ModelStruct modelStruct) {
-      GenericServerReq genericReq = GenericServerReq.fromJson(str);
+    public static void dispatch(JObject jobj, ModelStruct.ModelStruct modelStruct) {
+      GenericServerReq genericReq = jobj.ToObject<GenericServerReq>();
 
       if (genericReq.type == "client_request") {
-        ClientRequest.dispatch(str, modelStruct);
+        ClientRequest.dispatch(jobj, modelStruct);
       } else if (genericReq.type == "layer_data_response") {
-        LayerDataResponse.dispatch(str);
+        LayerDataResponse.dispatch(jobj);
       } else {
         throw new InvalidServerReqType(genericReq.type);
       }
@@ -23,23 +24,18 @@ namespace ServerRequests {
   }
 
   internal class GenericServerReq {
-    public static GenericServerReq fromJson(string str) {
-      return JsonConvert.DeserializeObject<GenericServerReq>(str);
-    }
-
     public string type;
   }
 
   internal struct ClientRequestToServer {
     public string requestId;
 
-    [JsonConverter(typeof(JsonUtils.ConvertObjectToString))]
-    public string request;
+    public JObject request;
   }
 
   internal class ClientRequest {
-    public static void dispatch(string str, ModelStruct.ModelStruct modelStruct) {
-      ClientRequest clientReq = JsonConvert.DeserializeObject<ClientRequest>(str);
+    public static void dispatch(JObject jobj, ModelStruct.ModelStruct modelStruct) {
+      ClientRequest clientReq = jobj.ToObject<ClientRequest>();
       RequestResponder.RequestResponder reqResponder = new RequestResponder.RequestResponder(
         modelStruct,
         clientReq.client_message.requestId,
@@ -53,8 +49,8 @@ namespace ServerRequests {
   }
 
   internal class LayerDataResponse {
-    public static void dispatch(string str) {
-      LayerDataResponse layerDataResponse = JsonConvert.DeserializeObject<LayerDataResponse>(str);
+    public static void dispatch(JObject jobj) {
+      LayerDataResponse layerDataResponse = jobj.ToObject<LayerDataResponse>();
       // @TODO
     }
     // @TODO

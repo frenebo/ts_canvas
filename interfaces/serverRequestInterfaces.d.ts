@@ -29,9 +29,7 @@ interface IServerReqTypes extends IEnforceRequestType<keyof IServerReqTypes> {
       type: "request_model_info";
       req: IModelInfoReqs[keyof IModelInfoReqs]["request"];
     };
-    response: {
-      info: IModelInfoReqs[keyof IModelInfoReqs]["response"];
-    };
+    response: IModelInfoReqs[keyof IModelInfoReqs]["response"];
   }
 }
 

@@ -22,8 +22,10 @@ namespace GraphUtils {
     private static ResponseJson.VertexData getVertexJsonData(NetworkGraph.Vertex vtx) {
       ResponseJson.VertexData jsonVtxData = new ResponseJson.VertexData {
         label = vtx.label,
-        xPos = vtx.xLocation,
-        yPos = vtx.yLocation,
+        geo = new ResponseJson.GeoData {
+          x = vtx.xLocation,
+          y = vtx.yLocation,
+        },
         ports = new Dictionary<string, ResponseJson.GraphPortData>()
       };
 

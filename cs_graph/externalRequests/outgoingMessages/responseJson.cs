@@ -7,10 +7,14 @@ namespace ResponseJson {
     public string portType;
   }
 
+  public struct GeoData {
+    public float x;
+    public float y;
+  }
+
   public struct VertexData {
     public string label;
-    public float xPos;
-    public float yPos;
+    public GeoData geo;
     public Dictionary<string, GraphPortData> ports;
   }
 

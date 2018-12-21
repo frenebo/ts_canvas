@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 // fields are assigned to from json
 #pragma warning disable 0649
@@ -9,15 +10,16 @@ namespace ModelRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
-      GenericModelReq genericReq = JsonConvert.DeserializeObject<GenericModelReq>(str);
+    public static void dispatch(JObject jobj, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
+      GenericModelReq genericReq = jobj.ToObject<GenericModelReq>();
 
       if (genericReq.type == "request_model_changes") {
-        ModelChangeRequest.dispatch(str);
+        ModelChangeRequest.dispatch(jobj);
       } else if (genericReq.type == "request_versioning_change") {
-        VersioningChangeRequest.dispatch(str);
+        VersioningChangeRequest.dispatch(jobj);
       } else if (genericReq.type == "request_model_info") {
-        ModelInfoRequest.dispatch(str, reqResponder, modelStruct);
+        ModelInfoReqResponses.ModelInfoReqResponse reqResponse = ModelInfoRequest.dispatch(jobj, reqResponder, modelStruct);
+        reqResponder.sendModelInfoReqResponse(reqResponse);
       } else {
         throw new InvalidModelReqType(genericReq.type);
       }
@@ -29,35 +31,32 @@ namespace ModelRequests {
   }
 
   internal class ModelChangeRequest {
-    public static void dispatch(string str) {
-      ModelChangeRequest changesReq = JsonConvert.DeserializeObject<ModelChangeRequest>(str);
-      foreach (string changeReq in changesReq.reqs) {
+    public static void dispatch(JObject jobj) {
+      ModelChangeRequest changesReq = jobj.ToObject<ModelChangeRequest>();
+      foreach (var changeReq in changesReq.reqs) {
         ModelChangeRequests.Dispatcher.dispatch(changeReq);
       }
     }
 
-    [JsonConverter(typeof(JsonUtils.ConvertObjectArrayToStringArray))]
-    public List<string> reqs;
+    public List<JObject> reqs;
   }
 
   internal class VersioningChangeRequest {
-    public static void dispatch(string str) {
-      VersioningChangeRequest versioningChangeReq = JsonConvert.DeserializeObject<VersioningChangeRequest>(str);
+    public static void dispatch(JObject jobj) {
+      VersioningChangeRequest versioningChangeReq = jobj.ToObject<VersioningChangeRequest>();
       ModelVersioningRequests.Dispatcher.dispatch(versioningChangeReq.req);
     }
 
-    [JsonConverter(typeof(JsonUtils.ConvertObjectToString))]
-    public string req;
+    public JObject req;
   }
 
   internal class ModelInfoRequest {
-    public static void dispatch(string str, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
-      ModelInfoRequest modelInfoVersioningReq = JsonConvert.DeserializeObject<ModelInfoRequest>(str);
-      ModelInfoRequests.Dispatcher.dispatch(modelInfoVersioningReq.req, reqResponder, modelStruct);
+    public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(JObject jobj, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
+      ModelInfoRequest modelInfoVersioningReq = jobj.ToObject<ModelInfoRequest>();
+      return ModelInfoRequests.Dispatcher.dispatch(modelInfoVersioningReq.req, modelStruct);
     }
 
-    [JsonConverter(typeof(JsonUtils.ConvertObjectToString))]
-    public string req;
+    public JObject req;
   }
 }
 #pragma warning restore 0649

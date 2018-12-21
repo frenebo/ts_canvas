@@ -108,8 +108,7 @@ function processStdinLine(line: string) {
         });
       });
     } else if (mssg.client_message.request.type === "request_model_info") {
-      model.requestModelInfo(mssg.client_message.request.req).then((modelResponse) => {
-        const response: IServerReqTypes["request_model_info"]["response"] ={info:modelResponse};
+      model.requestModelInfo(mssg.client_message.request.req).then((response) => {
         stdoutMssg({
           type: "request_response",
           request_id: mssg.client_message.requestId,

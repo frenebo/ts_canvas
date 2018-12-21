@@ -15,7 +15,7 @@ class GraphServerInterface():
         self.node_process = subprocess.Popen(
             ["dotnet", "run", "--project", CSHARP_PROJECT_PATH, "--no-build"],
             shell=False,
-            # stdout=subprocess.PIPE,
+            stdout=subprocess.PIPE,
             stdin=subprocess.PIPE,
         )
 
@@ -27,8 +27,8 @@ class GraphServerInterface():
         #     # stderr=PIPE,
         # )
 
-        # t = Thread(target=self.listen_output, args=[])
-        # t.start()
+        t = Thread(target=self.listen_output, args=[])
+        t.start()
 
         self.on_graph_change = None
         self.on_request_response = None
@@ -43,6 +43,7 @@ class GraphServerInterface():
 
             elif response_obj["type"] == "request_response":
                 if self.on_request_response is not None:
+                    # print(response_obj)
                     self.on_request_response(response_obj["response"], response_obj["request_id"])
             elif response_obj["type"] == "requesting_layer_info":
                 response = run_layer_request(response_obj["request"])
