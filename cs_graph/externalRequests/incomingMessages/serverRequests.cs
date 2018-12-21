@@ -11,46 +11,44 @@ namespace ServerRequests {
 
   public static class Dispatcher {
     public static void dispatch(JObject jobj, ModelStruct.ModelStruct modelStruct) {
-      GenericServerReq genericReq = jobj.ToObject<GenericServerReq>();
+      var parseWatch = System.Diagnostics.Stopwatch.StartNew();
 
-      if (genericReq.type == "client_request") {
+      var type = jobj["type"].ToString();
+      
+      parseWatch.Stop();
+      var parseElapsedMs = parseWatch.ElapsedMilliseconds;
+      System.Console.Error.WriteLine("To generic req time: " + parseElapsedMs.ToString());
+
+      if (type == "client_request") {
         ClientRequest.dispatch(jobj, modelStruct);
-      } else if (genericReq.type == "layer_data_response") {
+      } else if (type == "layer_data_response") {
         LayerDataResponse.dispatch(jobj);
       } else {
-        throw new InvalidServerReqType(genericReq.type);
+        throw new InvalidServerReqType(type);
       }
     }
   }
 
-  internal class GenericServerReq {
-    public string type;
-  }
-
-  internal struct ClientRequestToServer {
-    public string requestId;
-
-    public JObject request;
-  }
 
   internal class ClientRequest {
     public static void dispatch(JObject jobj, ModelStruct.ModelStruct modelStruct) {
-      ClientRequest clientReq = jobj.ToObject<ClientRequest>();
+      string clientId = jobj["client_id"].ToString();
+      string requestId = jobj["client_message"]["requestId"].ToString();
+
+      JObject clientRequest = jobj["client_message"]["request"] as JObject;
+      
       RequestResponder.RequestResponder reqResponder = new RequestResponder.RequestResponder(
         modelStruct,
-        clientReq.client_message.requestId,
-        clientReq.client_id
+        requestId,
+        clientId
       );
-      ModelRequests.Dispatcher.dispatch(clientReq.client_message.request, reqResponder, modelStruct);
+      
+      ModelRequests.Dispatcher.dispatch(clientRequest, reqResponder, modelStruct);
     }
-
-    public string client_id;
-    public ClientRequestToServer client_message;
   }
 
   internal class LayerDataResponse {
     public static void dispatch(JObject jobj) {
-      LayerDataResponse layerDataResponse = jobj.ToObject<LayerDataResponse>();
       // @TODO
     }
     // @TODO

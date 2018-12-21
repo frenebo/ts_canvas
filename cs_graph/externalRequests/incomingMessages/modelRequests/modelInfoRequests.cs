@@ -13,47 +13,49 @@ namespace ModelInfoRequests {
       JObject jobj,
       ModelStruct.ModelStruct modelStruct
     ) {
-      GenericModelInfoReq genericReq = jobj.ToObject<GenericModelInfoReq>();
+      string type = jobj["type"].ToString();
 
-      if (genericReq.type == "validateEdge") {
+      if (type == "validateEdge") {
         return ValidateEdge.dispatch(jobj);
-      } else if (genericReq.type == "edgesBetweenVertices") {
+      } else if (type == "edgesBetweenVertices") {
         return EdgesBetweenVertices.dispatch(jobj);
-      } else if (genericReq.type == "fileIsOpen") {
+      } else if (type == "fileIsOpen") {
         return FileIsOpen.dispatch(jobj);
-      } else if (genericReq.type == "savedFileNames") {
+      } else if (type == "savedFileNames") {
         return SavedFileNames.dispatch(jobj);
-      } else if (genericReq.type == "getPortInfo") {
+      } else if (type == "getPortInfo") {
         return GetPortInfo.dispatch(jobj);
-      } else if (genericReq.type == "getLayerInfo") {
+      } else if (type == "getLayerInfo") {
         return GetLayerInfo.dispatch(jobj);
-      } else if (genericReq.type == "validateValue") {
+      } else if (type == "validateValue") {
         return ValidateValue.dispatch(jobj);
-      } else if (genericReq.type == "compareValue") {
+      } else if (type == "compareValue") {
         return CompareValue.dispatch(jobj);
-      } else if (genericReq.type == "validateLayerFields") {
+      } else if (type == "validateLayerFields") {
         return ValidateLayerFields.dispatch(jobj);
-      } else if (genericReq.type == "getUniqueEdgeIds") {
+      } else if (type == "getUniqueEdgeIds") {
         return GetUniqueEdgeIds.dispatch(jobj);
-      } else if (genericReq.type == "getUniqueVertexIds") {
+      } else if (type == "getUniqueVertexIds") {
         return GetUniqueVertexIds.dispatch(jobj);
-      } else if (genericReq.type == "valueIsReadonly") {
+      } else if (type == "valueIsReadonly") {
         return ValueIsReadonly.dispatch(jobj);
-      } else if (genericReq.type == "getGraphData") {
+      } else if (type == "getGraphData") {
         return GetGraphData.dispatch(jobj, modelStruct);
       } else {
-        throw new InvalidInfoReqType(genericReq.type);
+        throw new InvalidInfoReqType(type);
       }
     }
   }
 
-  internal struct GenericModelInfoReq {
-    public string type;
-  }
-
   internal struct ValidateEdge {
     public static ModelInfoReqResponses.ValidateEdgeResponse dispatch(JObject jobj) {
-      ValidateEdge validateEdge = jobj.ToObject<ValidateEdge>();
+      ValidateEdge validateEdge = new ValidateEdge {
+        edgeId = jobj["edgeId"].ToString(),
+        sourceVertexId = jobj["sourceVertexId"].ToString(),
+        sourcePortId = jobj["sourcePortId"].ToString(),
+        targetVertexId = jobj["targetVertexId"].ToString(),
+        targetPortId = jobj["targetPortId"].ToString()
+      };
       throw new System.Exception("unimplemented");
     }
 
@@ -66,30 +68,40 @@ namespace ModelInfoRequests {
 
   internal struct EdgesBetweenVertices {
     public static ModelInfoReqResponses.EdgesBetweenVerticesResponse dispatch(JObject jobj) {
-      EdgesBetweenVertices edgesBetweenVertices = jobj.ToObject<EdgesBetweenVertices>();
+      List<string> vertexIds = new List<string>();
+      
+      foreach (var vertexId in (jobj["vertexIds"] as JArray).Children()) {
+        vertexIds.Add(vertexId.ToString());
+      }
+      EdgesBetweenVertices edgesBetweenVertices = new EdgesBetweenVertices {
+        vertexIds = vertexIds
+      };
+      
       throw new System.Exception("unimplemented");
     }
 
-    public string[] vertexIds;
+    public List<string> vertexIds;
   }
 
   internal struct FileIsOpen {
     public static ModelInfoReqResponses.FileIsOpenResponse dispatch(JObject jobj) {
-      FileIsOpen fileIsOpen = jobj.ToObject<FileIsOpen>();
       throw new System.Exception("unimplemented");
     }
   }
 
   internal struct SavedFileNames {
     public static ModelInfoReqResponses.SavedFileNamesResponse dispatch(JObject jobj) {
-      SavedFileNames savedFileNames = jobj.ToObject<SavedFileNames>();
       throw new System.Exception("unimplemented");
     }
   }
 
   internal struct GetPortInfo {
     public static ModelInfoReqResponses.GetPortInfoResponse dispatch(JObject jobj) {
-      GetPortInfo getPortInfo = jobj.ToObject<GetPortInfo>();
+      GetPortInfo getPortInfo = new GetPortInfo {
+        vertexId = jobj["vertexId"].ToString(),
+        portId = jobj["portId"].ToString()
+      };
+      
       throw new System.Exception("unimplemented");
     }
 
@@ -99,7 +111,10 @@ namespace ModelInfoRequests {
 
   internal struct GetLayerInfo {
     public static ModelInfoReqResponses.GetLayerInfoResponse dispatch(JObject jobj) {
-      GetLayerInfo getLayerInfo = jobj.ToObject<GetLayerInfo>();
+      GetLayerInfo getLayerInfo = new GetLayerInfo {
+        layerId = jobj["layerId"].ToString()
+      };
+      
       throw new System.Exception("unimplemented");
     }
 
@@ -108,7 +123,12 @@ namespace ModelInfoRequests {
 
   internal struct ValidateValue {
     public static ModelInfoReqResponses.ValidateValueResponse dispatch(JObject jobj) {
-      ValidateValue validateValue = jobj.ToObject<ValidateValue>();
+      ValidateValue validateValue = new ValidateValue {
+        layerId = jobj["layerId"].ToString(),
+        valueId = jobj["valueId"].ToString(),
+        newValue= jobj["newValue"].ToString()
+      };
+      
       throw new System.Exception("unimplemented");
     }
 
@@ -119,7 +139,12 @@ namespace ModelInfoRequests {
 
   internal struct CompareValue {
     public static ModelInfoReqResponses.CompareValueResponse dispatch(JObject jobj) {
-      CompareValue compareValue = jobj.ToObject<CompareValue>();
+      CompareValue compareValue = new CompareValue {
+        layerId = jobj["layerId"].ToString(),
+        valueId = jobj["valueId"].ToString(),
+        compareValue = jobj["compareValue"].ToString()
+      };
+      
       throw new System.Exception("unimplemented");
     }
 
@@ -130,7 +155,17 @@ namespace ModelInfoRequests {
 
   internal struct ValidateLayerFields {
     public static ModelInfoReqResponses.ValidateLayerFieldsResponse dispatch(JObject jobj) {
-      ValidateLayerFields validateLayerFields = jobj.ToObject<ValidateLayerFields>();
+      Dictionary<string, string> fieldValues = new Dictionary<string, string>();
+
+      foreach (var fieldEntry in (jobj["fieldValues"] as JObject).Properties()) {
+        fieldValues[fieldEntry.Name] = fieldEntry.Value.ToString();
+      }
+      
+      ValidateLayerFields validateLayerFields = new ValidateLayerFields {
+        layerId = jobj["jobj"].ToString(),
+        fieldValues = fieldValues
+      };
+      
       throw new System.Exception("unimplemented");
     }
 
@@ -140,7 +175,10 @@ namespace ModelInfoRequests {
 
   internal struct GetUniqueEdgeIds {
     public static ModelInfoReqResponses.GetUniqueEdgeIdsResponse dispatch(JObject jobj) {
-      GetUniqueEdgeIds getUniqueEdgeIds = jobj.ToObject<GetUniqueEdgeIds>();
+      GetUniqueEdgeIds getUniqueEdgeIds = new GetUniqueEdgeIds {
+        count = int.Parse(jobj["count"].ToString())
+      };
+      
       throw new System.Exception("unimplemented");
     }
 
@@ -149,7 +187,10 @@ namespace ModelInfoRequests {
 
   internal struct GetUniqueVertexIds {
     public static ModelInfoReqResponses.GetUniqueEdgeIdsResponse dispatch(JObject jobj) {
-      GetUniqueVertexIds getUniqueVertexIds = jobj.ToObject<GetUniqueVertexIds>();
+      GetUniqueVertexIds getUniqueEdgeIds = new GetUniqueVertexIds {
+        count = int.Parse(jobj["count"].ToString())
+      };
+      
       throw new System.Exception("unimplemented");
     }
 
@@ -158,7 +199,11 @@ namespace ModelInfoRequests {
 
   internal struct ValueIsReadonly {
     public static ModelInfoReqResponses.ValueIsReadonlyResponse dispatch(JObject jobj) {
-      ValueIsReadonly valueIsReadonly = jobj.ToObject<ValueIsReadonly>();
+      ValueIsReadonly valueIsReadonly = new ValueIsReadonly {
+        layerId = jobj["layerId"].ToString(),
+        valueId = jobj["valueId"].ToString()
+      };
+      
       throw new System.Exception("unimplemented");
     }
 

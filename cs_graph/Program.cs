@@ -32,12 +32,22 @@ namespace cs_graph {
       while (true) {
         string line = await System.Console.In.ReadLineAsync();
         try {
-          var watch = System.Diagnostics.Stopwatch.StartNew();
+          var parseWatch = System.Diagnostics.Stopwatch.StartNew();
+          
           var jobj = Newtonsoft.Json.Linq.JObject.Parse(line);
+          
+          parseWatch.Stop();
+          var parseElapsedMs = parseWatch.ElapsedMilliseconds;
+          System.Console.Error.WriteLine("Request parse time: " + parseElapsedMs.ToString());
+
+          var dispatchWatch = System.Diagnostics.Stopwatch.StartNew();
+          
           ServerRequests.Dispatcher.dispatch(jobj, modelStruct);
-          watch.Stop();
-          var elapsedMs = watch.ElapsedMilliseconds;
-          System.Console.Error.WriteLine("Time to dispatch server request" + elapsedMs.ToString());
+
+          dispatchWatch.Stop();
+          var dispatchElapsedMs = dispatchWatch.ElapsedMilliseconds;
+          System.Console.Error.WriteLine("Request dispatch time: " + dispatchElapsedMs);
+
         } catch (System.Exception exp) {
           System.Console.Error.WriteLine("Error: " + exp.ToString());
         }

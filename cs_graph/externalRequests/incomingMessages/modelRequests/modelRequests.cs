@@ -11,52 +11,44 @@ namespace ModelRequests {
 
   public static class Dispatcher {
     public static void dispatch(JObject jobj, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
-      GenericModelReq genericReq = jobj.ToObject<GenericModelReq>();
+      string type = jobj["type"].ToString();
 
-      if (genericReq.type == "request_model_changes") {
+      if (type == "request_model_changes") {
         ModelChangeRequest.dispatch(jobj);
-      } else if (genericReq.type == "request_versioning_change") {
+      } else if (type == "request_versioning_change") {
         VersioningChangeRequest.dispatch(jobj);
-      } else if (genericReq.type == "request_model_info") {
+      } else if (type == "request_model_info") {
         ModelInfoReqResponses.ModelInfoReqResponse reqResponse = ModelInfoRequest.dispatch(jobj, reqResponder, modelStruct);
         reqResponder.sendModelInfoReqResponse(reqResponse);
       } else {
-        throw new InvalidModelReqType(genericReq.type);
+        throw new InvalidModelReqType(type);
       }
     }
-  }
-
-  internal class GenericModelReq {
-    public string type;
   }
 
   internal class ModelChangeRequest {
     public static void dispatch(JObject jobj) {
-      ModelChangeRequest changesReq = jobj.ToObject<ModelChangeRequest>();
-      foreach (var changeReq in changesReq.reqs) {
-        ModelChangeRequests.Dispatcher.dispatch(changeReq);
+      var reqArray = jobj["reqs"] as JArray;
+
+      foreach (var changeReq in reqArray.Children()) {
+        ModelChangeRequests.Dispatcher.dispatch(changeReq as JObject);
       }
     }
-
-    public List<JObject> reqs;
   }
 
   internal class VersioningChangeRequest {
     public static void dispatch(JObject jobj) {
-      VersioningChangeRequest versioningChangeReq = jobj.ToObject<VersioningChangeRequest>();
-      ModelVersioningRequests.Dispatcher.dispatch(versioningChangeReq.req);
+      JObject containedReq = jobj["req"] as JObject;
+      
+      ModelVersioningRequests.Dispatcher.dispatch(containedReq);
     }
-
-    public JObject req;
   }
 
   internal class ModelInfoRequest {
     public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(JObject jobj, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
-      ModelInfoRequest modelInfoVersioningReq = jobj.ToObject<ModelInfoRequest>();
-      return ModelInfoRequests.Dispatcher.dispatch(modelInfoVersioningReq.req, modelStruct);
+      JObject req = jobj["req"] as JObject;
+      return ModelInfoRequests.Dispatcher.dispatch(req, modelStruct);
     }
-
-    public JObject req;
   }
 }
 #pragma warning restore 0649

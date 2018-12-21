@@ -7,17 +7,17 @@ using Newtonsoft.Json.Linq;
 namespace ModelChangeRequests {
   public static class Dispatcher {
     public static void dispatch(JObject jobj) {
-      GenericReq genericReq = jobj.ToObject<GenericReq>();
+      string type = jobj["type"].ToString();
 
-      if (genericReq.type == "moveVertex") {
+      if (type == "moveVertex") {
         MoveVertex.dispatch(jobj);
-      } else if (genericReq.type == "cloneVertex") {
+      } else if (type == "cloneVertex") {
         CloneVertex.dispatch(jobj);
-      } else if (genericReq.type == "createEdge") {
+      } else if (type == "createEdge") {
         CreateEdge.dispatch(jobj);
-      } else if (genericReq.type == "deleteVertex") {
+      } else if (type == "deleteVertex") {
         DeleteEdge.dispatch(jobj);
-      } else if (genericReq.type == "setLayerFields") {
+      } else if (type == "setLayerFields") {
         SetLayerFields.dispatch(jobj);
       }
     }
@@ -29,7 +29,13 @@ namespace ModelChangeRequests {
 
   internal struct MoveVertex {
     public static void dispatch(JObject jobj) {
-      MoveVertex moveVertexReq = jobj.ToObject<MoveVertex>();
+      MoveVertex moveVertexReq = new MoveVertex {
+        vertexId = jobj["vertexId"].ToString(),
+        x = float.Parse(jobj["x"].ToString()),
+        y = float.Parse(jobj["y"].ToString())
+      };
+
+      throw new System.Exception("unimplemented");
     }
 
     public string vertexId;
@@ -39,7 +45,14 @@ namespace ModelChangeRequests {
 
   internal struct CloneVertex {
     public static void dispatch(JObject jobj) {
-      CloneVertex cloneVertexReq = jobj.ToObject<CloneVertex>();
+      CloneVertex cloneVertexReq = new CloneVertex {
+        newVertexId = jobj["newVertexId"].ToString(),
+        sourceVertexId = jobj["sourceVertexId"].ToString(),
+        x = float.Parse(jobj["x"].ToString()),
+        y = float.Parse(jobj["y"].ToString())
+      };
+
+      throw new System.Exception("unimplemented");
     }
 
     public string newVertexId;
@@ -50,7 +63,15 @@ namespace ModelChangeRequests {
 
   internal struct CreateEdge {
     public static void dispatch(JObject jobj) {
-      CreateEdge createEdgeReq = jobj.ToObject<CreateEdge>();
+      CreateEdge createEdgeReq = new CreateEdge {
+        newEdgeId = jobj["newEdgeId"].ToString(),
+        sourceVertexId = jobj["sourceVertexId"].ToString(),
+        sourcePortId = jobj["sourcePortId"].ToString(),
+        targetVertexId = jobj["targetVertexId"].ToString(),
+        targetPortId = jobj["targetPortId"].ToString()
+      };
+
+      throw new System.Exception("unimplemented");
     }
 
     public string newEdgeId;
@@ -62,7 +83,9 @@ namespace ModelChangeRequests {
 
   internal struct DeleteVertex {
     public static void dispatch(JObject jobj) {
-      DeleteVertex deleteVertexReq = jobj.ToObject<DeleteVertex>();
+      DeleteVertex deleteVertexReq = new DeleteVertex {
+        vertexId = jobj["vertexId"].ToString()
+      };
     }
 
     public string vertexId;
@@ -70,7 +93,9 @@ namespace ModelChangeRequests {
 
   internal struct DeleteEdge {
     public static void dispatch(JObject jobj) {
-      DeleteEdge deleteEdgeReq = jobj.ToObject<DeleteEdge>();
+      DeleteEdge deleteEdgeReq = new DeleteEdge {
+        edgeId = jobj["edgeId"].ToString()
+      };
     }
 
     public string edgeId;
@@ -78,7 +103,16 @@ namespace ModelChangeRequests {
 
   internal struct SetLayerFields {
     public static void dispatch(JObject jobj) {
-      SetLayerFields setLayerFieldsReq = jobj.ToObject<SetLayerFields>();
+      Dictionary<string, string> fieldValues = new Dictionary<string, string>();
+
+      foreach (var fieldEntry in (jobj["fieldValues"] as JObject).Properties()) {
+        fieldValues[fieldEntry.Name] = fieldEntry.Value.ToString();
+      }
+      
+      SetLayerFields setLayerFieldsReq = new SetLayerFields {
+        layerId = jobj["layerId"].ToString(),
+        fieldValues = fieldValues
+      };
     }
 
     public string layerId;

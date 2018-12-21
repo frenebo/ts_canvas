@@ -6,47 +6,43 @@ using Newtonsoft.Json.Linq;
 namespace ModelVersioningRequests {
   public static class Dispatcher {
     public static void dispatch(JObject jobj) {
-      GenericReq genericReq = jobj.ToObject<GenericReq>();
+      string type = jobj["type"].ToString();
 
-      if (genericReq.type == "undo") {
+      if (type == "undo") {
         Undo.dispatch(jobj);
-      } else if (genericReq.type == "redo") {
+      } else if (type == "redo") {
         Redo.dispatch(jobj);
-      } else if (genericReq.type == "saveFile") {
+      } else if (type == "saveFile") {
         SaveFile.dispatch(jobj);
-      } else if (genericReq.type == "openFile") {
+      } else if (type == "openFile") {
         OpenFile.dispatch(jobj);
-      } else if (genericReq.type == "deleteFile") {
+      } else if (type == "deleteFile") {
         DeleteFile.dispatch(jobj);
       }
     }
   }
 
-  internal struct GenericReq {
-    public string type;
-  }
-
   internal struct Undo {
     public static void dispatch(JObject jobj) {
-      Undo undoReq = jobj.ToObject<Undo>();
+      throw new System.Exception("unimplemented");
     }
   }
 
   internal struct Redo {
     public static void dispatch(JObject jobj) {
-      Redo redoReq = jobj.ToObject<Redo>();
+      throw new System.Exception("unimplemented");
     }
   }
 
   internal struct SaveFile {
     public static void dispatch(JObject jobj) {
-      SaveFile saveFileReq = jobj.ToObject<SaveFile>();
+      throw new System.Exception("unimplemented");
     }
   }
 
   internal struct OpenFile {
     public static void dispatch(JObject jobj) {
-      OpenFile openFileReq = jobj.ToObject<OpenFile>();
+      throw new System.Exception("unimplemented");
     }
 
     public string fileName;
@@ -54,7 +50,7 @@ namespace ModelVersioningRequests {
 
   internal struct DeleteFile {
     public static void dispatch(JObject jobj) {
-      DeleteFile deleteFileReq = jobj.ToObject<DeleteFile>();
+      throw new System.Exception("unimplemented");
     }
 
     public string fileName;
