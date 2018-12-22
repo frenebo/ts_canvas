@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace RequestResponder {
+namespace ExternalMessageSender {
   internal class ReqResponse<T> {
     public string type = "request_response";
     public string request_id;
@@ -14,11 +14,17 @@ namespace RequestResponder {
     }
   }
 
+  public static class DataChangedNotifier {
+    public static void notifyDataChanged() {
+      System.Console.WriteLine("{\"type\": \"data_changed_notification\"}");
+    }
+  }
+
   public class RequestResponder {
     private string requestId;
     private string clientId;
 
-    public RequestResponder(ModelStruct.ModelStruct modelStruct, string requestId, string clientId) {
+    public RequestResponder(ModelContainer.ModelContainer modelStruct, string requestId, string clientId) {
       this.requestId = requestId;
       this.clientId = clientId;
     }

@@ -1,5 +1,5 @@
 
 namespace ModelChangeReqResponses {
-  public abstract class ModelChangeReqResponse {
+  public class ModelChangeReqResponse {
   }
 }

@@ -184,17 +184,17 @@ namespace ModelInfoReqResponses {
   }
 
   public class GetUniqueEdgeIdsResponse : ModelInfoReqResponse {
-    public readonly string[] edgeIds;
+    public readonly List<string> edgeIds;
 
-    public GetUniqueEdgeIdsResponse(string[] edgeIds) {
+    public GetUniqueEdgeIdsResponse(List<string> edgeIds) {
       this.edgeIds = edgeIds;
     }
   }
 
-  public class UniqueVertexIdsResponse : ModelInfoReqResponse {
-    public readonly string[] vertexIds;
+  public class GetUniqueVertexIdsResponse : ModelInfoReqResponse {
+    public readonly List<string> vertexIds;
 
-    public UniqueVertexIdsResponse(string[] vertexIds) {
+    public GetUniqueVertexIdsResponse(List<string> vertexIds) {
       this.vertexIds = vertexIds;
     }
   }

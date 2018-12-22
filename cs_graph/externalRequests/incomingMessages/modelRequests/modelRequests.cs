@@ -10,11 +10,13 @@ namespace ModelRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(JObject jobj, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
+    public static void dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder, ModelContainer.ModelContainer modelStruct) {
       string type = jobj["type"].ToString();
 
       if (type == "request_model_changes") {
-        ModelChangeRequest.dispatch(jobj);
+        ModelChangeReqResponses.ModelChangeReqResponse reqResponse = ModelChangeRequest.dispatch(modelStruct, jobj);
+        reqResponder.sendModelChangeReqResponse(reqResponse);
+        ExternalMessageSender.DataChangedNotifier.notifyDataChanged();
       } else if (type == "request_versioning_change") {
         VersioningChangeRequest.dispatch(jobj);
       } else if (type == "request_model_info") {
@@ -27,12 +29,17 @@ namespace ModelRequests {
   }
 
   internal class ModelChangeRequest {
-    public static void dispatch(JObject jobj) {
+    public static ModelChangeReqResponses.ModelChangeReqResponse dispatch(
+      ModelContainer.ModelContainer modelStruct,
+      JObject jobj
+      ) {
       var reqArray = jobj["reqs"] as JArray;
 
       foreach (var changeReq in reqArray.Children()) {
-        ModelChangeRequests.Dispatcher.dispatch(changeReq as JObject);
+        ModelChangeRequests.Dispatcher.dispatch(modelStruct, changeReq as JObject);
       }
+
+      return new ModelChangeReqResponses.ModelChangeReqResponse();
     }
   }
 
@@ -45,7 +52,7 @@ namespace ModelRequests {
   }
 
   internal class ModelInfoRequest {
-    public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(JObject jobj, RequestResponder.RequestResponder reqResponder, ModelStruct.ModelStruct modelStruct) {
+    public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder, ModelContainer.ModelContainer modelStruct) {
       JObject req = jobj["req"] as JObject;
       return ModelInfoRequests.Dispatcher.dispatch(req, modelStruct);
     }

@@ -10,7 +10,7 @@ namespace ServerRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(JObject jobj, ModelStruct.ModelStruct modelStruct) {
+    public static void dispatch(JObject jobj, ModelContainer.ModelContainer modelStruct) {
       var parseWatch = System.Diagnostics.Stopwatch.StartNew();
 
       var type = jobj["type"].ToString();
@@ -31,13 +31,13 @@ namespace ServerRequests {
 
 
   internal class ClientRequest {
-    public static void dispatch(JObject jobj, ModelStruct.ModelStruct modelStruct) {
+    public static void dispatch(JObject jobj, ModelContainer.ModelContainer modelStruct) {
       string clientId = jobj["client_id"].ToString();
       string requestId = jobj["client_message"]["requestId"].ToString();
 
       JObject clientRequest = jobj["client_message"]["request"] as JObject;
       
-      RequestResponder.RequestResponder reqResponder = new RequestResponder.RequestResponder(
+      ExternalMessageSender.RequestResponder reqResponder = new ExternalMessageSender.RequestResponder(
         modelStruct,
         requestId,
         clientId

@@ -66,13 +66,43 @@ namespace GraphUtils {
       }
     }
 
-    private static ResponseJson.EdgeData getEdgeJsonData(NetworkGraph.Edge edge) {
+    public static ResponseJson.EdgeData getEdgeJsonData(NetworkGraph.Edge edge) {
       return new ResponseJson.EdgeData {
         consistency = GraphUtils.getEdgeConsistencyString(edge.consistency),
         sourceVertexId = edge.sourceVertexId,
         sourcePortId = edge.sourcePortId,
         targetVertexId = edge.targetVertexId,
         targetPortId = edge.targetPortId
+      };
+    }
+
+    public static void moveVertex(
+      ModelContainer.ModelContainer modelStruct,
+      string vertexId,
+      float x,
+      float y
+    ) {
+      NetworkGraph.Vertex vtx = modelStruct.graph.vertices[vertexId];
+      vtx.xLocation = x;
+      vtx.yLocation = y;
+      // GraphUtils.GraphUtils.moveVertex(modelStruct, vertexId, x, y);
+    }
+
+    public static void cloneVertex(
+      ModelContainer.ModelContainer modelStruct,
+      string sourceVertexId,
+      string newVertexId,
+      float x,
+      float y
+    ) {
+      NetworkGraph.Vertex newVtx = modelStruct.graph.vertices[sourceVertexId].clone();
+      modelStruct.graph.vertices[newVertexId] = newVtx;
+      newVtx.xLocation = x;
+      newVtx.yLocation = y;
+
+      modelStruct.edgesByVertex[newVertexId] = new ModelContainer.VertexEdgesInfo {
+        edgesIn = new List<string>(),
+        edgesOut = new List<string>()
       };
     }
   }
