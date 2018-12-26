@@ -34,8 +34,7 @@ namespace cs_graph {
     }
 
     private static async System.Threading.Tasks.Task listenInput(ModelClasses.ModelContainer modelStruct) {
-      for (int i = 0; i < 100; i++) {
-      // while (true) {
+      while (true) {
         string line = await System.Console.In.ReadLineAsync();
         try {
           var jobj = Newtonsoft.Json.Linq.JObject.Parse(line);
