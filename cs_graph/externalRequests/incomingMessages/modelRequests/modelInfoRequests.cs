@@ -11,7 +11,7 @@ namespace ModelInfoRequests {
   public static class Dispatcher {
     public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(
       JObject jobj,
-      ModelContainer.ModelContainer modelContainer
+      ModelClasses.ModelContainer modelContainer
     ) {
       string type = jobj["type"].ToString();
 
@@ -68,7 +68,7 @@ namespace ModelInfoRequests {
 
   internal struct EdgesBetweenVerticesReq {
     public static ModelInfoReqResponses.EdgesBetweenVerticesResponse dispatch(
-      ModelContainer.ModelContainer modelContainer,
+      ModelClasses.ModelContainer modelContainer,
       JObject jobj
     ) {
       List<string> vertexIds = new List<string>();
@@ -80,7 +80,7 @@ namespace ModelInfoRequests {
         vertexIds = vertexIds
       };
 
-      List<string> edgeIds = ModelUtils.ModelUtils.getEdgesBetweenVertices(
+      List<string> edgeIds = ModelUtilsNS.ModelUtils.getEdgesBetweenVertices(
         modelContainer,
         edgesBetweenVertices.vertexIds
       );
@@ -88,8 +88,8 @@ namespace ModelInfoRequests {
       var edges = new Dictionary<string, ResponseJson.EdgeData>();
 
       foreach (string edgeId in edgeIds) {
-        GraphUtils.GraphUtils.getEdgeJsonData(modelContainer.graph.edges[edgeId]);
-        edges[edgeId] = GraphUtils.GraphUtils.getEdgeJsonData(modelContainer.graph.edges[edgeId]);;
+        GraphUtilsNS.GraphUtils.getEdgeJsonData(modelContainer.graph.edges[edgeId]);
+        edges[edgeId] = GraphUtilsNS.GraphUtils.getEdgeJsonData(modelContainer.graph.edges[edgeId]);;
       }
 
       return new ModelInfoReqResponses.EdgesBetweenVerticesResponseVerticesExist(edges);
@@ -194,14 +194,14 @@ namespace ModelInfoRequests {
 
   internal struct GetUniqueEdgeIdsReq {
     public static ModelInfoReqResponses.GetUniqueEdgeIdsResponse dispatch(
-      ModelContainer.ModelContainer modelContainer,
+      ModelClasses.ModelContainer modelContainer,
       JObject jobj
     ) {
       GetUniqueEdgeIdsReq getUniqueEdgeIdsReq = new GetUniqueEdgeIdsReq {
         count = int.Parse(jobj["count"].ToString())
       };
 
-      List<string> edgesIds = ModelUtils.ModelUtils.getUniqueEdgeIds(modelContainer, getUniqueEdgeIdsReq.count);
+      List<string> edgesIds = ModelUtilsNS.ModelUtils.getUniqueEdgeIds(modelContainer, getUniqueEdgeIdsReq.count);
 
       return new ModelInfoReqResponses.GetUniqueEdgeIdsResponse(edgesIds);
     }
@@ -211,14 +211,14 @@ namespace ModelInfoRequests {
 
   internal struct GetUniqueVertexIdsReq {
     public static ModelInfoReqResponses.GetUniqueVertexIdsResponse dispatch(
-      ModelContainer.ModelContainer modelContainer,
+      ModelClasses.ModelContainer modelContainer,
       JObject jobj
     ) {
       GetUniqueVertexIdsReq getUniqueVertexIds = new GetUniqueVertexIdsReq {
         count = int.Parse(jobj["count"].ToString())
       };
 
-      List<string> vertexIds = ModelUtils.ModelUtils.getUniqueVertexIds(modelContainer, getUniqueVertexIds.count);
+      List<string> vertexIds = ModelUtilsNS.ModelUtils.getUniqueVertexIds(modelContainer, getUniqueVertexIds.count);
 
       return new ModelInfoReqResponses.GetUniqueVertexIdsResponse(vertexIds);
     }
@@ -242,18 +242,10 @@ namespace ModelInfoRequests {
 
   internal struct GetGraphDataReq {
     public static ModelInfoReqResponses.GetGraphDataResponse dispatch(
-      ModelContainer.ModelContainer modelContainer,
-      JObject jobj      
+      ModelClasses.ModelContainer modelContainer,
+      JObject jobj
     ) {
-
-      var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-      ResponseJson.GraphData graphData = ModelUtils.ModelUtils.getResponseJsonData(modelContainer);
-
-      stopwatch.Stop();
-      var parseElapsedMs = stopwatch.ElapsedMilliseconds;
-      System.Console.Error.WriteLine("Get response json data time: " + parseElapsedMs.ToString());
-
+      ResponseJson.GraphData graphData = ModelUtilsNS.ModelUtils.getResponseJsonData(modelContainer);
 
       ModelInfoReqResponses.GetGraphDataResponse response = new ModelInfoReqResponses.GetGraphDataResponse(graphData);
 

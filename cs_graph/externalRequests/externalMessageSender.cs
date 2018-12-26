@@ -24,7 +24,7 @@ namespace ExternalMessageSender {
     private string requestId;
     private string clientId;
 
-    public RequestResponder(ModelContainer.ModelContainer modelStruct, string requestId, string clientId) {
+    public RequestResponder(ModelClasses.ModelContainer modelStruct, string requestId, string clientId) {
       this.requestId = requestId;
       this.clientId = clientId;
     }

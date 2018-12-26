@@ -4,27 +4,27 @@ using Newtonsoft.Json;
 namespace cs_graph {
   class Program {
     static void Main(string[] args) {
-      ModelContainer.ModelContainer model = new ModelContainer.ModelContainer {
-        layerDict = new LayerDict.LayerDict {
+      ModelClasses.ModelContainer model = new ModelClasses.ModelContainer {
+        layerDict = new LayerContainers.LayerDict {
           layers = new Dictionary<string, Layers.Layer>()
         },
-        graph = new NetworkGraph.Graph {
-          vertices = new Dictionary<string, NetworkGraph.Vertex>(),
-          edges = new Dictionary<string, NetworkGraph.Edge>()
+        graph = new NetworkContainersNS.Graph {
+          vertices = new Dictionary<string, NetworkContainersNS.Vertex>(),
+          edges = new Dictionary<string, NetworkContainersNS.Edge>()
         },
-        edgesByVertex = new Dictionary<string, ModelContainer.VertexEdgesInfo>()
+        edgesByVertex = new Dictionary<string, ModelClasses.VertexEdgesInfo>()
       };
 
       string[] ids = new string[] {"a", "b", "c", "d"};
 
       for (int i = 0; i < ids.Length; i++) {
-        model.graph.vertices[ids[i]] = new NetworkGraph.Vertex {
+        model.graph.vertices[ids[i]] = new NetworkContainersNS.Vertex {
           label = "Some Layer",
           xLocation = 10*i,
-          yLocation = 10*1,
-          ports = new Dictionary<string, NetworkGraph.NetworkPort>()
+          yLocation = 10*i,
+          ports = new Dictionary<string, NetworkContainersNS.NetworkPort>()
         };
-        model.edgesByVertex[ids[i]] = new ModelContainer.VertexEdgesInfo {
+        model.edgesByVertex[ids[i]] = new ModelClasses.VertexEdgesInfo {
           edgesIn = new List<string>(),
           edgesOut = new List<string>()
         };
@@ -33,29 +33,16 @@ namespace cs_graph {
       Program.listenInput(model);
     }
 
-    private static async System.Threading.Tasks.Task listenInput(ModelContainer.ModelContainer modelStruct) {
-      while (true) {
+    private static async System.Threading.Tasks.Task listenInput(ModelClasses.ModelContainer modelStruct) {
+      for (int i = 0; i < 100; i++) {
+      // while (true) {
         string line = await System.Console.In.ReadLineAsync();
         try {
-          var parseWatch = System.Diagnostics.Stopwatch.StartNew();
-
-          System.Console.Error.WriteLine(line);
-          
           var jobj = Newtonsoft.Json.Linq.JObject.Parse(line);
-          
-          parseWatch.Stop();
-          var parseElapsedMs = parseWatch.ElapsedMilliseconds;
-          System.Console.Error.WriteLine("Request parse time: " + parseElapsedMs.ToString());
 
-          var dispatchWatch = System.Diagnostics.Stopwatch.StartNew();
-          
           ServerRequests.Dispatcher.dispatch(jobj, modelStruct);
-
-          dispatchWatch.Stop();
-          var dispatchElapsedMs = dispatchWatch.ElapsedMilliseconds;
-          System.Console.Error.WriteLine("Request dispatch time: " + dispatchElapsedMs);
-
         } catch (System.Exception exp) {
+          System.Console.Error.WriteLine("Line: " + line);
           System.Console.Error.WriteLine("Error: " + exp.ToString());
         }
       }

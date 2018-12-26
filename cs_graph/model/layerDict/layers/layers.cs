@@ -6,7 +6,18 @@ namespace Layers {
     public MissingValueNameException(string message) : base(message) {}
   }
 
+  public class InvalidLayerTypeException : System.Exception {
+    public InvalidLayerTypeException(string message) : base(message) {}
+  }
+
   public abstract class Layer {
+    public static Layer getNewLayerByType(string type) {
+      if (type == "Repeat") {
+        return new RepeatLayer();
+      } else {
+        throw new InvalidLayerTypeException(type);
+      }
+    }
     public abstract string getType();
 
     public abstract List<string> getValueNames();
@@ -16,6 +27,16 @@ namespace Layers {
     public abstract string getValueString(string valueName);
 
     public abstract bool getValueIsReadonly(string valueName);
+
+    public Layer clone() {
+      Layer cloneLayer = Layer.getNewLayerByType(this.getType());
+
+      foreach (string valueName in this.getValueNames()) {
+        cloneLayer.setValueString(valueName, this.getValueString(valueName));
+      }
+
+      return cloneLayer;
+    }
   }
 
   internal class RepeatLayer : Layer {

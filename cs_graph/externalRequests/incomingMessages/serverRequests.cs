@@ -10,14 +10,8 @@ namespace ServerRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(JObject jobj, ModelContainer.ModelContainer modelStruct) {
-      var parseWatch = System.Diagnostics.Stopwatch.StartNew();
-
+    public static void dispatch(JObject jobj, ModelClasses.ModelContainer modelStruct) {
       var type = jobj["type"].ToString();
-      
-      parseWatch.Stop();
-      var parseElapsedMs = parseWatch.ElapsedMilliseconds;
-      System.Console.Error.WriteLine("To generic req time: " + parseElapsedMs.ToString());
 
       if (type == "client_request") {
         ClientRequest.dispatch(jobj, modelStruct);
@@ -31,18 +25,18 @@ namespace ServerRequests {
 
 
   internal class ClientRequest {
-    public static void dispatch(JObject jobj, ModelContainer.ModelContainer modelStruct) {
+    public static void dispatch(JObject jobj, ModelClasses.ModelContainer modelStruct) {
       string clientId = jobj["client_id"].ToString();
       string requestId = jobj["client_message"]["requestId"].ToString();
 
       JObject clientRequest = jobj["client_message"]["request"] as JObject;
-      
+
       ExternalMessageSender.RequestResponder reqResponder = new ExternalMessageSender.RequestResponder(
         modelStruct,
         requestId,
         clientId
       );
-      
+
       ModelRequests.Dispatcher.dispatch(clientRequest, reqResponder, modelStruct);
     }
   }

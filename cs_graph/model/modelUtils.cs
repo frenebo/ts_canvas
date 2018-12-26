@@ -1,28 +1,60 @@
 using System.Collections.Generic;
 
-namespace ModelUtils {
+namespace ModelUtilsNS {
   public static class ModelUtils {
-    public static ResponseJson.GraphData getResponseJsonData(ModelContainer.ModelContainer modelStruct) {
-      return GraphUtils.GraphUtils.getResponseJsonData(modelStruct.graph);
+    public static ResponseJson.GraphData getResponseJsonData(ModelClasses.ModelContainer modelStruct) {
+      return GraphUtilsNS.GraphUtils.getResponseJsonData(modelStruct.graph);
     }
 
     public static void moveVertex(
-      ModelContainer.ModelContainer modelStruct,
+      ModelClasses.ModelContainer modelStruct,
       string vertexId,
       float x,
       float y
     ) {
-      GraphUtils.GraphUtils.moveVertex(modelStruct, vertexId, x, y);
+      GraphUtilsNS.GraphUtils.moveVertex(modelStruct, vertexId, x, y);
     }
 
     public static void cloneVertex(
-      ModelContainer.ModelContainer modelStruct,
+      ModelClasses.ModelContainer modelStruct,
       string sourceVertexId,
       string newVertexId,
       float x,
       float y
     ) {
-      GraphUtils.GraphUtils.cloneVertex(modelStruct, sourceVertexId, newVertexId, x, y);
+      GraphUtilsNS.GraphUtils.cloneVertex(modelStruct, sourceVertexId, newVertexId, x, y);
+    }
+
+    public static void deleteVertex(
+      ModelClasses.ModelContainer modelStruct,
+      string vertexId
+    ) {
+      GraphUtilsNS.GraphUtils.deleteVertex(modelStruct, vertexId);
+    }
+
+    public static void deleteEdge(
+      ModelClasses.ModelContainer modelStruct,
+      string edgeId
+    ) {
+      GraphUtilsNS.GraphUtils.deleteEdge(modelStruct, edgeId);
+    }
+
+    public static void createEdge(
+      ModelClasses.ModelContainer modelStruct,
+      string newEdgeId,
+      string sourceVertexId,
+      string sourcePortId,
+      string targetVertexId,
+      string targetPortId
+    ) {
+      GraphUtilsNS.GraphUtils.createEdge(
+        modelStruct,
+        newEdgeId,
+        sourceVertexId,
+        sourcePortId,
+        targetVertexId,
+        targetPortId
+      );
     }
 
     private static List<string> getUniqueIds(
@@ -51,7 +83,7 @@ namespace ModelUtils {
     }
 
     public static List<string> getUniqueVertexIds(
-      ModelContainer.ModelContainer modelContainer,
+      ModelClasses.ModelContainer modelContainer,
       int count
     ) {
       return ModelUtils.getUniqueIds(
@@ -63,7 +95,7 @@ namespace ModelUtils {
     }
 
     public static List<string> getUniqueEdgeIds(
-      ModelContainer.ModelContainer modelContainer,
+      ModelClasses.ModelContainer modelContainer,
       int count
     ) {
       return ModelUtils.getUniqueIds(
@@ -75,13 +107,17 @@ namespace ModelUtils {
     }
 
     public static List<string> getEdgesBetweenVertices(
-      ModelContainer.ModelContainer modelContainer,
+      ModelClasses.ModelContainer modelContainer,
       List<string> vertexIds
     ) {
       var edgesOut = new HashSet<string>();
       var edgesIn = new HashSet<string>();
       
       foreach (string vtxId in vertexIds) {
+        if (!modelContainer.edgesByVertex.ContainsKey(vtxId)) {
+          throw new System.Exception("No such vertex id");
+        }
+        
         modelContainer.edgesByVertex[vtxId].edgesIn.ForEach((string edgeId) => edgesIn.Add(edgeId));
         modelContainer.edgesByVertex[vtxId].edgesOut.ForEach((string edgeId) => edgesOut.Add(edgeId));
       }

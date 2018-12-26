@@ -10,7 +10,7 @@ namespace ModelChangeRequests {
   }
   public static class Dispatcher {
     public static void dispatch(
-      ModelContainer.ModelContainer modelStruct,
+      ModelClasses.ModelContainer modelStruct,
       JObject jobj
     ) {
       string type = jobj["type"].ToString();
@@ -20,11 +20,13 @@ namespace ModelChangeRequests {
       } else if (type == "cloneVertex") {
         CloneVertexReq.dispatch(modelStruct, jobj);
       } else if (type == "createEdge") {
-        CreateEdgeReq.dispatch(jobj);
+        CreateEdgeReq.dispatch(modelStruct, jobj);
       } else if (type == "deleteVertex") {
-        DeleteEdgeReq.dispatch(jobj);
+        DeleteVertexReq.dispatch(modelStruct, jobj);
+      } else if (type == "deleteEdge") {
+        DeleteEdgeReq.dispatch(modelStruct, jobj);
       } else if (type == "setLayerFields") {
-        SetLayerFieldsReq.dispatch(jobj);
+        SetLayerFieldsReq.dispatch(modelStruct, jobj);
       } else {
         throw new InvalidInfoReqType(type);
       }
@@ -37,7 +39,7 @@ namespace ModelChangeRequests {
 
   internal struct MoveVertexReq {
     public static void dispatch(
-      ModelContainer.ModelContainer modelStruct,
+      ModelClasses.ModelContainer modelStruct,
       JObject jobj
     ) {
       MoveVertexReq moveVertexReq = new MoveVertexReq {
@@ -46,7 +48,7 @@ namespace ModelChangeRequests {
         y = float.Parse(jobj["y"].ToString())
       };
 
-      ModelUtils.ModelUtils.moveVertex(
+      ModelUtilsNS.ModelUtils.moveVertex(
         modelStruct,
         moveVertexReq.vertexId,
         moveVertexReq.x,
@@ -61,7 +63,7 @@ namespace ModelChangeRequests {
 
   internal struct CloneVertexReq {
     public static void dispatch(
-      ModelContainer.ModelContainer modelStruct,
+      ModelClasses.ModelContainer modelStruct,
       JObject jobj
     ) {
       CloneVertexReq cloneVertexReq = new CloneVertexReq {
@@ -71,7 +73,7 @@ namespace ModelChangeRequests {
         y = float.Parse(jobj["y"].ToString())
       };
 
-      ModelUtils.ModelUtils.cloneVertex(modelStruct, cloneVertexReq.sourceVertexId, cloneVertexReq.newVertexId, cloneVertexReq.x, cloneVertexReq.y);
+      ModelUtilsNS.ModelUtils.cloneVertex(modelStruct, cloneVertexReq.sourceVertexId, cloneVertexReq.newVertexId, cloneVertexReq.x, cloneVertexReq.y);
     }
 
     public string newVertexId;
@@ -81,7 +83,10 @@ namespace ModelChangeRequests {
   }
 
   internal struct CreateEdgeReq {
-    public static void dispatch(JObject jobj) {
+    public static void dispatch(
+      ModelClasses.ModelContainer modelStruct,
+      JObject jobj
+    ) {
       CreateEdgeReq createEdgeReq = new CreateEdgeReq {
         newEdgeId = jobj["newEdgeId"].ToString(),
         sourceVertexId = jobj["sourceVertexId"].ToString(),
@@ -90,7 +95,14 @@ namespace ModelChangeRequests {
         targetPortId = jobj["targetPortId"].ToString()
       };
 
-      throw new System.Exception("CreateEdgeReq unimplemented");
+      ModelUtilsNS.ModelUtils.createEdge(
+        modelStruct,
+        createEdgeReq.newEdgeId,
+        createEdgeReq.sourceVertexId,
+        createEdgeReq.sourcePortId,
+        createEdgeReq.targetVertexId,
+        createEdgeReq.targetPortId
+      );
     }
 
     public string newEdgeId;
@@ -101,31 +113,40 @@ namespace ModelChangeRequests {
   }
 
   internal struct DeleteVertexReq {
-    public static void dispatch(JObject jobj) {
+    public static void dispatch(
+      ModelClasses.ModelContainer modelStruct,
+      JObject jobj
+    ) {
       DeleteVertexReq deleteVertexReq = new DeleteVertexReq {
         vertexId = jobj["vertexId"].ToString()
       };
 
-      throw new System.Exception("DeleteVertexReq unimplemented");
+      ModelUtilsNS.ModelUtils.deleteVertex(modelStruct, deleteVertexReq.vertexId);
     }
 
     public string vertexId;
   }
 
   internal struct DeleteEdgeReq {
-    public static void dispatch(JObject jobj) {
+    public static void dispatch(
+      ModelClasses.ModelContainer modelStruct,
+      JObject jobj
+    ) {
       DeleteEdgeReq deleteEdgeReq = new DeleteEdgeReq {
         edgeId = jobj["edgeId"].ToString()
       };
 
-      throw new System.Exception("DeleteEdgeReq unimplemented");
+      ModelUtilsNS.ModelUtils.deleteEdge(modelStruct, deleteEdgeReq.edgeId);
     }
 
     public string edgeId;
   }
 
   internal struct SetLayerFieldsReq {
-    public static void dispatch(JObject jobj) {
+    public static void dispatch(
+      ModelClasses.ModelContainer modelStruct,
+      JObject jobj
+    ) {
       Dictionary<string, string> fieldValues = new Dictionary<string, string>();
 
       foreach (var fieldEntry in (jobj["fieldValues"] as JObject).Properties()) {

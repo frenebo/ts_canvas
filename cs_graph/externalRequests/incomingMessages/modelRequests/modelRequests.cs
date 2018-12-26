@@ -10,7 +10,7 @@ namespace ModelRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder, ModelContainer.ModelContainer modelStruct) {
+    public static void dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder, ModelClasses.ModelContainer modelStruct) {
       string type = jobj["type"].ToString();
 
       if (type == "request_model_changes") {
@@ -30,7 +30,7 @@ namespace ModelRequests {
 
   internal class ModelChangeRequest {
     public static ModelChangeReqResponses.ModelChangeReqResponse dispatch(
-      ModelContainer.ModelContainer modelStruct,
+      ModelClasses.ModelContainer modelStruct,
       JObject jobj
       ) {
       var reqArray = jobj["reqs"] as JArray;
@@ -52,7 +52,7 @@ namespace ModelRequests {
   }
 
   internal class ModelInfoRequest {
-    public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder, ModelContainer.ModelContainer modelStruct) {
+    public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder, ModelClasses.ModelContainer modelStruct) {
       JObject req = jobj["req"] as JObject;
       return ModelInfoRequests.Dispatcher.dispatch(req, modelStruct);
     }
