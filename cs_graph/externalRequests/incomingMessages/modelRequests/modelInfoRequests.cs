@@ -11,14 +11,14 @@ namespace ModelInfoRequests {
   public static class Dispatcher {
     public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(
       JObject jobj,
-      ModelClasses.ModelContainer modelContainer
+      VersionedModelClassNS.VersionedModelClass versionedModel
     ) {
       string type = jobj["type"].ToString();
 
       if (type == "validateEdge") {
         return ValidateEdgeReq.dispatch(jobj);
       } else if (type == "edgesBetweenVertices") {
-        return EdgesBetweenVerticesReq.dispatch(modelContainer, jobj);
+        return EdgesBetweenVerticesReq.dispatch(versionedModel, jobj);
       } else if (type == "fileIsOpen") {
         return FileIsOpenReq.dispatch(jobj);
       } else if (type == "savedFileNames") {
@@ -34,13 +34,13 @@ namespace ModelInfoRequests {
       } else if (type == "validateLayerFields") {
         return ValidateLayerFieldsReq.dispatch(jobj);
       } else if (type == "getUniqueEdgeIds") {
-        return GetUniqueEdgeIdsReq.dispatch(modelContainer, jobj);
+        return GetUniqueEdgeIdsReq.dispatch(versionedModel, jobj);
       } else if (type == "getUniqueVertexIds") {
-        return GetUniqueVertexIdsReq.dispatch(modelContainer, jobj);
+        return GetUniqueVertexIdsReq.dispatch(versionedModel, jobj);
       } else if (type == "valueIsReadonly") {
         return ValueIsReadonlyReq.dispatch(jobj);
       } else if (type == "getGraphData") {
-        return GetGraphDataReq.dispatch(modelContainer, jobj);
+        return GetGraphDataReq.dispatch(versionedModel, jobj);
       } else {
         throw new InvalidInfoReqType(type);
       }
@@ -68,9 +68,10 @@ namespace ModelInfoRequests {
 
   internal struct EdgesBetweenVerticesReq {
     public static ModelInfoReqResponses.EdgesBetweenVerticesResponse dispatch(
-      ModelClasses.ModelContainer modelContainer,
+      VersionedModelClassNS.VersionedModelClass versionedModel,
       JObject jobj
     ) {
+      var modelContainer = versionedModel.getCurrent();
       List<string> vertexIds = new List<string>();
 
       foreach (var vertexId in (jobj["vertexIds"] as JArray).Children()) {
@@ -194,9 +195,10 @@ namespace ModelInfoRequests {
 
   internal struct GetUniqueEdgeIdsReq {
     public static ModelInfoReqResponses.GetUniqueEdgeIdsResponse dispatch(
-      ModelClasses.ModelContainer modelContainer,
+      VersionedModelClassNS.VersionedModelClass versionedModel,
       JObject jobj
     ) {
+      var modelContainer = versionedModel.getCurrent();
       GetUniqueEdgeIdsReq getUniqueEdgeIdsReq = new GetUniqueEdgeIdsReq {
         count = int.Parse(jobj["count"].ToString())
       };
@@ -211,9 +213,10 @@ namespace ModelInfoRequests {
 
   internal struct GetUniqueVertexIdsReq {
     public static ModelInfoReqResponses.GetUniqueVertexIdsResponse dispatch(
-      ModelClasses.ModelContainer modelContainer,
+      VersionedModelClassNS.VersionedModelClass versionedModel,
       JObject jobj
     ) {
+      var modelContainer = versionedModel.getCurrent();
       GetUniqueVertexIdsReq getUniqueVertexIds = new GetUniqueVertexIdsReq {
         count = int.Parse(jobj["count"].ToString())
       };
@@ -242,9 +245,10 @@ namespace ModelInfoRequests {
 
   internal struct GetGraphDataReq {
     public static ModelInfoReqResponses.GetGraphDataResponse dispatch(
-      ModelClasses.ModelContainer modelContainer,
+      VersionedModelClassNS.VersionedModelClass versionedModel,
       JObject jobj
     ) {
+      var modelContainer = versionedModel.getCurrent();
       ResponseJson.GraphData graphData = ModelUtilsNS.ModelUtils.getResponseJsonData(modelContainer);
 
       ModelInfoReqResponses.GetGraphDataResponse response = new ModelInfoReqResponses.GetGraphDataResponse(graphData);

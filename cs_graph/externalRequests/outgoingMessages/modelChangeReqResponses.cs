@@ -1,5 +1,5 @@
 
-namespace ModelChangeReqResponses {
+namespace ModelChangeReqResponseNS {
   public class ModelChangeReqResponse {
   }
 }

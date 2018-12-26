@@ -78,7 +78,7 @@ namespace GraphUtilsNS {
     }
 
     public static void moveVertex(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string vertexId,
       float x,
       float y
@@ -90,7 +90,7 @@ namespace GraphUtilsNS {
     }
 
     public static string validateEdge(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string newEdgeId,
       string sourceVertexId,
       string sourcePortId,
@@ -157,7 +157,7 @@ namespace GraphUtilsNS {
     }
 
     public static void deleteVertex(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string vertexId
     ) {
       if (!modelStruct.graph.vertices.ContainsKey(vertexId)) {
@@ -173,7 +173,7 @@ namespace GraphUtilsNS {
     }
 
     public static void deleteEdge(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string edgeId
     ) {
       if (!modelStruct.graph.edges.ContainsKey(edgeId)) {
@@ -188,7 +188,7 @@ namespace GraphUtilsNS {
     }
 
     public static void createEdge(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string newEdgeId,
       string sourceVertexId,
       string sourcePortId,
@@ -222,7 +222,7 @@ namespace GraphUtilsNS {
     }
 
     public static void cloneVertex(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string sourceVertexId,
       string newVertexId,
       float x,
@@ -239,7 +239,7 @@ namespace GraphUtilsNS {
       newVtx.xLocation = x;
       newVtx.yLocation = y;
 
-      modelStruct.edgesByVertex[newVertexId] = new ModelClasses.VertexEdgesInfo {
+      modelStruct.edgesByVertex[newVertexId] = new ModelClassNS.VertexEdgesInfo {
         edgesIn = new List<string>(),
         edgesOut = new List<string>()
       };

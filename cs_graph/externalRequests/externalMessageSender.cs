@@ -24,13 +24,13 @@ namespace ExternalMessageSender {
     private string requestId;
     private string clientId;
 
-    public RequestResponder(ModelClasses.ModelContainer modelStruct, string requestId, string clientId) {
+    public RequestResponder(string requestId, string clientId) {
       this.requestId = requestId;
       this.clientId = clientId;
     }
 
-    public void sendModelChangeReqResponse(ModelChangeReqResponses.ModelChangeReqResponse response) {
-      ReqResponse<ModelChangeReqResponses.ModelChangeReqResponse> reqResponse = new ReqResponse<ModelChangeReqResponses.ModelChangeReqResponse>(
+    public void sendModelChangeReqResponse(ModelChangeReqResponseNS.ModelChangeReqResponse response) {
+      ReqResponse<ModelChangeReqResponseNS.ModelChangeReqResponse> reqResponse = new ReqResponse<ModelChangeReqResponseNS.ModelChangeReqResponse>(
         this.requestId,
         this.clientId,
         response

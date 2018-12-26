@@ -10,17 +10,22 @@ namespace ModelRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder, ModelClasses.ModelContainer modelStruct) {
+    public static void dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder, VersionedModelClassNS.VersionedModelClass versionedModel) {
       string type = jobj["type"].ToString();
 
       if (type == "request_model_changes") {
-        ModelChangeReqResponses.ModelChangeReqResponse reqResponse = ModelChangeRequest.dispatch(modelStruct, jobj);
+        versionedModel.snapshot();
+        ModelChangeReqResponseNS.ModelChangeReqResponse reqResponse = ModelChangeRequest.dispatch(versionedModel.getCurrent(), jobj);
+        
         reqResponder.sendModelChangeReqResponse(reqResponse);
         ExternalMessageSender.DataChangedNotifier.notifyDataChanged();
       } else if (type == "request_versioning_change") {
-        VersioningChangeRequest.dispatch(jobj);
+        ModelVersioningReqResponses.ModelVersioningReqResponse reqResponse = VersioningChangeRequest.dispatch(jobj, versionedModel);
+        
+        reqResponder.sendVersioningChangeReqResponse(reqResponse);
+        ExternalMessageSender.DataChangedNotifier.notifyDataChanged();
       } else if (type == "request_model_info") {
-        ModelInfoReqResponses.ModelInfoReqResponse reqResponse = ModelInfoRequest.dispatch(jobj, reqResponder, modelStruct);
+        ModelInfoReqResponses.ModelInfoReqResponse reqResponse = ModelInfoRequest.dispatch(jobj, reqResponder, versionedModel);
         reqResponder.sendModelInfoReqResponse(reqResponse);
       } else {
         throw new InvalidModelReqType(type);
@@ -29,8 +34,8 @@ namespace ModelRequests {
   }
 
   internal class ModelChangeRequest {
-    public static ModelChangeReqResponses.ModelChangeReqResponse dispatch(
-      ModelClasses.ModelContainer modelStruct,
+    public static ModelChangeReqResponseNS.ModelChangeReqResponse dispatch(
+      ModelClassNS.ModelClass modelStruct,
       JObject jobj
       ) {
       var reqArray = jobj["reqs"] as JArray;
@@ -39,22 +44,22 @@ namespace ModelRequests {
         ModelChangeRequests.Dispatcher.dispatch(modelStruct, changeReq as JObject);
       }
 
-      return new ModelChangeReqResponses.ModelChangeReqResponse();
+      return new ModelChangeReqResponseNS.ModelChangeReqResponse();
     }
   }
 
   internal class VersioningChangeRequest {
-    public static void dispatch(JObject jobj) {
+    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
       JObject containedReq = jobj["req"] as JObject;
       
-      ModelVersioningRequests.Dispatcher.dispatch(containedReq);
+      return ModelVersioningRequests.Dispatcher.dispatch(containedReq, versionedModel);
     }
   }
 
   internal class ModelInfoRequest {
-    public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder, ModelClasses.ModelContainer modelStruct) {
+    public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder,VersionedModelClassNS.VersionedModelClass versionedModel) {
       JObject req = jobj["req"] as JObject;
-      return ModelInfoRequests.Dispatcher.dispatch(req, modelStruct);
+      return ModelInfoRequests.Dispatcher.dispatch(req, versionedModel);
     }
   }
 }

@@ -10,7 +10,7 @@ namespace ModelChangeRequests {
   }
   public static class Dispatcher {
     public static void dispatch(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
       string type = jobj["type"].ToString();
@@ -39,7 +39,7 @@ namespace ModelChangeRequests {
 
   internal struct MoveVertexReq {
     public static void dispatch(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
       MoveVertexReq moveVertexReq = new MoveVertexReq {
@@ -63,7 +63,7 @@ namespace ModelChangeRequests {
 
   internal struct CloneVertexReq {
     public static void dispatch(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
       CloneVertexReq cloneVertexReq = new CloneVertexReq {
@@ -84,7 +84,7 @@ namespace ModelChangeRequests {
 
   internal struct CreateEdgeReq {
     public static void dispatch(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
       CreateEdgeReq createEdgeReq = new CreateEdgeReq {
@@ -114,7 +114,7 @@ namespace ModelChangeRequests {
 
   internal struct DeleteVertexReq {
     public static void dispatch(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
       DeleteVertexReq deleteVertexReq = new DeleteVertexReq {
@@ -129,7 +129,7 @@ namespace ModelChangeRequests {
 
   internal struct DeleteEdgeReq {
     public static void dispatch(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
       DeleteEdgeReq deleteEdgeReq = new DeleteEdgeReq {
@@ -144,7 +144,7 @@ namespace ModelChangeRequests {
 
   internal struct SetLayerFieldsReq {
     public static void dispatch(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
       Dictionary<string, string> fieldValues = new Dictionary<string, string>();

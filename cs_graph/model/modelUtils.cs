@@ -2,12 +2,12 @@ using System.Collections.Generic;
 
 namespace ModelUtilsNS {
   public static class ModelUtils {
-    public static ResponseJson.GraphData getResponseJsonData(ModelClasses.ModelContainer modelStruct) {
+    public static ResponseJson.GraphData getResponseJsonData(ModelClassNS.ModelClass modelStruct) {
       return GraphUtilsNS.GraphUtils.getResponseJsonData(modelStruct.graph);
     }
 
     public static void moveVertex(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string vertexId,
       float x,
       float y
@@ -16,7 +16,7 @@ namespace ModelUtilsNS {
     }
 
     public static void cloneVertex(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string sourceVertexId,
       string newVertexId,
       float x,
@@ -26,21 +26,21 @@ namespace ModelUtilsNS {
     }
 
     public static void deleteVertex(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string vertexId
     ) {
       GraphUtilsNS.GraphUtils.deleteVertex(modelStruct, vertexId);
     }
 
     public static void deleteEdge(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string edgeId
     ) {
       GraphUtilsNS.GraphUtils.deleteEdge(modelStruct, edgeId);
     }
 
     public static void createEdge(
-      ModelClasses.ModelContainer modelStruct,
+      ModelClassNS.ModelClass modelStruct,
       string newEdgeId,
       string sourceVertexId,
       string sourcePortId,
@@ -83,7 +83,7 @@ namespace ModelUtilsNS {
     }
 
     public static List<string> getUniqueVertexIds(
-      ModelClasses.ModelContainer modelContainer,
+      ModelClassNS.ModelClass modelContainer,
       int count
     ) {
       return ModelUtils.getUniqueIds(
@@ -95,7 +95,7 @@ namespace ModelUtilsNS {
     }
 
     public static List<string> getUniqueEdgeIds(
-      ModelClasses.ModelContainer modelContainer,
+      ModelClassNS.ModelClass modelContainer,
       int count
     ) {
       return ModelUtils.getUniqueIds(
@@ -107,7 +107,7 @@ namespace ModelUtilsNS {
     }
 
     public static List<string> getEdgesBetweenVertices(
-      ModelClasses.ModelContainer modelContainer,
+      ModelClassNS.ModelClass modelContainer,
       List<string> vertexIds
     ) {
       var edgesOut = new HashSet<string>();

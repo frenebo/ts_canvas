@@ -4,44 +4,54 @@ using Newtonsoft.Json.Linq;
 // fields are assigned to from json
 #pragma warning disable 0649
 namespace ModelVersioningRequests {
+  public class InvalidInfoReqType : System.Exception {
+    public InvalidInfoReqType(string message) : base(message) {}
+  }
   public static class Dispatcher {
-    public static void dispatch(JObject jobj) {
+    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(
+      JObject jobj,
+      VersionedModelClassNS.VersionedModelClass versionedModel
+    ) {
       string type = jobj["type"].ToString();
 
       if (type == "undo") {
-        Undo.dispatch(jobj);
+        return Undo.dispatch(jobj, versionedModel);
       } else if (type == "redo") {
-        Redo.dispatch(jobj);
+        return Redo.dispatch(jobj, versionedModel);
       } else if (type == "saveFile") {
-        SaveFile.dispatch(jobj);
+        return SaveFile.dispatch(jobj);
       } else if (type == "openFile") {
-        OpenFile.dispatch(jobj);
+        return OpenFile.dispatch(jobj);
       } else if (type == "deleteFile") {
-        DeleteFile.dispatch(jobj);
+        return DeleteFile.dispatch(jobj);
+      } else {
+        throw new InvalidInfoReqType(type);
       }
     }
   }
 
   internal struct Undo {
-    public static void dispatch(JObject jobj) {
-      throw new System.Exception("unimplemented");
+    public static ModelVersioningReqResponses.UndoReqResponse dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
+      versionedModel.tryUndo();
+      return new ModelVersioningReqResponses.UndoReqResponse();
     }
   }
 
   internal struct Redo {
-    public static void dispatch(JObject jobj) {
-      throw new System.Exception("unimplemented");
+    public static ModelVersioningReqResponses.RedoReqResponse dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
+      versionedModel.tryRedo();
+      return new ModelVersioningReqResponses.RedoReqResponse();
     }
   }
 
   internal struct SaveFile {
-    public static void dispatch(JObject jobj) {
+    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj) {
       throw new System.Exception("unimplemented");
     }
   }
 
   internal struct OpenFile {
-    public static void dispatch(JObject jobj) {
+    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj) {
       throw new System.Exception("unimplemented");
     }
 
@@ -49,7 +59,7 @@ namespace ModelVersioningRequests {
   }
 
   internal struct DeleteFile {
-    public static void dispatch(JObject jobj) {
+    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj) {
       throw new System.Exception("unimplemented");
     }
 

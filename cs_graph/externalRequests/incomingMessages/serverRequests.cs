@@ -10,11 +10,11 @@ namespace ServerRequests {
   }
 
   public static class Dispatcher {
-    public static void dispatch(JObject jobj, ModelClasses.ModelContainer modelStruct) {
+    public static void dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
       var type = jobj["type"].ToString();
 
       if (type == "client_request") {
-        ClientRequest.dispatch(jobj, modelStruct);
+        ClientRequest.dispatch(jobj, versionedModel);
       } else if (type == "layer_data_response") {
         LayerDataResponse.dispatch(jobj);
       } else {
@@ -25,19 +25,18 @@ namespace ServerRequests {
 
 
   internal class ClientRequest {
-    public static void dispatch(JObject jobj, ModelClasses.ModelContainer modelStruct) {
+    public static void dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
       string clientId = jobj["client_id"].ToString();
       string requestId = jobj["client_message"]["requestId"].ToString();
 
       JObject clientRequest = jobj["client_message"]["request"] as JObject;
 
       ExternalMessageSender.RequestResponder reqResponder = new ExternalMessageSender.RequestResponder(
-        modelStruct,
         requestId,
         clientId
       );
 
-      ModelRequests.Dispatcher.dispatch(clientRequest, reqResponder, modelStruct);
+      ModelRequests.Dispatcher.dispatch(clientRequest, reqResponder, versionedModel);
     }
   }
 
