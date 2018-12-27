@@ -28,6 +28,9 @@ namespace Layers {
 
     public abstract bool getValueIsReadonly(string valueName);
 
+    public abstract List<string> getPortNames();
+    public abstract string getValueNameOfPort(string valueName);
+
     public Layer clone() {
       Layer cloneLayer = Layer.getNewLayerByType(this.getType());
 
@@ -40,8 +43,11 @@ namespace Layers {
   }
 
   internal class RepeatLayer : Layer {
+    private readonly string inputPortName = "inputPort";
     private readonly string inputShapeName = "inputShape";
     private readonly ShapeWrapper inputShape = new ShapeWrapper(new List<int>() {100, 100, 100});
+
+    private readonly string outputPortName = "outputPort";
 
     private readonly string outputShapeName = "outputShape";
     private readonly ShapeWrapper outputShape = new ShapeWrapper(new List<int>() {100, 100, 100});
@@ -57,10 +63,23 @@ namespace Layers {
       };
     }
 
+    public override List<string> getPortNames() {
+      return new List<string>() {
+        this.inputPortName,
+        this.outputPortName
+      };
+    }
+
+    public override string getValueNameOfPort(string valueName) {
+      if (valueName == this.inputPortName) return this.inputShapeName;
+      else if (valueName == this.outputPortName) return this.outputShapeName;
+      else throw new MissingValueNameException(valueName);
+    }
+
     public override void setValueString(string valueName, string newValue) {
       if (valueName == this.inputShapeName) this.inputShape.setFromString(newValue);
       else if (valueName == this.outputShapeName) this.outputShape.setFromString(newValue);
-      else throw new MissingValueNameException(newValue);
+      else throw new MissingValueNameException(valueName);
     }
 
     public override string getValueString(string valueName) {

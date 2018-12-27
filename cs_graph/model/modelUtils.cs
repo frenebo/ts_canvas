@@ -6,6 +6,57 @@ namespace ModelUtilsNS {
       return GraphUtilsNS.GraphUtils.getResponseJsonData(modelStruct.graph);
     }
 
+    public static void addLayer(
+      VersionedModelClassNS.VersionedModelClass versionedModel,
+      string layerId,
+      string layerType,
+      float x,
+      float y
+    ) {
+      ModelClassNS.ModelClass modelClass = versionedModel.getCurrent();
+
+      Layers.Layer layer = Layers.Layer.getNewLayerByType(layerType);
+      
+      NetworkContainersNS.Vertex newVertex = new NetworkContainersNS.Vertex {
+        label = layerType + " Layer",
+        xLocation = x,
+        yLocation = y,
+        ports = new Dictionary<string, NetworkContainersNS.NetworkPort>()
+      };
+
+      List<string> inputPortNames = new List<string>();
+      List<string> outputPortNames = new List<string>();
+
+      foreach (string portName in layer.getPortNames()) {
+        if (layer.getValueIsReadonly(layer.getValueNameOfPort(portName))) {
+          outputPortNames.Add(portName);
+        } else {
+          inputPortNames.Add(portName);
+        }
+      }
+
+      for (int i = 0; i < inputPortNames.Count; i++) {
+        // System.Console.Error.WriteLine(((float)(i + 1)) / ((float)(inputPortNames.Count + 1)));
+        newVertex.ports[inputPortNames[i]] = new NetworkContainersNS.NetworkPort {
+          side = NetworkContainersNS.SideType.Top,
+          position = ((float)(i + 1)) / ((float)(inputPortNames.Count + 1)),
+          type = NetworkContainersNS.PortType.Input,
+        };
+      }
+
+      for (int i = 0; i < outputPortNames.Count; i++) {
+        newVertex.ports[outputPortNames[i]] = new NetworkContainersNS.NetworkPort {
+          side = NetworkContainersNS.SideType.Bottom,
+          position = ((float)(i + 1)) / ((float)(outputPortNames.Count + 1)),
+          type = NetworkContainersNS.PortType.Output,
+        };
+      }
+
+      modelClass.graph.vertices[layerId] = newVertex;
+      modelClass.layerDict.layers[layerId] = layer;
+      modelClass.edgesByVertex[layerId] = new ModelClassNS.VertexEdgesInfo();
+    }
+
     public static void moveVertex(
       ModelClassNS.ModelClass modelStruct,
       string vertexId,
@@ -128,12 +179,29 @@ namespace ModelUtilsNS {
       );
     }
 
-    public static bool isValueReadonly(
+    public static bool isLayerValueOccupied(
       ModelClassNS.ModelClass modelContainer,
       string layerId,
       string valueId
     ) {
-      return LayerUtilsNS.LayerUtils.isValueReadonly(modelContainer.layerDict, layerId, valueId);
+      List<string> edgesIn = modelContainer.edgesByVertex[layerId].edgesIn;
+
+      foreach (string edgeId in edgesIn) {
+        string edgePortId = modelContainer.graph.edges[edgeId].targetPortId;
+        string edgeValueId = modelContainer.layerDict.layers[layerId].getValueNameOfPort(valueId);
+
+        if (valueId == edgeValueId) return true;
+      }
+
+      return false;
+    }
+
+    public static bool isLayerFieldParameter(
+      ModelClassNS.ModelClass modelContainer,
+      string layerId,
+      string valueId
+    ) {
+      return !LayerUtilsNS.LayerUtils.isValueReadonly(modelContainer.layerDict, layerId, valueId);
     }
   }
 }

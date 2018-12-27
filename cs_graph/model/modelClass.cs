@@ -5,6 +5,11 @@ namespace ModelClassNS {
     public List<string> edgesIn;
     public List<string> edgesOut;
 
+    public VertexEdgesInfo() {
+      this.edgesIn = new List<string>();
+      this.edgesOut = new List<string>();
+    }
+
     public VertexEdgesInfo clone() {
       return new VertexEdgesInfo {
         edgesIn = new List<string>(this.edgesIn),

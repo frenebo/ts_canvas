@@ -33,7 +33,7 @@ namespace GraphUtilsNS {
       foreach (KeyValuePair<string, NetworkContainersNS.NetworkPort> edgeEntry in vtx.ports) {
         jsonVtxData.ports[edgeEntry.Key] = new ResponseJson.GraphPortData {
           side = GraphUtils.getPortSideString(edgeEntry.Value.side),
-          location = edgeEntry.Value.position,
+          position = edgeEntry.Value.position,
           portType = GraphUtils.getPortTypeString(edgeEntry.Value.type)
         };
       }
@@ -113,7 +113,7 @@ namespace GraphUtilsNS {
       if (graph.vertices[sourceVertexId].ports[sourcePortId].type != NetworkContainersNS.PortType.Output) {
         return "Source port is not an output port";
       }
-      if (graph.vertices[targetVertexId].ports[targetVertexId].type != NetworkContainersNS.PortType.Input) {
+      if (graph.vertices[targetVertexId].ports[targetPortId].type != NetworkContainersNS.PortType.Input) {
         return "Target port is not an input port";
       }
 
@@ -165,7 +165,7 @@ namespace GraphUtilsNS {
         throw new System.Exception("Vertex with given id does not exist");
       }
       
-      foreach (string edgeId in edgesByVertex[vertexId].edgesIn.Union(edgesByVertex[vertexId].edgesOut)) {
+      foreach (string edgeId in edgesByVertex[vertexId].edgesIn.Union(edgesByVertex[vertexId].edgesOut).ToList()) {
         GraphUtils.deleteEdge(graph, edgesByVertex, edgeId);
       }
 

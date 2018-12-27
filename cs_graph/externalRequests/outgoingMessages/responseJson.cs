@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace ResponseJson {
   public struct GraphPortData {
     public string side;
-    public float location;
+    public float position;
     public string portType;
   }
 

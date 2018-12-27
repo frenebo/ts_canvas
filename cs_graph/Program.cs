@@ -9,17 +9,24 @@ namespace cs_graph {
       string[] ids = new string[] {"a", "b", "c", "d"};
 
       for (int i = 0; i < ids.Length; i++) {
-        versionedModel.getCurrent().graph.vertices[ids[i]] = new NetworkContainersNS.Vertex {
-          label = "Some Layer",
-          xLocation = 10*i,
-          yLocation = 10*i,
-          ports = new Dictionary<string, NetworkContainersNS.NetworkPort>()
-        };
-        versionedModel.getCurrent().edgesByVertex[ids[i]] = new ModelClassNS.VertexEdgesInfo {
-          edgesIn = new List<string>(),
-          edgesOut = new List<string>()
-        };
-        versionedModel.getCurrent().layerDict.layers[ids[i]] = new Layers.RepeatLayer();
+        ModelUtilsNS.ModelUtils.addLayer(
+          versionedModel,
+          ids[i],
+          "Repeat",
+          10*i,
+          10*i
+        );
+        // versionedModel.getCurrent().graph.vertices[ids[i]] = new NetworkContainersNS.Vertex {
+        //   label = "Some Layer",
+        //   xLocation = 10*i,
+        //   yLocation = 10*i,
+        //   ports = new Dictionary<string, NetworkContainersNS.NetworkPort>()
+        // };
+        // versionedModel.getCurrent().edgesByVertex[ids[i]] = new ModelClassNS.VertexEdgesInfo {
+        //   edgesIn = new List<string>(),
+        //   edgesOut = new List<string>()
+        // };
+        // versionedModel.getCurrent().layerDict.layers[ids[i]] = new Layers.RepeatLayer();
       }
       
       while (true) {

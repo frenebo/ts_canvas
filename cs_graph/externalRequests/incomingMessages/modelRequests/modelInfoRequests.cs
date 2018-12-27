@@ -25,7 +25,7 @@ namespace ModelInfoRequests {
       } else if (type == "savedFileNames") {
         return SavedFileNamesReq.dispatch(versionedModel, jobj);
       } else if (type == "getPortInfo") {
-        return GetPortInfoReq.dispatch(jobj);
+        return GetPortInfoReq.dispatch(versionedModel, jobj);
       } else if (type == "getLayerInfo") {
         return GetLayerInfoReq.dispatch(jobj);
       } else if (type == "validateValue") {
@@ -127,11 +127,25 @@ namespace ModelInfoRequests {
   }
 
   internal static class GetPortInfoReq {
-    public static ModelInfoReqResponses.GetPortInfoResponse dispatch(JObject jobj) {
+    public static ModelInfoReqResponses.GetPortInfoResponse dispatch(
+      VersionedModelClassNS.VersionedModelClass versionedModel,
+      JObject jobj
+    ) {
       string vertexId = jobj["vertexId"].ToString();
       string portId = jobj["portId"].ToString();
 
-      throw new System.Exception("GetPortInfo: unimplemented");
+      if (!versionedModel.getCurrent().graph.vertices.ContainsKey(vertexId)) {
+        return new ModelInfoReqResponses.GetPortInfoResponseCouldNotFindPort();
+      }
+      if (!versionedModel.getCurrent().graph.vertices[vertexId].ports.ContainsKey(portId)) {
+        return new ModelInfoReqResponses.GetPortInfoResponseCouldNotFindPort();        
+      }
+      Layers.Layer layer = versionedModel.getCurrent().layerDict.layers[vertexId];
+
+      string valueName = layer.getValueNameOfPort(portId);
+      string fieldValue = layer.getValueString(valueName);
+
+      return new ModelInfoReqResponses.GetPortInfoResponseCouldFindPort(fieldValue);
     }
   }
 
@@ -214,11 +228,19 @@ namespace ModelInfoRequests {
       string layerId = jobj["layerId"].ToString();
       string valueId = jobj["valueId"].ToString();
 
-      if (ModelUtilsNS.ModelUtils.isValueReadonly(versionedModel.getCurrent(), layerId, valueId)) {
-
+      if (ModelUtilsNS.ModelUtils.isLayerValueOccupied(
+        versionedModel.getCurrent(),
+        layerId,
+        valueId
+      )) {
+        return new ModelInfoReqResponses.ValueIsReadonlyResponseIsReadonly(ModelInfoReqResponses.ReadonlyReason.port_is_occupied);
       }
 
-      throw new System.Exception("ValueIsReadonly: unimplemented");
+      if (!ModelUtilsNS.ModelUtils.isLayerFieldParameter(versionedModel.getCurrent(), layerId, valueId)) {
+        return new ModelInfoReqResponses.ValueIsReadonlyResponseIsReadonly(ModelInfoReqResponses.ReadonlyReason.value_is_not_modifiable);
+      }
+
+      return new ModelInfoReqResponses.ValueIsReadonlyResponseNotReadonly();
     }
   }
 
