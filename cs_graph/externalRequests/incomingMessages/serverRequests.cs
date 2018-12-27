@@ -23,7 +23,6 @@ namespace ServerRequests {
     }
   }
 
-
   internal class ClientRequest {
     public static void dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
       string clientId = jobj["client_id"].ToString();

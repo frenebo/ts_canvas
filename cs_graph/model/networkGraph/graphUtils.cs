@@ -78,19 +78,19 @@ namespace GraphUtilsNS {
     }
 
     public static void moveVertex(
-      ModelClassNS.ModelClass modelStruct,
+      NetworkContainersNS.Graph graph,
       string vertexId,
       float x,
       float y
     ) {
-      NetworkContainersNS.Vertex vtx = modelStruct.graph.vertices[vertexId];
+      NetworkContainersNS.Vertex vtx = graph.vertices[vertexId];
       vtx.xLocation = x;
       vtx.yLocation = y;
-      // GraphUtils.GraphUtils.moveVertex(modelStruct, vertexId, x, y);
     }
 
     public static string validateEdge(
-      ModelClassNS.ModelClass modelStruct,
+      NetworkContainersNS.Graph graph,
+      Dictionary<string, ModelClassNS.VertexEdgesInfo> edgesByVertex,
       string newEdgeId,
       string sourceVertexId,
       string sourcePortId,
@@ -98,31 +98,31 @@ namespace GraphUtilsNS {
       string targetPortId
     ) {
       // check vertices and ports
-      if (!modelStruct.graph.vertices.ContainsKey(sourceVertexId)) {
+      if (!graph.vertices.ContainsKey(sourceVertexId)) {
         return "Vertex with given source id does not exist";
       }
-      if (!modelStruct.graph.vertices.ContainsKey(targetVertexId)) {
+      if (!graph.vertices.ContainsKey(targetVertexId)) {
         return "Vertex with given target id does not exist";
       }
-      if (!modelStruct.graph.vertices[sourceVertexId].ports.ContainsKey(sourcePortId)) {
+      if (!graph.vertices[sourceVertexId].ports.ContainsKey(sourcePortId)) {
         return "Source vertex does not have port with given id";
       }
-      if (!modelStruct.graph.vertices[targetVertexId].ports.ContainsKey(targetPortId)) {
+      if (!graph.vertices[targetVertexId].ports.ContainsKey(targetPortId)) {
         return "Target vertex does not have port with given id";
       }
-      if (modelStruct.graph.vertices[sourceVertexId].ports[sourcePortId].type != NetworkContainersNS.PortType.Output) {
+      if (graph.vertices[sourceVertexId].ports[sourcePortId].type != NetworkContainersNS.PortType.Output) {
         return "Source port is not an output port";
       }
-      if (modelStruct.graph.vertices[targetVertexId].ports[targetVertexId].type != NetworkContainersNS.PortType.Input) {
+      if (graph.vertices[targetVertexId].ports[targetVertexId].type != NetworkContainersNS.PortType.Input) {
         return "Target port is not an input port";
       }
 
       // check if an identical edge already exists
-      var edgesBetweenTwoVtxs = modelStruct.edgesByVertex[sourceVertexId].edgesOut.Where(id => modelStruct.edgesByVertex[targetVertexId].edgesIn.Contains(id));
+      var edgesBetweenTwoVtxs = edgesByVertex[sourceVertexId].edgesOut.Where(id => edgesByVertex[targetVertexId].edgesIn.Contains(id));
       foreach (string edgeId in edgesBetweenTwoVtxs) {
         if (
-          modelStruct.graph.edges[edgeId].sourcePortId == sourcePortId &&
-          modelStruct.graph.edges[edgeId].targetPortId == targetPortId
+          graph.edges[edgeId].sourcePortId == sourcePortId &&
+          graph.edges[edgeId].targetPortId == targetPortId
         ) {
           return "Identical connection already exists";
         }
@@ -137,8 +137,8 @@ namespace GraphUtilsNS {
         vertexIdsToInvestigate.Remove(investigateVertexId);
         ancestorsOfSourceVtx.Add(investigateVertexId);
 
-        foreach (string edgeInId in modelStruct.edgesByVertex[investigateVertexId].edgesIn) {
-          string edgeSourceVertex = modelStruct.graph.edges[edgeInId].sourceVertexId;
+        foreach (string edgeInId in edgesByVertex[investigateVertexId].edgesIn) {
+          string edgeSourceVertex = graph.edges[edgeInId].sourceVertexId;
 
           if (
             !vertexIdsToInvestigate.Contains(edgeSourceVertex) &&
@@ -157,38 +157,41 @@ namespace GraphUtilsNS {
     }
 
     public static void deleteVertex(
-      ModelClassNS.ModelClass modelStruct,
+      NetworkContainersNS.Graph graph,
+      Dictionary<string, ModelClassNS.VertexEdgesInfo> edgesByVertex,
       string vertexId
     ) {
-      if (!modelStruct.graph.vertices.ContainsKey(vertexId)) {
+      if (!graph.vertices.ContainsKey(vertexId)) {
         throw new System.Exception("Vertex with given id does not exist");
       }
       
-      foreach (string edgeId in modelStruct.edgesByVertex[vertexId].edgesIn.Union(modelStruct.edgesByVertex[vertexId].edgesOut)) {
-        GraphUtils.deleteEdge(modelStruct, edgeId);
+      foreach (string edgeId in edgesByVertex[vertexId].edgesIn.Union(edgesByVertex[vertexId].edgesOut)) {
+        GraphUtils.deleteEdge(graph, edgesByVertex, edgeId);
       }
 
-      modelStruct.graph.vertices.Remove(vertexId);
-      modelStruct.edgesByVertex.Remove(vertexId);
+      graph.vertices.Remove(vertexId);
+      edgesByVertex.Remove(vertexId);
     }
 
     public static void deleteEdge(
-      ModelClassNS.ModelClass modelStruct,
+      NetworkContainersNS.Graph graph,
+      Dictionary<string, ModelClassNS.VertexEdgesInfo> edgesByVertex,
       string edgeId
     ) {
-      if (!modelStruct.graph.edges.ContainsKey(edgeId)) {
+      if (!graph.edges.ContainsKey(edgeId)) {
         throw new System.Exception("Edge with given id does not exist");
       }
 
-      NetworkContainersNS.Edge edge = modelStruct.graph.edges[edgeId];
-      modelStruct.graph.edges.Remove(edgeId);
+      NetworkContainersNS.Edge edge = graph.edges[edgeId];
+      graph.edges.Remove(edgeId);
 
-      modelStruct.edgesByVertex[edge.sourceVertexId].edgesOut.Remove(edgeId);
-      modelStruct.edgesByVertex[edge.targetVertexId].edgesIn.Remove(edgeId);
+      edgesByVertex[edge.sourceVertexId].edgesOut.Remove(edgeId);
+      edgesByVertex[edge.targetVertexId].edgesIn.Remove(edgeId);
     }
 
     public static void createEdge(
-      ModelClassNS.ModelClass modelStruct,
+      NetworkContainersNS.Graph graph,
+      Dictionary<string, ModelClassNS.VertexEdgesInfo> edgesByVertex,
       string newEdgeId,
       string sourceVertexId,
       string sourcePortId,
@@ -197,19 +200,20 @@ namespace GraphUtilsNS {
     ) {
       // nullable
       string validated = GraphUtils.validateEdge(
-        modelStruct,
+        graph,
+        edgesByVertex,
         newEdgeId,
         sourceVertexId,
         sourcePortId,
         targetVertexId,
         targetPortId
       );
-      
+
       if (validated != null) {
         throw new System.Exception(validated);
       }
 
-      modelStruct.graph.edges[newEdgeId] = new NetworkContainersNS.Edge {
+      graph.edges[newEdgeId] = new NetworkContainersNS.Edge {
         consistency =  NetworkContainersNS.ConsistencyType.Consistent,
         sourceVertexId = sourceVertexId,
         sourcePortId = sourcePortId,
@@ -217,32 +221,104 @@ namespace GraphUtilsNS {
         targetPortId = targetPortId,
       };
 
-      modelStruct.edgesByVertex[sourceVertexId].edgesOut.Add(newEdgeId);
-      modelStruct.edgesByVertex[targetVertexId].edgesIn.Add(newEdgeId);
+      edgesByVertex[sourceVertexId].edgesOut.Add(newEdgeId);
+      edgesByVertex[targetVertexId].edgesIn.Add(newEdgeId);
     }
 
     public static void cloneVertex(
-      ModelClassNS.ModelClass modelStruct,
+      NetworkContainersNS.Graph graph,
+      Dictionary<string, ModelClassNS.VertexEdgesInfo> edgesByVertex,
       string sourceVertexId,
       string newVertexId,
       float x,
       float y
     ) {
-      if (modelStruct.graph.vertices.ContainsKey(newVertexId)) {
+      if (graph.vertices.ContainsKey(newVertexId)) {
         throw new System.Exception("Vertex with new key already exists");
       }
-      if (!modelStruct.graph.vertices.ContainsKey(sourceVertexId)) {
+      if (!graph.vertices.ContainsKey(sourceVertexId)) {
         throw new System.Exception("Vertex with source id does not exist");
       }
-      NetworkContainersNS.Vertex newVtx = modelStruct.graph.vertices[sourceVertexId].clone();
-      modelStruct.graph.vertices[newVertexId] = newVtx;
+      
+      NetworkContainersNS.Vertex newVtx = graph.vertices[sourceVertexId].clone();
+      graph.vertices[newVertexId] = newVtx;
       newVtx.xLocation = x;
       newVtx.yLocation = y;
 
-      modelStruct.edgesByVertex[newVertexId] = new ModelClassNS.VertexEdgesInfo {
+      edgesByVertex[newVertexId] = new ModelClassNS.VertexEdgesInfo {
         edgesIn = new List<string>(),
         edgesOut = new List<string>()
       };
+    }
+
+    private static List<string> getUniqueIds(
+      System.Func<string, bool> testFunc,
+      int count
+    ) {
+      var random = new System.Random();
+      HashSet<string> uniqueIds = new HashSet<string>();
+
+      for (int i = 0; i < count; i++) {
+        // const float random
+        double dbl = random.NextDouble();
+        int multiplier = 10;
+        bool done = false;
+        string id = "";
+        while (!done) {
+          id = System.Convert.ToInt32(dbl*multiplier).ToString();
+          done = (!uniqueIds.Contains(id)) && (!testFunc(id));
+          multiplier *= 10;
+        }
+        uniqueIds.Add(id);
+      }
+
+      return new List<string>(uniqueIds);      
+    }
+
+    public static List<string> getUniqueVertexIds(
+      NetworkContainersNS.Graph graph,
+      int count
+    ) {
+      return GraphUtils.getUniqueIds(
+        (string id) => {
+          return graph.vertices.ContainsKey(id);
+        },
+        count
+      );
+    }
+
+    public static List<string> getUniqueEdgeIds(
+      NetworkContainersNS.Graph graph,
+      int count
+    ) {
+      return GraphUtils.getUniqueIds(
+        (string id) => {
+          return graph.edges.ContainsKey(id);
+        },
+        count
+      );
+    }
+
+    public static List<string> getEdgesBetweenVertices(
+      NetworkContainersNS.Graph graph,
+      Dictionary<string, ModelClassNS.VertexEdgesInfo> edgesByVertex,
+      List<string> vertexIds
+    ) {
+      var edgesOut = new HashSet<string>();
+      var edgesIn = new HashSet<string>();
+      
+      foreach (string vtxId in vertexIds) {
+        if (!edgesByVertex.ContainsKey(vtxId)) {
+          throw new System.Exception("No such vertex id");
+        }
+        
+        edgesByVertex[vtxId].edgesIn.ForEach((string edgeId) => edgesIn.Add(edgeId));
+        edgesByVertex[vtxId].edgesOut.ForEach((string edgeId) => edgesOut.Add(edgeId));
+      }
+
+      edgesOut.IntersectWith(edgesIn);
+
+      return new List<string>(edgesOut);
     }
   }
 }

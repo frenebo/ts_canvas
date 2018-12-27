@@ -33,7 +33,7 @@ namespace ModelRequests {
     }
   }
 
-  internal class ModelChangeRequest {
+  internal static class ModelChangeRequest {
     public static ModelChangeReqResponseNS.ModelChangeReqResponse dispatch(
       ModelClassNS.ModelClass modelStruct,
       JObject jobj
@@ -48,7 +48,7 @@ namespace ModelRequests {
     }
   }
 
-  internal class VersioningChangeRequest {
+  internal static class VersioningChangeRequest {
     public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
       JObject containedReq = jobj["req"] as JObject;
       
@@ -56,7 +56,7 @@ namespace ModelRequests {
     }
   }
 
-  internal class ModelInfoRequest {
+  internal static class ModelInfoRequest {
     public static ModelInfoReqResponses.ModelInfoReqResponse dispatch(JObject jobj, ExternalMessageSender.RequestResponder reqResponder,VersionedModelClassNS.VersionedModelClass versionedModel) {
       JObject req = jobj["req"] as JObject;
       return ModelInfoRequests.Dispatcher.dispatch(req, versionedModel);

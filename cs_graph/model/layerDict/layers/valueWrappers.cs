@@ -7,6 +7,10 @@ namespace ValueWrappers {
   }
 
   public abstract class ValueWrapper<T> {
+    public ValueWrapper(T val) {
+      this.value = val;
+    }
+
     private T value;
 
     public T getValue() {
@@ -31,6 +35,7 @@ namespace ValueWrappers {
   }
 
   public class NumberWrapper : ValueWrapper<float> {
+    public NumberWrapper(float val) : base(val) {}
     protected override string stringifyVal(float value) {
       return value.ToString();
     }
@@ -44,12 +49,13 @@ namespace ValueWrappers {
     }
   }
 
-  public class ShapeWrapper : ValueWrapper<List<float>> {
-    protected override string stringifyVal(List<float> value) {
+  public class ShapeWrapper : ValueWrapper<List<int>> {
+    public ShapeWrapper(List<int> val) : base (val) {}
+    protected override string stringifyVal(List<int> value) {
       string returnStr = "(";
       string separator = "";
 
-      foreach (float num in value) {
+      foreach (int num in value) {
         returnStr += separator + num.ToString();
         separator = ",";
       }
@@ -59,7 +65,7 @@ namespace ValueWrappers {
       return returnStr;
     }
 
-    protected override List<float> parseVal(string str) {
+    protected override List<int> parseVal(string str) {
       char[] whitespaceChars = { ' ', '\n', '\t' };
 
       string trimmed = str.Trim(whitespaceChars);
@@ -70,26 +76,29 @@ namespace ValueWrappers {
         throw new ValueParseException("Value text must begin with an open parenthesis");
       }
 
-      string[] untrimmedDimStrings = trimmed.Split(' ');
+      string[] untrimmedDimStrings = trimmed.Substring(1, trimmed.Length - 2).Split(',');
 
       string pattern = @"^[+\-]?(?:\d+(?:\.\d*)?|\.\d+)$";
       Regex dimTester = new Regex(pattern);
 
-      List<float> dims = new List<float>();
+      List<int> dims = new List<int>();
 
       foreach (string untrimmedDim in untrimmedDimStrings) {
         string trimmedDim = untrimmedDim.Trim(whitespaceChars);
         if (!dimTester.IsMatch(trimmedDim)) {
           throw new ValueParseException("Value dimension could not be parsed");
         }
-        dims.Add(float.Parse(trimmedDim));
+        float floatDim = float.Parse(trimmedDim);
+        if (floatDim != System.Math.Floor(floatDim)) throw new ValueParseException("Value dimension must be integer");
+        
+        dims.Add((int)System.Math.Floor(floatDim));
       }
 
       return dims;
     }
 
-    protected override List<float> cloneVal(List<float> val) {
-      return new List<float>(val);
+    protected override List<int> cloneVal(List<int> val) {
+      return new List<int>(val);
     }
   }
 }

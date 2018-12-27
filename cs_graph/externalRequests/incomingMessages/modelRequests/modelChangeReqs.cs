@@ -8,6 +8,7 @@ namespace ModelChangeRequests {
   public class InvalidInfoReqType : System.Exception {
     public InvalidInfoReqType(string message) : base(message) {}
   }
+
   public static class Dispatcher {
     public static void dispatch(
       ModelClassNS.ModelClass modelStruct,
@@ -33,116 +34,83 @@ namespace ModelChangeRequests {
     }
   }
 
-  internal struct GenericReq {
-    public string type;
-  }
-
-  internal struct MoveVertexReq {
+  internal static class MoveVertexReq {
     public static void dispatch(
       ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
-      MoveVertexReq moveVertexReq = new MoveVertexReq {
-        vertexId = jobj["vertexId"].ToString(),
-        x = float.Parse(jobj["x"].ToString()),
-        y = float.Parse(jobj["y"].ToString())
-      };
+      string vertexId = jobj["vertexId"].ToString();
+      float x = float.Parse(jobj["x"].ToString());
+      float y = float.Parse(jobj["y"].ToString());
 
       ModelUtilsNS.ModelUtils.moveVertex(
         modelStruct,
-        moveVertexReq.vertexId,
-        moveVertexReq.x,
-        moveVertexReq.y
+        vertexId,
+        x,
+        y
       );
     }
-
-    public string vertexId;
-    public float x;
-    public float y;
   }
 
-  internal struct CloneVertexReq {
+  internal static class CloneVertexReq {
     public static void dispatch(
       ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
-      CloneVertexReq cloneVertexReq = new CloneVertexReq {
-        newVertexId = jobj["newVertexId"].ToString(),
-        sourceVertexId = jobj["sourceVertexId"].ToString(),
-        x = float.Parse(jobj["x"].ToString()),
-        y = float.Parse(jobj["y"].ToString())
-      };
+      string newVertexId = jobj["newVertexId"].ToString();
+      string sourceVertexId = jobj["sourceVertexId"].ToString();
+      float x = float.Parse(jobj["x"].ToString());
+      float y = float.Parse(jobj["y"].ToString());
 
-      ModelUtilsNS.ModelUtils.cloneVertex(modelStruct, cloneVertexReq.sourceVertexId, cloneVertexReq.newVertexId, cloneVertexReq.x, cloneVertexReq.y);
+      ModelUtilsNS.ModelUtils.cloneVertex(modelStruct, sourceVertexId, newVertexId, x, y);
     }
-
-    public string newVertexId;
-    public string sourceVertexId;
-    public float x;
-    public float y;
   }
 
-  internal struct CreateEdgeReq {
+  internal static class CreateEdgeReq {
     public static void dispatch(
       ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
-      CreateEdgeReq createEdgeReq = new CreateEdgeReq {
-        newEdgeId = jobj["newEdgeId"].ToString(),
-        sourceVertexId = jobj["sourceVertexId"].ToString(),
-        sourcePortId = jobj["sourcePortId"].ToString(),
-        targetVertexId = jobj["targetVertexId"].ToString(),
-        targetPortId = jobj["targetPortId"].ToString()
-      };
+      string newEdgeId = jobj["newEdgeId"].ToString();
+      string sourceVertexId = jobj["sourceVertexId"].ToString();
+      string sourcePortId = jobj["sourcePortId"].ToString();
+      string targetVertexId = jobj["targetVertexId"].ToString();
+      string targetPortId = jobj["targetPortId"].ToString();
 
       ModelUtilsNS.ModelUtils.createEdge(
         modelStruct,
-        createEdgeReq.newEdgeId,
-        createEdgeReq.sourceVertexId,
-        createEdgeReq.sourcePortId,
-        createEdgeReq.targetVertexId,
-        createEdgeReq.targetPortId
+        newEdgeId,
+        sourceVertexId,
+        sourcePortId,
+        targetVertexId,
+        targetPortId
       );
     }
-
-    public string newEdgeId;
-    public string sourceVertexId;
-    public string sourcePortId;
-    public string targetVertexId;
-    public string targetPortId;
   }
 
-  internal struct DeleteVertexReq {
+  internal static class DeleteVertexReq {
     public static void dispatch(
       ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
-      DeleteVertexReq deleteVertexReq = new DeleteVertexReq {
-        vertexId = jobj["vertexId"].ToString()
-      };
+      string vertexId = jobj["vertexId"].ToString();
 
-      ModelUtilsNS.ModelUtils.deleteVertex(modelStruct, deleteVertexReq.vertexId);
+      ModelUtilsNS.ModelUtils.deleteVertex(modelStruct, vertexId);
     }
-
-    public string vertexId;
   }
 
-  internal struct DeleteEdgeReq {
+  internal static class DeleteEdgeReq {
     public static void dispatch(
       ModelClassNS.ModelClass modelStruct,
       JObject jobj
     ) {
-      DeleteEdgeReq deleteEdgeReq = new DeleteEdgeReq {
-        edgeId = jobj["edgeId"].ToString()
-      };
+      string edgeId = jobj["edgeId"].ToString();
 
-      ModelUtilsNS.ModelUtils.deleteEdge(modelStruct, deleteEdgeReq.edgeId);
+      ModelUtilsNS.ModelUtils.deleteEdge(modelStruct, edgeId);
     }
-
-    public string edgeId;
   }
 
-  internal struct SetLayerFieldsReq {
+  internal static class SetLayerFieldsReq {
     public static void dispatch(
       ModelClassNS.ModelClass modelStruct,
       JObject jobj
@@ -153,16 +121,10 @@ namespace ModelChangeRequests {
         fieldValues[fieldEntry.Name] = fieldEntry.Value.ToString();
       }
       
-      SetLayerFieldsReq setLayerFieldsReq = new SetLayerFieldsReq {
-        layerId = jobj["layerId"].ToString(),
-        fieldValues = fieldValues
-      };
+      string layerId = jobj["layerId"].ToString();
 
       throw new System.Exception("SetlayerFieldsReq unimplemented");
     }
-
-    public string layerId;
-    public Dictionary<string, string> fieldValues;
   }
 }
 #pragma warning restore 0649

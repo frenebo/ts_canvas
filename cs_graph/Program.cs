@@ -5,8 +5,6 @@ namespace cs_graph {
   class Program {
     static void Main(string[] args) {
       VersionedModelClassNS.VersionedModelClass versionedModel = new VersionedModelClassNS.VersionedModelClass();
-      
-      // ModelClassNS.ModelClass model = new ModelClassNS.ModelClass();
 
       string[] ids = new string[] {"a", "b", "c", "d"};
 
@@ -21,12 +19,9 @@ namespace cs_graph {
           edgesIn = new List<string>(),
           edgesOut = new List<string>()
         };
+        versionedModel.getCurrent().layerDict.layers[ids[i]] = new Layers.RepeatLayer();
       }
-
-      // Program.listenInput(model);
-    // }
-
-    // private static async System.Threading.Tasks.Task listenInput(ModelClasses.ModelContainer modelStruct) {
+      
       while (true) {
         string line = System.Console.In.ReadLine();
         try {

@@ -41,10 +41,10 @@ namespace Layers {
 
   internal class RepeatLayer : Layer {
     private readonly string inputShapeName = "inputShape";
-    private readonly ShapeWrapper inputShape = new ShapeWrapper();
+    private readonly ShapeWrapper inputShape = new ShapeWrapper(new List<int>() {100, 100, 100});
 
     private readonly string outputShapeName = "outputShape";
-    private readonly ShapeWrapper outputShape = new ShapeWrapper();
+    private readonly ShapeWrapper outputShape = new ShapeWrapper(new List<int>() {100, 100, 100});
 
     public override string getType() {
       return "Repeat";
