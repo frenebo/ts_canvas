@@ -67,9 +67,9 @@ namespace ModelInfoReqResponses {
   }
 
   public class SavedFileNamesResponse : ModelInfoReqResponse {
-    public readonly string[] fileNames;
+    public readonly List<string> fileNames;
 
-    public SavedFileNamesResponse(string[] fileNames) {
+    public SavedFileNamesResponse(List<string> fileNames) {
       this.fileNames = fileNames;
     }
   }

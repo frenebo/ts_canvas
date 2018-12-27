@@ -14,7 +14,7 @@ namespace ModelRequests {
       string type = jobj["type"].ToString();
 
       if (type == "request_model_changes") {
-        versionedModel.snapshot();
+        versionedModel.recordModel();
         ModelChangeReqResponseNS.ModelChangeReqResponse reqResponse = ModelChangeRequest.dispatch(versionedModel.getCurrent(), jobj);
         
         reqResponder.sendModelChangeReqResponse(reqResponse);

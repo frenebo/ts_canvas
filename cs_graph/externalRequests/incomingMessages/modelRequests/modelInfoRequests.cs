@@ -20,9 +20,9 @@ namespace ModelInfoRequests {
       } else if (type == "edgesBetweenVertices") {
         return EdgesBetweenVerticesReq.dispatch(versionedModel, jobj);
       } else if (type == "fileIsOpen") {
-        return FileIsOpenReq.dispatch(jobj);
+        return FileIsOpenReq.dispatch(versionedModel, jobj);
       } else if (type == "savedFileNames") {
-        return SavedFileNamesReq.dispatch(jobj);
+        return SavedFileNamesReq.dispatch(versionedModel, jobj);
       } else if (type == "getPortInfo") {
         return GetPortInfoReq.dispatch(jobj);
       } else if (type == "getLayerInfo") {
@@ -100,18 +100,24 @@ namespace ModelInfoRequests {
   }
 
   internal struct FileIsOpenReq {
-    public static ModelInfoReqResponses.FileIsOpenResponse dispatch(JObject jobj) {
-      var response = new ModelInfoReqResponses.FileIsOpenResponseNotOpen();
-
-      // @TODO make things saveable
-
-      return response;
+    public static ModelInfoReqResponses.FileIsOpenResponse dispatch(
+      VersionedModelClassNS.VersionedModelClass versionedModel,
+      JObject jobj
+    ) {
+      if (versionedModel.isFileCurrentlyOpen()) {
+        return new ModelInfoReqResponses.FileIsOpenResponseOpen(versionedModel.unsafeGetCurrentFileName(), versionedModel.progressIsSaved());
+      } else {
+        return new ModelInfoReqResponses.FileIsOpenResponseNotOpen();
+      }
     }
   }
 
   internal struct SavedFileNamesReq {
-    public static ModelInfoReqResponses.SavedFileNamesResponse dispatch(JObject jobj) {
-      throw new System.Exception("SavedFileNames: unimplemented");
+    public static ModelInfoReqResponses.SavedFileNamesResponse dispatch(
+      VersionedModelClassNS.VersionedModelClass versionedModel,
+      JObject jobj
+    ) {
+      return new ModelInfoReqResponses.SavedFileNamesResponse(versionedModel.getSavedFileNames());
     }
   }
 

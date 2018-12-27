@@ -19,48 +19,61 @@ namespace ModelVersioningRequests {
       } else if (type == "redo") {
         return Redo.dispatch(jobj, versionedModel);
       } else if (type == "saveFile") {
-        return SaveFile.dispatch(jobj);
+        return SaveFile.dispatch(jobj, versionedModel);
       } else if (type == "openFile") {
-        return OpenFile.dispatch(jobj);
+        return OpenFile.dispatch(jobj, versionedModel);
       } else if (type == "deleteFile") {
-        return DeleteFile.dispatch(jobj);
+        return DeleteFile.dispatch(jobj, versionedModel);
       } else {
         throw new InvalidInfoReqType(type);
       }
     }
   }
 
-  internal struct Undo {
+  internal class Undo {
     public static ModelVersioningReqResponses.UndoReqResponse dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
       versionedModel.tryUndo();
       return new ModelVersioningReqResponses.UndoReqResponse();
     }
   }
 
-  internal struct Redo {
+  internal class Redo {
     public static ModelVersioningReqResponses.RedoReqResponse dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
       versionedModel.tryRedo();
       return new ModelVersioningReqResponses.RedoReqResponse();
     }
   }
 
-  internal struct SaveFile {
-    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj) {
-      throw new System.Exception("unimplemented");
+  internal class SaveFile {
+    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
+      string fileName = jobj["fileName"].ToString();
+      versionedModel.saveToFile(fileName);
+
+      return new ModelVersioningReqResponses.SaveFileReqResponse();
     }
   }
 
-  internal struct OpenFile {
-    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj) {
-      throw new System.Exception("unimplemented");
+  internal class OpenFile {
+    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
+      string fileName = jobj["fileName"].ToString();
+      if (versionedModel.fileExistsWithName(fileName)) {
+        versionedModel.unsafeOpen(fileName);
+      }
+
+      return new ModelVersioningReqResponses.OpenFileReqResponse();
     }
 
     public string fileName;
   }
 
-  internal struct DeleteFile {
-    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj) {
-      throw new System.Exception("unimplemented");
+  internal class DeleteFile {
+    public static ModelVersioningReqResponses.ModelVersioningReqResponse dispatch(JObject jobj, VersionedModelClassNS.VersionedModelClass versionedModel) {
+      string fileName = jobj["fileName"].ToString();
+      if (versionedModel.fileExistsWithName(fileName)) {
+        versionedModel.unsafeDelete(fileName);
+      }
+
+      return new ModelVersioningReqResponses.DeleteFileReqResponse();
     }
 
     public string fileName;
