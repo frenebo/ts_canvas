@@ -44,6 +44,8 @@ namespace ModelRequests {
         ModelChangeRequests.Dispatcher.dispatch(modelStruct, changeReq as JObject);
       }
 
+      ModelUtilsNS.ModelUtils.propagateModel(modelStruct);
+
       return new ModelChangeReqResponseNS.ModelChangeReqResponse();
     }
   }

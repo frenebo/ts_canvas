@@ -56,7 +56,7 @@ namespace LayerUtilsNS {
       string layerId,
       Dictionary<string, string> fieldValues
     ) {
-      return layerDict.layers[layerId].validateFields(fieldValues);
+      return layerDict.layers[layerId].validateSetFields(fieldValues);
     }
 
     public static void setLayerFields(

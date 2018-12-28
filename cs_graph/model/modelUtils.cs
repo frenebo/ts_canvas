@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ModelUtilsNS {
   public static class ModelUtils {
@@ -78,6 +79,75 @@ namespace ModelUtilsNS {
       modelClass.graph.vertices[layerId] = newVertex;
       modelClass.layerDict.layers[layerId] = layer;
       modelClass.edgesByVertex[layerId] = new ModelClassNS.VertexEdgesInfo();
+    }
+
+    public static void propagateModel(ModelClassNS.ModelClass modelStruct) {
+      List<string> topoSortedVertices = ModelUtils.topoSortVertices(modelStruct);
+
+      foreach (string vertexId in topoSortedVertices) {
+        foreach (string edgeOutId in modelStruct.edgesByVertex[vertexId].edgesOut) {
+          ModelUtils.propagateEdge(modelStruct, edgeOutId);
+        }
+      }
+    }
+
+    private static void propagateEdge(ModelClassNS.ModelClass modelStruct, string edgeId) {
+      NetworkContainersNS.Edge edge = modelStruct.graph.edges[edgeId];
+      Layers.Layer sourceLayer = modelStruct.layerDict.layers[edge.sourceVertexId];
+      Layers.Layer targetLayer = modelStruct.layerDict.layers[edge.targetVertexId];
+      string sourceFieldName = sourceLayer.getValueNameOfPort(edge.sourcePortId);
+      string targetFieldName = targetLayer.getValueNameOfPort(edge.targetPortId);
+
+      bool edgeIsConsistent = targetLayer.compareFieldValue(targetFieldName, sourceLayer.getValueString(sourceFieldName));
+
+      if (edgeIsConsistent) {
+        edge.consistency = NetworkContainersNS.ConsistencyType.Consistent;
+        return;
+      }
+      
+      string validateFieldValue = targetLayer.validateFieldString(targetFieldName, sourceLayer.getValueString(sourceFieldName));
+      if (validateFieldValue != null) {
+        edge.consistency = NetworkContainersNS.ConsistencyType.Inconsistent;
+        return;
+      }
+
+      Layers.LayersValidated validatedUpdate = targetLayer.validateSetFields(new Dictionary<string, string>() {
+        {targetFieldName, sourceLayer.getValueString(sourceFieldName)},
+      });
+      if (validatedUpdate.errors.Count != 0) {
+        edge.consistency = NetworkContainersNS.ConsistencyType.Inconsistent;
+        return;
+      }
+
+      targetLayer.setFields(new Dictionary<string, string>() {
+        {targetFieldName, sourceLayer.getValueString(sourceFieldName)},
+      });
+      edge.consistency = NetworkContainersNS.ConsistencyType.Consistent;
+    }
+
+    private static List<string> topoSortVertices(ModelClassNS.ModelClass modelStruct) {
+      List<string> topToBottom = new List<string>();
+      HashSet<string> remainingVertexIds = new HashSet<string>(modelStruct.graph.vertices.Keys);
+
+      while (remainingVertexIds.Count != 0) {
+        List<string> roots = remainingVertexIds.Where((string vtxId) => {
+          foreach (string edgeId in modelStruct.edgesByVertex[vtxId].edgesIn) {
+            NetworkContainersNS.Edge edge = modelStruct.graph.edges[edgeId];
+            if (remainingVertexIds.Contains(edge.sourceVertexId)) {
+              return false;
+            }
+          }
+          
+          return true;
+        }).ToList();
+
+        foreach (string rootId in roots) {
+          topToBottom.Add(rootId);
+          remainingVertexIds.Remove(rootId);
+        }
+      }
+
+      return topToBottom;
     }
 
     public static void moveVertex(

@@ -62,7 +62,7 @@ namespace Layers {
       this.update();
     }
 
-    public Layers.LayersValidated validateFields(Dictionary<string, string> fieldValues) {
+    public Layers.LayersValidated validateSetFields(Dictionary<string, string> fieldValues) {
       Layer cloneLayer = this.clone();
       foreach (KeyValuePair<string, string> entry in fieldValues) {
         if (cloneLayer.getValueIsReadonly(entry.Key)) {
