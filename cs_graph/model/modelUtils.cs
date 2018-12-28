@@ -6,6 +6,29 @@ namespace ModelUtilsNS {
       return GraphUtilsNS.GraphUtils.getResponseJsonData(modelStruct.graph);
     }
 
+    public static ResponseJson.LayerData getLayerJsonData(Layers.Layer layer) {
+      var ports = new Dictionary<string, ResponseJson.LayerPortData>();
+      var fields = new Dictionary<string, ResponseJson.LayerFieldData>();
+
+      foreach (string portName in layer.getPortNames()) {
+        ports[portName] = new ResponseJson.LayerPortData {
+          valueName = layer.getValueNameOfPort(portName),
+        };
+      }
+
+      foreach (string fieldName in layer.getValueNames()) {
+        fields[fieldName] = new ResponseJson.LayerFieldData {
+          value = layer.getValueString(fieldName),
+          fieldIsReadonly = layer.getValueIsReadonly(fieldName)
+        };
+      }
+
+      return new ResponseJson.LayerData {
+        ports = ports,
+        fields = fields,
+      };
+    }
+
     public static void addLayer(
       VersionedModelClassNS.VersionedModelClass versionedModel,
       string layerId,
@@ -202,6 +225,58 @@ namespace ModelUtilsNS {
       string valueId
     ) {
       return !LayerUtilsNS.LayerUtils.isValueReadonly(modelContainer.layerDict, layerId, valueId);
+    }
+
+    public static string validateFieldValue(
+      ModelClassNS.ModelClass modelContainer,
+      string layerId,
+      string valueId,
+      string valueToValidate
+    ) {
+      return LayerUtilsNS.LayerUtils.validateFieldValue(
+        modelContainer.layerDict,
+        layerId,
+        valueId,
+        valueToValidate
+      );
+    }
+
+    public static bool compareFieldValue(
+      ModelClassNS.ModelClass modelContainer,
+      string layerId,
+      string valueId,
+      string valueToValidate
+    ) {
+      return LayerUtilsNS.LayerUtils.compareFieldValue(
+        modelContainer.layerDict,
+        layerId,
+        valueId,
+        valueToValidate
+      );
+    }
+
+    public static Layers.LayersValidated validateLayerFields(
+      ModelClassNS.ModelClass modelContainer,
+      string layerId,
+      Dictionary<string, string> fieldValues
+    ) {
+      return LayerUtilsNS.LayerUtils.validateLayerFields(
+        modelContainer.layerDict,
+        layerId,
+        fieldValues
+      );
+    }
+
+    public static void setLayerFields(
+      ModelClassNS.ModelClass modelContainer,
+      string layerId,
+      Dictionary<string, string> fieldValues
+    ) {
+      LayerUtilsNS.LayerUtils.setLayerFields(
+        modelContainer.layerDict,
+        layerId,
+        fieldValues
+      );
     }
   }
 }

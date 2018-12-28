@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using LayerContainers;
 
 namespace LayerUtilsNS {
@@ -30,6 +31,40 @@ namespace LayerUtilsNS {
       string valueId
     ) {
       return layerDict.layers[layerId].getValueIsReadonly(valueId);
+    }
+
+    public static string validateFieldValue(
+      LayerContainers.LayerDict layerDict,
+      string layerId,
+      string valueId,
+      string valueToValidate
+    ) {
+      return layerDict.layers[layerId].validateFieldString(valueId, valueToValidate);
+    }
+
+    public static bool compareFieldValue(
+      LayerContainers.LayerDict layerDict,
+      string layerId,
+      string valueId,
+      string valueToValidate
+    ) {
+      return layerDict.layers[layerId].compareFieldValue(valueId, valueToValidate);
+    }
+    
+    public static Layers.LayersValidated validateLayerFields(
+      LayerContainers.LayerDict layerDict,
+      string layerId,
+      Dictionary<string, string> fieldValues
+    ) {
+      return layerDict.layers[layerId].validateFields(fieldValues);
+    }
+
+    public static void setLayerFields(
+      LayerContainers.LayerDict layerDict,
+      string layerId,
+      Dictionary<string, string> fieldValues
+    ) {
+      layerDict.layers[layerId].setFields(fieldValues);
     }
   }
 }

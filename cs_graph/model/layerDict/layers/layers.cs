@@ -10,6 +10,20 @@ namespace Layers {
     public InvalidLayerTypeException(string message) : base(message) {}
   }
 
+  internal class UpdateException : System.Exception {
+    public UpdateException(string message) : base(message) {}
+  }
+
+  public class LayersValidated {
+    public List<string> errors;
+    public List<string> warnings;
+    
+    public LayersValidated(List<string> errors, List<string> warnings) {
+      this.errors = errors;
+      this.warnings = warnings;
+    }
+  }
+
   public abstract class Layer {
     public static Layer getNewLayerByType(string type) {
       if (type == "Repeat") {
@@ -20,78 +34,123 @@ namespace Layers {
     }
     public abstract string getType();
 
-    public abstract List<string> getValueNames();
+    public List<string> getValueNames() {
+      return new List<string>(this.wrapperInterfaces.Keys);
+    }
 
-    public abstract void setValueString(string valueName, string newValue);
+    public string validateFieldString(string valueName, string newValue) {
+      return this.wrapperInterfaces[valueName].validateStringValue(newValue);
+    }
 
-    public abstract string getValueString(string valueName);
+    public bool compareFieldValue(string valueName, string compareValue) {
+      return this.wrapperInterfaces[valueName].compareStringValue(compareValue);
+    }
+    
+    public string getValueString(string valueName) {
+      return this.wrapperInterfaces[valueName].getStringValue();
+    }
 
-    public abstract bool getValueIsReadonly(string valueName);
+    public bool getValueIsReadonly(string valueName) {
+      return this.wrappersReadonlyInfo[valueName];
+    }
 
-    public abstract List<string> getPortNames();
-    public abstract string getValueNameOfPort(string valueName);
+    public void setFields(Dictionary<string, string> fieldValues) {
+      foreach (KeyValuePair<string, string> entry in fieldValues) {
+        this.wrapperInterfaces[entry.Key].setFromString(entry.Value);
+      }
+      
+      this.update();
+    }
+
+    public Layers.LayersValidated validateFields(Dictionary<string, string> fieldValues) {
+      Layer cloneLayer = this.clone();
+      foreach (KeyValuePair<string, string> entry in fieldValues) {
+        if (cloneLayer.getValueIsReadonly(entry.Key)) {
+          return new Layers.LayersValidated(
+            new List<string>() { $"Field \"{entry.Key}\" is read-only" },
+            new List<string>()
+          );
+        }
+
+        string validatedField = cloneLayer.validateFieldString(entry.Key, entry.Value);
+
+        if (validatedField != null) {
+          return new Layers.LayersValidated(
+            new List<string>() { $"Field \"{entry.Key}\" has invalid value: {validatedField}" },
+            new List<string>()
+          );
+        }
+      }
+
+      try {
+        cloneLayer.update();
+      } catch (UpdateException e) {
+        return new Layers.LayersValidated(
+          new List<string>() { e.Message },
+          new List<string>()
+        );
+      } catch {
+        return new Layers.LayersValidated(
+          new List<string>() { "Unknown layer error" },
+          new List<string>()
+        );
+      }
+
+      return new Layers.LayersValidated(new List<string>(), new List<string>());
+    }
+
+    public List<string> getPortNames() {
+      return new List<string>(this.portNamesToValueNames.Keys);
+    }
+    public string getValueNameOfPort(string valueName) {
+      return this.portNamesToValueNames[valueName];
+    }
 
     public Layer clone() {
       Layer cloneLayer = Layer.getNewLayerByType(this.getType());
 
       foreach (string valueName in this.getValueNames()) {
-        cloneLayer.setValueString(valueName, this.getValueString(valueName));
+        cloneLayer.wrapperInterfaces[valueName].setFromString(this.getValueString(valueName));
       }
 
       return cloneLayer;
     }
+
+    protected abstract Dictionary<string, ValueWrappers.WrapperStringInterface> wrapperInterfaces {get;}
+    protected abstract Dictionary<string, bool> wrappersReadonlyInfo {get;}
+    protected abstract Dictionary<string, string> portNamesToValueNames {get;}
+    protected abstract void update();
   }
 
   internal class RepeatLayer : Layer {
-    private readonly string inputPortName = "inputPort";
-    private readonly string inputShapeName = "inputShape";
-    private readonly ShapeWrapper inputShape = new ShapeWrapper(new List<int>() {100, 100, 100});
+    protected override Dictionary<string, ValueWrappers.WrapperStringInterface> wrapperInterfaces {get;}
+    protected override Dictionary<string, bool> wrappersReadonlyInfo {get;}
+    protected override Dictionary<string, string> portNamesToValueNames {get;}
+    private readonly ShapeWrapper inputShape = new ShapeWrapper(new List<float>() {100, 100, 100});
 
-    private readonly string outputPortName = "outputPort";
+    private readonly ShapeWrapper outputShape = new ShapeWrapper(new List<float>() {100, 100, 100});
 
-    private readonly string outputShapeName = "outputShape";
-    private readonly ShapeWrapper outputShape = new ShapeWrapper(new List<int>() {100, 100, 100});
+    public RepeatLayer() {
+      this.wrapperInterfaces = new Dictionary<string, ValueWrappers.WrapperStringInterface>() {
+        {"inputShape", this.inputShape.getStringInterface()},
+        {"outputShape", this.outputShape.getStringInterface()},
+      };
+      this.wrappersReadonlyInfo = new Dictionary<string, bool>() {
+        {"inputShape", false},
+        {"outputShape", true},
+      };
+      this.portNamesToValueNames = new Dictionary<string, string>() {
+        {"inputPort", "inputShape"},
+        {"outputPort", "outputShape"},
+      };
+    }
 
     public override string getType() {
       return "Repeat";
     }
 
-    public override List<string> getValueNames() {
-      return new List<string>() {
-        this.inputShapeName,
-        this.outputShapeName,
-      };
-    }
-
-    public override List<string> getPortNames() {
-      return new List<string>() {
-        this.inputPortName,
-        this.outputPortName
-      };
-    }
-
-    public override string getValueNameOfPort(string valueName) {
-      if (valueName == this.inputPortName) return this.inputShapeName;
-      else if (valueName == this.outputPortName) return this.outputShapeName;
-      else throw new MissingValueNameException(valueName);
-    }
-
-    public override void setValueString(string valueName, string newValue) {
-      if (valueName == this.inputShapeName) this.inputShape.setFromString(newValue);
-      else if (valueName == this.outputShapeName) this.outputShape.setFromString(newValue);
-      else throw new MissingValueNameException(valueName);
-    }
-
-    public override string getValueString(string valueName) {
-      if (valueName == this.inputShapeName) return this.inputShape.getString();
-      else if (valueName == this.outputShapeName) return this.outputShape.getString();
-      else throw new MissingValueNameException(valueName);
-    }
-
-    public override bool getValueIsReadonly(string valueName) {
-      if (valueName == this.inputShapeName) return false;
-      else if (valueName == this.outputShapeName) return true;
-      else throw new MissingValueNameException(valueName);
+    protected override void update() {
+      this.outputShape.setValue(this.inputShape.getValue());
     }
   }
 }

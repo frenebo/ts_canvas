@@ -27,13 +27,13 @@ namespace ModelInfoRequests {
       } else if (type == "getPortInfo") {
         return GetPortInfoReq.dispatch(versionedModel, jobj);
       } else if (type == "getLayerInfo") {
-        return GetLayerInfoReq.dispatch(jobj);
+        return GetLayerInfoReq.dispatch(versionedModel, jobj);
       } else if (type == "validateValue") {
-        return ValidateValueReq.dispatch(jobj);
+        return ValidateValueReq.dispatch(versionedModel, jobj);
       } else if (type == "compareValue") {
-        return CompareValueReq.dispatch(jobj);
+        return CompareValueReq.dispatch(versionedModel, jobj);
       } else if (type == "validateLayerFields") {
-        return ValidateLayerFieldsReq.dispatch(jobj);
+        return ValidateLayerFieldsReq.dispatch(versionedModel, jobj);
       } else if (type == "getUniqueEdgeIds") {
         return GetUniqueEdgeIdsReq.dispatch(versionedModel, jobj);
       } else if (type == "getUniqueVertexIds") {
@@ -150,35 +150,86 @@ namespace ModelInfoRequests {
   }
 
   internal static class GetLayerInfoReq {
-    public static ModelInfoReqResponses.GetLayerInfoResponse dispatch(JObject jobj) {
+    public static ModelInfoReqResponses.GetLayerInfoResponse dispatch(
+      VersionedModelClassNS.VersionedModelClass versionedModel,
+      JObject jobj
+    ) {
       string layerId = jobj["layerId"].ToString();
 
-      throw new System.Exception("GetLayerInfo: unimplemented");
+      if (!versionedModel.getCurrent().layerDict.layers.ContainsKey(layerId)) {
+        return new ModelInfoReqResponses.GetLayerInfoResponseLayerDoesNotExist();
+      }
+
+      Layers.Layer layer = versionedModel.getCurrent().layerDict.layers[layerId];
+      ResponseJson.LayerData layerData = ModelUtilsNS.ModelUtils.getLayerJsonData(layer);
+
+      return new ModelInfoReqResponses.GetLayerInfoResponseLayerExists(layerData);
     }
   }
 
   internal static class ValidateValueReq {
-    public static ModelInfoReqResponses.ValidateValueResponse dispatch(JObject jobj) {
+    public static ModelInfoReqResponses.ValidateValueResponse dispatch(
+      VersionedModelClassNS.VersionedModelClass versionedModel,
+      JObject jobj
+    ) {
       string layerId = jobj["layerId"].ToString();
       string valueId = jobj["valueId"].ToString();
       string newValue= jobj["newValue"].ToString();
 
-      throw new System.Exception("ValidateValue: unimplemented");
+      if (!versionedModel.getCurrent().layerDict.layers.ContainsKey(layerId)) {
+        return new ModelInfoReqResponses.ValidateValueResponseLayerNonexistentError();
+      }
+      if (!versionedModel.getCurrent().layerDict.layers[layerId].getValueNames().Contains(valueId)) {
+        return new ModelInfoReqResponses.ValidateValueResponseFieldNonexistError(valueId);
+      }
+      if (versionedModel.getCurrent().layerDict.layers[layerId].getValueIsReadonly(valueId)) {
+        return new ModelInfoReqResponses.ValidateValueResponseNoError("Field is read-only");
+      }
+
+      // string may be null
+      string validated = ModelUtilsNS.ModelUtils.validateFieldValue(
+        versionedModel.getCurrent(),
+        layerId,
+        valueId,
+        newValue
+      );
+
+      return new ModelInfoReqResponses.ValidateValueResponseNoError(validated);
     }
   }
 
   internal static class CompareValueReq {
-    public static ModelInfoReqResponses.CompareValueResponse dispatch(JObject jobj) {
+    public static ModelInfoReqResponses.CompareValueResponse dispatch(
+      VersionedModelClassNS.VersionedModelClass versionedModel,
+      JObject jobj
+    ) {
       string layerId = jobj["layerId"].ToString();
       string valueId = jobj["valueId"].ToString();
       string compareValue = jobj["compareValue"].ToString();
 
-      throw new System.Exception("CompareValue: unimplemented");
+      if (!versionedModel.getCurrent().layerDict.layers.ContainsKey(layerId)) {
+        return new ModelInfoReqResponses.CompareValueResponseLayerNonexistentError();
+      }
+      if (!versionedModel.getCurrent().layerDict.layers[layerId].getValueNames().Contains(valueId)) {
+        return new ModelInfoReqResponses.CompareValueResponseFieldNonexistentError();
+      }
+
+      bool isEqual = ModelUtilsNS.ModelUtils.compareFieldValue(
+        versionedModel.getCurrent(),
+        layerId,
+        valueId,
+        compareValue
+      );
+
+      return new ModelInfoReqResponses.CompareValueResponseNoError(isEqual);
     }
   }
 
   internal static class ValidateLayerFieldsReq {
-    public static ModelInfoReqResponses.ValidateLayerFieldsResponse dispatch(JObject jobj) {
+    public static ModelInfoReqResponses.ValidateLayerFieldsResponse dispatch(
+      VersionedModelClassNS.VersionedModelClass versionedModel,
+      JObject jobj
+    ) {
       Dictionary<string, string> fieldValues = new Dictionary<string, string>();
 
       foreach (var fieldEntry in (jobj["fieldValues"] as JObject).Properties()) {
@@ -187,7 +238,23 @@ namespace ModelInfoRequests {
 
       string layerId = jobj["layerId"].ToString();
 
-      throw new System.Exception("ValidateLayerFields: unimplemented");
+      if (!versionedModel.getCurrent().layerDict.layers.ContainsKey(layerId)) {
+        return new ModelInfoReqResponses.ValidateLayerFieldsResponseLayerNonexistentError();
+      }
+      Layers.Layer layer = versionedModel.getCurrent().layerDict.layers[layerId];
+      foreach (var fieldEntry in fieldValues) {
+        if (!layer.getValueNames().Contains(fieldEntry.Key)) {
+          return new ModelInfoReqResponses.ValidateLayerFieldsResponseFieldNonexistent(fieldEntry.Key);
+        }
+      }
+
+      var validated = ModelUtilsNS.ModelUtils.validateLayerFields(
+        versionedModel.getCurrent(),
+        layerId,
+        fieldValues
+      );
+
+      return new ModelInfoReqResponses.ValidateLayerFieldsResponseNoError(validated.errors, validated.warnings);
     }
   }
 

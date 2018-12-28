@@ -123,7 +123,11 @@ namespace ModelChangeRequests {
       
       string layerId = jobj["layerId"].ToString();
 
-      throw new System.Exception("SetlayerFieldsReq unimplemented");
+      ModelUtilsNS.ModelUtils.setLayerFields(
+        modelStruct,
+        layerId,
+        fieldValues
+      );
     }
   }
 }

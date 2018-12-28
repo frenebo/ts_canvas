@@ -81,7 +81,7 @@ export class EditLayerDialog extends Dialog {
       //   valueId: fieldId,
       // });
 
-      this.fieldsReadonlyDict[fieldId] = {isReadonly: layerInfoResponse.data.fields[fieldId].readonly};
+      this.fieldsReadonlyDict[fieldId] = {isReadonly: layerInfoResponse.data.fields[fieldId].fieldIsReadonly};
 
       const row = this.createFieldRow(fieldId, layerData.fields[fieldId].value);
       fieldDiv.appendChild(row);

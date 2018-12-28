@@ -161,10 +161,10 @@ namespace ModelInfoReqResponses {
 
   public class ValidateLayerFieldsResponseNoError : ValidateLayerFieldsResponse {
     public override string requestError {get;set;} = null;
-    public readonly string[] errors;
-    public readonly string[] warnings;
+    public readonly List<string> errors;
+    public readonly List<string> warnings;
 
-    public ValidateLayerFieldsResponseNoError(string[] errors, string[] warnings) {
+    public ValidateLayerFieldsResponseNoError(List<string> errors, List<string> warnings) {
       this.errors = errors;
       this.warnings = warnings;
     }

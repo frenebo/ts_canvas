@@ -164,7 +164,8 @@ namespace GraphUtilsNS {
       if (!graph.vertices.ContainsKey(vertexId)) {
         throw new System.Exception("Vertex with given id does not exist");
       }
-      
+
+      // Use ToList because C# won't allow the edges by vertex collection to be modified while it is being iterated over
       foreach (string edgeId in edgesByVertex[vertexId].edgesIn.Union(edgesByVertex[vertexId].edgesOut).ToList()) {
         GraphUtils.deleteEdge(graph, edgesByVertex, edgeId);
       }
