@@ -77,7 +77,7 @@ namespace ModelChangeRequests {
       string targetVertexId = jobj["targetVertexId"].ToString();
       string targetPortId = jobj["targetPortId"].ToString();
 
-      ModelUtilsNS.ModelUtils.createEdge(
+      string validatedEdge = ModelUtilsNS.ModelUtils.validateEdge(
         modelStruct,
         newEdgeId,
         sourceVertexId,
@@ -85,6 +85,17 @@ namespace ModelChangeRequests {
         targetVertexId,
         targetPortId
       );
+
+      if (validatedEdge == null) {
+        ModelUtilsNS.ModelUtils.createEdge(
+          modelStruct,
+          newEdgeId,
+          sourceVertexId,
+          sourcePortId,
+          targetVertexId,
+          targetPortId
+        );
+      }
     }
   }
 

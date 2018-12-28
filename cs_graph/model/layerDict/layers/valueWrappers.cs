@@ -187,10 +187,10 @@ namespace ValueWrappers {
 
       string trimmed = str.Trim(whitespaceChars);
       if (trimmed[0] != '(') {
-        throw new ValueParseException("Value text must begin with an open parenthesis");
+        throw new ValueParseException("Value text must begin with an opening parenthesis");
       }
       if (trimmed[trimmed.Length - 1] != ')') {
-        throw new ValueParseException("Value text must begin with an open parenthesis");
+        throw new ValueParseException("Value text must end with an closing parenthesis");
       }
 
       string[] untrimmedDimStrings = trimmed.Substring(1, trimmed.Length - 2).Split(',');

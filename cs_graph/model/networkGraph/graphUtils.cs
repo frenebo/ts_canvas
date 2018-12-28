@@ -117,14 +117,11 @@ namespace GraphUtilsNS {
         return "Target port is not an input port";
       }
 
-      // check if an identical edge already exists
-      var edgesBetweenTwoVtxs = edgesByVertex[sourceVertexId].edgesOut.Where(id => edgesByVertex[targetVertexId].edgesIn.Contains(id));
-      foreach (string edgeId in edgesBetweenTwoVtxs) {
-        if (
-          graph.edges[edgeId].sourcePortId == sourcePortId &&
-          graph.edges[edgeId].targetPortId == targetPortId
-        ) {
-          return "Identical connection already exists";
+      // check if an edge to the same port already exists
+      foreach (string edgeId in edgesByVertex[targetVertexId].edgesIn) {
+        NetworkContainersNS.Edge edge = graph.edges[edgeId];
+        if (edge.targetPortId == targetPortId) {
+          return "Target port is already occupied";
         }
       }
 
