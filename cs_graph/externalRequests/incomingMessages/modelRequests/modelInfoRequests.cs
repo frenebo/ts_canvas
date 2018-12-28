@@ -160,8 +160,7 @@ namespace ModelInfoRequests {
         return new ModelInfoReqResponses.GetLayerInfoResponseLayerDoesNotExist();
       }
 
-      Layers.Layer layer = versionedModel.getCurrent().layerDict.layers[layerId];
-      ResponseJson.LayerData layerData = ModelUtilsNS.ModelUtils.getLayerJsonData(layer);
+      ResponseJson.LayerData layerData = ModelUtilsNS.ModelUtils.getLayerJsonData(versionedModel.getCurrent(), layerId);
 
       return new ModelInfoReqResponses.GetLayerInfoResponseLayerExists(layerData);
     }

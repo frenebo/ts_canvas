@@ -7,7 +7,11 @@ namespace ModelUtilsNS {
       return GraphUtilsNS.GraphUtils.getResponseJsonData(modelStruct.graph);
     }
 
-    public static ResponseJson.LayerData getLayerJsonData(Layers.Layer layer) {
+    public static ResponseJson.LayerData getLayerJsonData(
+      ModelClassNS.ModelClass modelStruct,
+      string layerId
+    ) {
+      Layers.Layer layer = modelStruct.layerDict.layers[layerId];
       var ports = new Dictionary<string, ResponseJson.LayerPortData>();
       var fields = new Dictionary<string, ResponseJson.LayerFieldData>();
 
@@ -16,11 +20,16 @@ namespace ModelUtilsNS {
           valueName = layer.getValueNameOfPort(portName),
         };
       }
+      
+      List<string> occupiedValueNames = modelStruct.edgesByVertex[layerId].edgesIn.Select((string edgeId) => {
+        return modelStruct.layerDict.layers[layerId].getValueNameOfPort(modelStruct.graph.edges[edgeId].targetPortId);
+      }).ToList();
 
       foreach (string fieldName in layer.getValueNames()) {
+        bool fieldOccupiedByEdge = occupiedValueNames.Contains(fieldName);
         fields[fieldName] = new ResponseJson.LayerFieldData {
           value = layer.getValueString(fieldName),
-          fieldIsReadonly = layer.getValueIsReadonly(fieldName)
+          fieldIsReadonly = fieldOccupiedByEdge || layer.getValueIsReadonly(fieldName)
         };
       }
 
