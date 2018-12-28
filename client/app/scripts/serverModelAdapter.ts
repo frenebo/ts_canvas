@@ -55,10 +55,13 @@ class ModelStandIn implements IModelInterface {
         request_id: string;
         response: IServerReqTypes[keyof IServerReqTypes]["response"];
       }) => {
-        console.log(message);
-        console.log(this.pendingRequests);
+        // console.log(message);
+        // console.log(this.pendingRequests);
         const pendingReq = this.pendingRequests[message.request_id];
-        if (pendingReq === undefined) return;
+        if (pendingReq === undefined) {
+          console.log("Request does not match");
+          return;
+        }
 
         pendingReq(message.response);
         delete this.pendingRequests[message.request_id];
@@ -78,8 +81,10 @@ class ModelStandIn implements IModelInterface {
     };
 
     const promise = new Promise<IServerReqTypes[T]["response"]>((resolve) => {
+      const startTime: number = performance.now();
       this.pendingRequests[id] = (val: IServerReqTypes[T]["response"]) => {
         resolve(val);
+        console.log(req.type + " time: " + (performance.now() - startTime));
       };
     });
 
