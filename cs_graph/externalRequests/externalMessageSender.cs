@@ -15,8 +15,18 @@ namespace ExternalMessageSender {
   }
 
   public static class DataChangedNotifier {
-    public static void notifyDataChanged() {
-      System.Console.WriteLine("{\"type\": \"data_changed_notification\"}");
+    private class DataChangedNotification {
+      public string type = "data_changed_notification";
+      public ResponseJson.GraphData newGraphData;
+
+      public DataChangedNotification(ResponseJson.GraphData data) {
+        this.newGraphData = data;
+      }
+    }
+    public static void notifyDataChanged(ResponseJson.GraphData data) {
+      DataChangedNotification notif = new DataChangedNotification(data);
+
+      System.Console.WriteLine(JsonConvert.SerializeObject(notif));
     }
   }
 

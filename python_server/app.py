@@ -42,8 +42,8 @@ class MyCustomNamespace(Namespace):
         }
         socketio.emit("model_req_response", obj, namespace=SOCKET_NAMESPACE_STR)
 
-    def on_graph_change(self):
-        socketio.emit("graph_changed", {}, namespace=SOCKET_NAMESPACE_STR)
+    def on_graph_change(self, new_graph_data_obj):
+        socketio.emit("graph_changed", new_graph_data_obj, namespace=SOCKET_NAMESPACE_STR)
 
     def on_model_request(self, data):
         self.server_interface.send_model_req(request.sid, data)
@@ -51,6 +51,10 @@ class MyCustomNamespace(Namespace):
 socketio.on_namespace(MyCustomNamespace(SOCKET_NAMESPACE_STR))
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        raise Exception("App takes one argument: host")
-    socketio.run(app, host=sys.argv[1], port=5000)
+    host = None
+    if len(sys.argv) == 2:
+        host = sys.argv[1]
+    else:
+        host = "0.0.0.0"
+
+    socketio.run(app, host=host, port=5000)

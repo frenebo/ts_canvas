@@ -39,7 +39,9 @@ class GraphServerInterface():
 
             if response_obj["type"] == "data_changed_notification":
                 if self.on_graph_change is not None:
-                    self.on_graph_change()
+                    self.on_graph_change({
+                        "newGraph": response_obj["newGraphData"],
+                    })
 
             elif response_obj["type"] == "request_response":
                 if self.on_request_response is not None:

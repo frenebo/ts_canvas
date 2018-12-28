@@ -34,18 +34,19 @@ class ModelStandIn implements IModelInterface {
     })
   }
 
-  public async onDataChanged(listener: () => void): Promise<void> {
+  public async onDataChanged(listener: (newGraph: IGraphData) => void): Promise<void> {
     this.graphDataChangedListeners.push(listener);
   }
 
   private socketio: any;
-  private graphDataChangedListeners: Array<() => void> = [];
+  private graphDataChangedListeners: Array<(newGraph: IGraphData) => void> = [];
   constructor() {
     this.socketio = io(SERVER_SOCKET_PATH);
 
-    this.socketio.on("graph_changed", () => {
+    this.socketio.on("graph_changed", (message: {newGraph: IGraphData}) => {
+      console.log(message);
       for (const listener of this.graphDataChangedListeners) {
-        listener();
+        listener(message.newGraph);
       }
     });
 

@@ -18,12 +18,12 @@ namespace ModelRequests {
         ModelChangeReqResponseNS.ModelChangeReqResponse reqResponse = ModelChangeRequest.dispatch(versionedModel.getCurrent(), jobj);
         
         reqResponder.sendModelChangeReqResponse(reqResponse);
-        ExternalMessageSender.DataChangedNotifier.notifyDataChanged();
+        ExternalMessageSender.DataChangedNotifier.notifyDataChanged(ModelUtilsNS.ModelUtils.getResponseJsonData(versionedModel.getCurrent()));
       } else if (type == "request_versioning_change") {
         ModelVersioningReqResponses.ModelVersioningReqResponse reqResponse = VersioningChangeRequest.dispatch(jobj, versionedModel);
         
         reqResponder.sendVersioningChangeReqResponse(reqResponse);
-        ExternalMessageSender.DataChangedNotifier.notifyDataChanged();
+        ExternalMessageSender.DataChangedNotifier.notifyDataChanged(ModelUtilsNS.ModelUtils.getResponseJsonData(versionedModel.getCurrent()));
       } else if (type == "request_model_info") {
         ModelInfoReqResponses.ModelInfoReqResponse reqResponse = ModelInfoRequest.dispatch(jobj, reqResponder, versionedModel);
         reqResponder.sendModelInfoReqResponse(reqResponse);

@@ -28,7 +28,7 @@ export interface ISessionData {
 }
 
 export class Model implements IModelInterface {
-  private readonly graphChangedListeners: Array<() => void> = [];
+  private readonly graphChangedListeners: Array<(data: IGraphData) => void> = [];
 
   private readonly session: ISessionData = {
     data: {
@@ -72,7 +72,7 @@ export class Model implements IModelInterface {
     this.versioningManager = new VersioningManager(SessionUtils.toJson(this.session.data));
   }
 
-  public onDataChanged(listener: () => void): void {
+  public onDataChanged(listener: (data: IGraphData) => void): void {
     this.graphChangedListeners.push(listener);
   }
 
@@ -93,9 +93,11 @@ export class Model implements IModelInterface {
       const newJson = SessionUtils.toJson(this.session.data);
 
       this.versioningManager.recordChange(newJson);
-    }).then(() => {
+
+      return newJson;
+    }).then((newJson) => {
       this.graphChangedListeners.forEach((l) => {
-        l();
+        l(newJson.graph);
       });
     });
   }
@@ -120,7 +122,7 @@ export class Model implements IModelInterface {
       }
     }).then(() => {
       this.graphChangedListeners.forEach((l) => {
-        l();
+        l(SessionUtils.toJson(this.session.data).graph);
       });
     });
   }

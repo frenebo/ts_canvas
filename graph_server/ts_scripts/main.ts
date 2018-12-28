@@ -44,6 +44,7 @@ type IStdoutMssg = {
   response: IServerReqTypes[keyof IServerReqTypes]["response"];
 } | {
   type: "data_changed_notification";
+  newGraphData: IGraphData;
 } | {
   type: "requesting_layer_info";
   request: ILayerReqTypes[keyof ILayerReqTypes]["request"];
@@ -54,9 +55,10 @@ function stdoutMssg(mssg: IStdoutMssg) {
   console.log(JSON.stringify(mssg));
 }
 
-model.onDataChanged(() => {
+model.onDataChanged(async () => {
   stdoutMssg({
     type: "data_changed_notification",
+    newGraphData: (await model.requestModelInfo<"getGraphData">({type: "getGraphData"})).data
   });
 });
 

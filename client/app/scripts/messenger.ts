@@ -24,11 +24,7 @@ class Messenger {
     this.model = await getModelStandIn();
     this.views = [];
 
-    this.model.onDataChanged(async () => {
-      const response = await this.model.requestModelInfo<"getGraphData">({
-        type: "getGraphData",
-      });
-      const graphData = response.data;
+    this.model.onDataChanged(async (graphData) => {
       for (const view of this.views) {
         view.setGraphData(graphData);
       }

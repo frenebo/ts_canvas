@@ -169,8 +169,9 @@ export class View implements IViewInterface {
     // updates
     this.graphManager.applyCommands(graphManagerCommands);
 
-    const fileData = await this.sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"});
-    const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
-    this.menuBar.setUnsavedChanges(unsavedChanges);
+    this.sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"}).then((fileData) => {
+      const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
+      this.menuBar.setUnsavedChanges(unsavedChanges);
+    });
   }
 }
