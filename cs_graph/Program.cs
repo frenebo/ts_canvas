@@ -6,13 +6,13 @@ namespace cs_graph {
     static void Main(string[] args) {
       VersionedModelClassNS.VersionedModelClass versionedModel = new VersionedModelClassNS.VersionedModelClass();
 
-      string[] ids = new string[] {"a", "b", "c", "d"};
+      string[] ids = new string[] {"a", "b", "c", "d", "e"};
 
       for (int i = 0; i < ids.Length; i++) {
         ModelUtilsNS.ModelUtils.addLayer(
           versionedModel,
           ids[i],
-          "Repeat",
+          i%2 == 0 ? "Repeat" : "Add",
           10*i,
           10*i
         );

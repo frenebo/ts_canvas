@@ -28,6 +28,8 @@ namespace Layers {
     public static Layer getNewLayerByType(string type) {
       if (type == "Repeat") {
         return new RepeatLayer();
+      } else if (type == "Add") {
+        return new AddLayer();
       } else {
         throw new InvalidLayerTypeException(type);
       }
@@ -151,6 +153,43 @@ namespace Layers {
 
     protected override void update() {
       this.outputShape.setValue(this.inputShape.getValue());
+    }
+  }
+
+  internal class AddLayer : Layer {
+    protected override Dictionary<string, ValueWrappers.WrapperStringInterface> wrapperInterfaces {get;}
+    protected override Dictionary<string, bool> wrappersReadonlyInfo {get;}
+    protected override Dictionary<string, string> portNamesToValueNames {get;}
+    private readonly NumberWrapper inputNum1 = new NumberWrapper(0);
+
+    private readonly NumberWrapper inputNum2 = new NumberWrapper(0);
+
+    private readonly NumberWrapper outputNum = new NumberWrapper(0);
+
+    public AddLayer() {
+      this.wrapperInterfaces = new Dictionary<string, ValueWrappers.WrapperStringInterface>() {
+        {"input 1", this.inputNum1.getStringInterface()},
+        {"input 2", this.inputNum2.getStringInterface()},
+        {"output", this.outputNum.getStringInterface()},
+      };
+      this.wrappersReadonlyInfo = new Dictionary<string, bool>() {
+        {"input 1", false},
+        {"input 2", false},
+        {"output", true},
+      };
+      this.portNamesToValueNames = new Dictionary<string, string>() {
+        {"inputPort1", "input 1"},
+        {"inputPort1", "input 2"},
+        {"outputPort", "output"},
+      };
+    }
+
+    public override string getType() {
+      return "Add";
+    }
+
+    protected override void update() {
+      this.outputNum.setValue(this.inputNum1.getValue() + this.inputNum2.getValue());
     }
   }
 }
