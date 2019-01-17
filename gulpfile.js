@@ -13,6 +13,7 @@ gulp.task("client_copy_pixi", () => {
     gulp.dest("client/build/deps/pixi"),
   );
 });
+
 gulp.task("client_copy_socketio", () => {
   return gulp.src(["node_modules/socket.io-client/dist/socket.io.js"]).pipe(
     gulp.dest("client/build/deps/socketio"),
