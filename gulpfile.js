@@ -55,17 +55,3 @@ gulp.task("build", gulp.series(
   "server_ts",
   "server_copy_diff",
 ));
-//
-// gulp.task("tslint", function() {
-//   var program = tslint.Linter.createProgram("./tsconfig.json");
-//
-//    return gulp.src(["client/app/**/*.ts"])
-//        .pipe(gulpTslint({ program: program }))
-//        .pipe(gulpTslint.report({
-//             configuration: {},
-//             rulesDirectory: null,
-//             emitError: true,
-//             reportLimit: 0,
-//             summarizeFailureOutput: true
-//         }));;
-// });
