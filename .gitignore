@@ -7,3 +7,5 @@ graph_server/**/*.js
 cs_graph/bin
 Debug/
 obj/
+
+.vscode/
