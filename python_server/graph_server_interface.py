@@ -12,20 +12,20 @@ class GraphServerInterface():
         GRAPH_MAIN_JS_PATH = os.path.abspath(os.path.join(script_dir, "../graph_server/build/main.js"))
         CSHARP_PROJECT_PATH = os.path.abspath(os.path.join(script_dir, "../cs_graph"));
 
-        self.node_process = subprocess.Popen(
-            ["dotnet", "run", "--project", CSHARP_PROJECT_PATH, "--no-build"],
-            shell=False,
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-        )
-
         # self.node_process = subprocess.Popen(
-        #     ["node", GRAPH_MAIN_JS_PATH],
+        #     ["dotnet", "run", "--project", CSHARP_PROJECT_PATH, "--no-build"],
         #     shell=False,
         #     stdout=subprocess.PIPE,
         #     stdin=subprocess.PIPE,
-        #     # stderr=PIPE,
         # )
+
+        self.node_process = subprocess.Popen(
+            ["node", GRAPH_MAIN_JS_PATH],
+            shell=False,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            # stderr=PIPE,
+        )
 
         t = Thread(target=self.listen_output, args=[])
         t.start()
