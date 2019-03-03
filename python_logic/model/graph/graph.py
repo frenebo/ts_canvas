@@ -98,6 +98,9 @@ class Graph():
     def has_edge_id(self, edge_id):
         return edge_id in self._edges
     
+    def get_edge(self, edge_id):
+        return self._edges[edge_id]
+    
     def has_vertex_id(self, vtx_id):
         return vtx_id in self._vertices
     

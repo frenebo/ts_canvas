@@ -70,7 +70,7 @@ class Model:
             new_layer = self._layer_dict[src_vtx_id].clone()
             self._layer_dict[new_vtx_id] = new_layer
         elif req_type == "createEdge":
-            print(req)
+            # print(req)
             new_edge_id = req["newEdgeId"]
             src_vtx_id = req["sourceVertexId"]
             src_port_id = req["sourcePortId"]
@@ -146,9 +146,14 @@ class Model:
                 }
             
             edge_ids = self._graph.edge_ids_between_vertices(vertex_ids)
+            edges = {}
+            
+            for edge_id in edge_ids:
+                edges[edge_id] = self._graph.get_edge(edge_id).to_json_serializable()
+            
             return {
                 "verticesExist": True,
-                "edges": edge_ids
+                "edges": edges
             }
         elif req_type == "fileIsOpen":
             print("Unimplemented fileIsOpen")
