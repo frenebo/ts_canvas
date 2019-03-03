@@ -49,11 +49,19 @@ class Graph():
         source_port = source_vtx.get_port(source_port_id)
         target_port = target_vtx.get_port(target_port_id)
         
+        # check port types
         if source_port.port_type() != "output":
             return "Source port is not an output port"
         
         if target_port.port_type() != "input":
             return "Target port is not an input port"
+
+        # check if target port already has an input
+        for input_edge_id in self._edges_by_target[target_vertex_id]:
+            input_edge = self._edges[input_edge_id]
+
+            if input_edge.target_port_id() == target_port_id:
+                return "Target port is already occupied"
         
         # check for loops
         source_ancestors = set()
@@ -69,7 +77,7 @@ class Graph():
                     source_ancestors_uninvestigated.add(edge_source_id)
         
         if target_vertex_id in source_ancestors:
-            return "Loops detected"
+            return "Loop detected"
         
         return None
     
