@@ -47,11 +47,3 @@ class Vertex:
             },
             "ports": ports
         }
-#   label: string;
-#   geo: {
-#     x: number;
-#     y: number;
-#   };
-#   ports: {
-#     [key: string]: IPortData;
-#   };

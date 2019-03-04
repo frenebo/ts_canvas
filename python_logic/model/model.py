@@ -1,5 +1,5 @@
 from .graph import Graph, Vertex, Port
-from .layers import BaseLayer, RepeatIntLayer
+from .layers import BaseLayer, RepeatIntLayer, LayerUpdateException
 
 
 class Model:
@@ -142,7 +142,7 @@ class Model:
             if len(missing_vertices) != 0:
                 return {
                     "verticesExist": False,
-                    requestNonexistentVertices: missing_vertices
+                    "requestNonexistentVertices": missing_vertices
                 }
             
             edge_ids = self._graph.edge_ids_between_vertices(vertex_ids)
