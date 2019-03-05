@@ -1,13 +1,15 @@
 from .port import Port
 
 class Vertex:
-    def __init__(self, ports, x_pos, y_pos):
+    def __init__(self, label, ports, x_pos, y_pos):
+        assert isinstance(label, str), "Assert label argument to constructor is string"
         assert isinstance(ports, dict), "Assert port argument to constructor is dict"
         
         for port_id in ports:
             assert isinstance(port_id, str), "Assert port ids are strings"
             assert isinstance(ports[port_id], Port), "Assert port dict values are Ports"
         
+        self._label = label
         self._x_pos = x_pos
         self._y_pos = y_pos
         
@@ -18,7 +20,7 @@ class Vertex:
         for port_id in self._ports:
             cloned_ports[port_id] = self._ports[port_id].clone()
         
-        return Vertex(cloned_ports, self._x_pos, self._y_pos)
+        return Vertex(self._label, cloned_ports, self._x_pos, self._y_pos)
     
     def has_port(self, port_id):
         return port_id in self._ports
@@ -40,7 +42,7 @@ class Vertex:
         for port_id in self._ports:
             ports[port_id] = self._ports[port_id].to_json_serializable()
         return {
-            "label": "Default label",
+            "label": self._label,
             "geo": {
                 "x": self._x_pos,
                 "y": self._y_pos,

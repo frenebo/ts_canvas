@@ -1,17 +1,64 @@
 from .graph import Graph, Vertex, Port
-from .layers import BaseLayer, RepeatIntLayer, LayerUpdateException
+from .layers import BaseLayer, RepeatIntLayer, DenseLayer, LayerUpdateException
 
 
 class Model:
     def __init__(self):
         self._graph = Graph()
         self._layer_dict = {}
+
+        self.add_layer("Dense", 0, 0)
+    
+    
+    
+    def add_layer(self, layer_type, x_pos, y_pos):
+        new_layer = None
         
-        self._graph.add_vertex("id1", Vertex({
-            "inputPort": Port("top", 0.5, "input", "inputInt"),
-            "outputPort": Port("bottom", 0.5, "output", "outputInt")
-        }, 0, 0))
-        self._layer_dict["id1"] = RepeatIntLayer()
+        if layer_type == "Dense":
+            new_layer = DenseLayer()
+        elif layer_type == "Repeat Int Layer":
+            new_layer = RepeatIntLayer()
+        else:
+            raise NotImplementedError()
+        
+        new_layer_id = self._graph.get_unique_vertex_ids(1)[0]
+
+        self._layer_dict[new_layer_id] = new_layer
+
+        ports = {}
+        input_port_idx = 0
+        output_port_idx = 0
+        for port_name in new_layer.port_names():
+            port_side = None
+            port_type = None
+            port_position = None
+            
+            if new_layer.port_is_input(port_name):
+                port_side = "top"
+                port_type = "input"
+                port_position = (input_port_idx + 1)/(new_layer.input_port_count() + 1)
+                
+                input_port_idx += 1
+            else:
+                port_side = "bottom"
+                port_type = "output"
+                port_position = (output_port_idx + 1)/(new_layer.output_port_count() + 1)
+                
+                output_port_idx += 1
+            
+            port_field_name = new_layer.field_name_of_port(port_name)
+            
+            ports[port_name] = Port(
+                port_side,
+                port_position,
+                port_type,
+                port_field_name
+            )
+        
+        self._graph.add_vertex(
+            new_layer_id,
+            Vertex(layer_type, ports, x_pos, y_pos)
+        )
     
     # def make_request(self, req):
     #     req_type = req["type"]
