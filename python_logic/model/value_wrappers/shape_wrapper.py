@@ -2,7 +2,7 @@ from .base_value_wrapper import BaseValueWrapper
 from .value_wrapper_exception import ValueWrapperException
 
 class ShapeWrapper(BaseValueWrapper):
-    def clone_value(self, value):
+    def copy_value(self, value):
         return list(value)
     
     def validate_value(self, value):

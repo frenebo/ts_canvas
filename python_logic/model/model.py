@@ -1,5 +1,6 @@
 from .graph import Graph, Vertex, Port
 from .layers import BaseLayer, RepeatIntLayer, DenseLayer, LayerUpdateException
+from .value_wrappers import ValueWrapperException
 
 
 class Model:
@@ -28,6 +29,7 @@ class Model:
         ports = {}
         input_port_idx = 0
         output_port_idx = 0
+        
         for port_name in new_layer.port_names():
             port_side = None
             port_type = None
@@ -156,29 +158,122 @@ class Model:
             
             self._graph.delete_edge(edge_id)
         elif req_type == "setLayerFields":
-            raise Exception("unimplemented")
-        # type: "setLayerFields";
-        # layerId: string;
-        # fieldValues: {
-        # [key: string]: string;
-        # };
-        # };
+            layer_id = req["layerId"]
+            field_values = req["fieldValues"]
+            update_validated = self._validate_layer_set_fields(layer_id, field_values)
+            if update_validated is not None:
+                return
+            
+            self._layer_set_fields(layer_id, field_values)
+
+    def _propagate_edge(
+        self,
+        source_vertex_id,
+        source_port_id,
+        target_vertex_id,
+        target_port_id):
+        source_vertex = self._graph.get_vertex(source_vertex_id)
+        target_vertex = self._graph.get_vertex(target_vertex_id)
+        
+        source_field_name = source_vertex.get_port(source_port_id).value_name()
+        target_field_name = target_vertex.get_port(target_port_id).value_name()
+        source_layer = self._layer_dict[source_vertex_id]
+        target_layer = self._layer_dict[target_vertex_id]
+        
+        # validate field
+        source_field_value_string = source_layer.get_field_value_string(source_field_name)
+        value_validated = target_layer.set_field_value_string(target_field_name, source_field_value_string)
+        target_layer.update()
     
+    def _layer_set_fields(self, layer_name, field_value_strings):
+        layer = self._layer_dict[layer_name]
+        for field_name in field_value_strings:
+            layer.set_field_value_string(field_name, field_value_strings[field_name])
+        layer.update()
+    
+    def _validate_layer_set_fields(self, layer_name, field_value_strings):
+        if layer_name not in self._layer_dict:
+            return "Layer does not exist"
+        
+        cloned_layer = self._layer_dict[layer_name].clone()
+            
+        for field_name in field_value_strings:
+            try:
+                cloned_layer.set_field_value_string(field_name, field_value_strings[field_name])
+            except ValueWrapperException as exp:
+                return "Field named \"" + field_name + "\" has invalid value: " + str(exp)
+            
+        try:
+            cloned_layer.update()
+        except LayerUpdateException as exp:
+            return str(exp)
+        
+        return None
+
+    def _validate_edge_propagation(
+        self,
+        source_vertex_id,
+        source_port_id,
+        target_vertex_id,
+        target_port_id):
+        if not self._graph.has_vertex_id(source_vertex_id):
+            return "Source vertex does not exist"
+        if not self._graph.has_vertex_id(target_vertex_id):
+            return "Target vertex does not exist"
+        source_vertex = self._graph.get_vertex(source_vertex_id)
+        target_vertex = self._graph.get_vertex(target_vertex_id)
+        if source_port_id not in source_vertex.port_ids():
+            return "Target port does not exist"
+        if target_port_id not in target_vertex.port_ids():
+            return "Target port does not exist"
+        
+        source_field_name = source_vertex.get_port(source_port_id).value_name()
+        target_field_name = target_vertex.get_port(target_port_id).value_name()
+        
+        source_layer = self._layer_dict[source_vertex_id]
+        target_layer = self._layer_dict[target_vertex_id]
+        
+        # validate field
+        source_field_value_string = source_layer.get_field_value_string(source_field_name)
+        value_validated = target_layer.validate_field_value_string(target_field_name, source_field_value_string)
+
+        if value_validated is not None:
+            return "Source value not compatible with target port: " + value_validated
+        
+        # validate target layer update
+        update_validated = self._validate_layer_set_fields(
+            target_vertex_id,
+            {target_field_name: source_field_value_string}
+        )
+        
+        return update_validated
+
     def make_info_request(self, req):
         req_type = req["type"]
 
         if req_type == "validateEdge":
-            possible_err = self._graph.validate_edge(
+            possible_graph_err = self._graph.validate_edge(
                 req["edgeId"],
                 req["sourceVertexId"],
                 req["sourcePortId"],
                 req["targetVertexId"],
                 req["targetPortId"],
             )
-            if possible_err is None:
-                return {"valid": True}
-            else:
-                return {"valid": False, "problem": possible_err}
+            
+            if possible_graph_err is not None:
+                return {"valid": False, "problem": possible_graph_err}
+
+            port_compatibility_err = self._validate_edge_propagation(
+                req["sourceVertexId"],
+                req["sourcePortId"],
+                req["targetVertexId"],
+                req["targetPortId"],
+            )
+
+            if port_compatibility_err is not None:
+                return {"valid": False, "problem": port_compatibility_err}
+            
+            return {"valid": True}
         elif req_type == "edgesBetweenVertices":
             vertex_ids = req["vertexIds"]
             missing_vertices = []

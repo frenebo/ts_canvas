@@ -10,7 +10,7 @@ class EnumStringWrapper(BaseValueWrapper):
         self.valid_vals = valid_vals
         super().__init__(value)
 
-    def clone_value(self, value):
+    def copy_value(self, value):
         return value
     
     def validate_value(self, value):

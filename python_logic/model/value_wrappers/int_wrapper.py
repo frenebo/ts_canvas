@@ -5,7 +5,7 @@ class IntWrapper(BaseValueWrapper):
     def __init__(self, val):
         super().__init__(val)
     
-    def clone_value(self, value):
+    def copy_value(self, value):
         return int(value)
     
     def validate_value(self, value):

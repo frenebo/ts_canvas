@@ -32,6 +32,13 @@ class BaseLayer:
         self._readonly_field_names = readonly_field_names
         self._input_ports_with_field_names = input_ports_with_field_names
         self._output_ports_with_field_names = output_ports_with_field_names
+    
+    @staticmethod
+    def copy_layer_fields(source_layer, target_layer):
+        for field_name in source_layer.field_names():
+            target_layer._field_val_wrappers[field_name].set_value_string(
+                source_layer._field_val_wrappers[field_name].get_value_string()
+            )
 
     def port_names(self):
         names = []

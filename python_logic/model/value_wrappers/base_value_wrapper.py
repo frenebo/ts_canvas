@@ -9,10 +9,10 @@ class BaseValueWrapper:
         if validated is not None:
             raise ValueWrapperException(validated)
         
-        self._value = self.clone_value(value)
+        self._value = self.copy_value(value)
     
     def get_value(self):
-        return self.clone_value(self._value)
+        return self.copy_value(self._value)
     
     def get_value_string(self):
         return self.stringify_value(self._value)
@@ -26,7 +26,7 @@ class BaseValueWrapper:
         except ValueWrapperException as exp:
             return str(exp)
     
-    def clone_value(self, value):
+    def copy_value(self, value):
         raise NotImplementedError()
     
     def validate_value(self, value):
