@@ -7,6 +7,7 @@ import { Dialog } from "./dialog.js";
 import { EditLayerDialog } from "./editLayerDialog.js";
 import { OpenDialog } from "./openDialog.js";
 import { SaveAsDialog } from "./saveAsDialog.js";
+import { AddLayerDialog } from "./addLayerDialog.js";
 
 export class DialogManager {
   private static readonly dialogWidth = 700;
@@ -30,6 +31,21 @@ export class DialogManager {
 
   public isADialogOpen(): boolean {
     return this.currentDialog !== null;
+  }
+
+  public addLayerDialog(): void {
+    if (this.currentDialog !== null) {
+      this.closeDialog();
+    }
+
+    const dialog = new AddLayerDialog(
+      () => { this.closeDialog(); },
+      DialogManager.dialogWidth,
+      DialogManager.dialogHeight,
+      this.sendModelInfoRequests,
+    );
+    this.div.appendChild(dialog.root);
+    this.currentDialog = dialog;
   }
 
   public saveAsDialog(): void {

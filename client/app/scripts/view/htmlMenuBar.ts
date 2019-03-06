@@ -20,7 +20,7 @@ export class HtmlMenuBar {
 
   constructor(
     private readonly div: HTMLDivElement,
-    fileMenu: DialogManager,
+    dialogManager: DialogManager,
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
     sendModelChangeRequests: RequestModelChangesFunc,
@@ -61,7 +61,7 @@ export class HtmlMenuBar {
               throw new Error(`Error saving file: ${reason}`);
             });
           } else {
-            fileMenu.saveAsDialog();
+            dialogManager.saveAsDialog();
           }
         },
         text: "Save",
@@ -69,14 +69,14 @@ export class HtmlMenuBar {
       },
       {
         onclick: () => {
-          fileMenu.saveAsDialog();
+          dialogManager.saveAsDialog();
         },
         text: "Save As",
         tooltip: keyboardHandler.saveAsShortcutString(),
       },
       {
         onclick: () => {
-          fileMenu.openDialog();
+          dialogManager.openDialog();
         },
         text: "Open",
         tooltip: keyboardHandler.openShortcutString(),
@@ -115,6 +115,15 @@ export class HtmlMenuBar {
         text: "Delete Selection",
         tooltip: keyboardHandler.deleteSelectionShortcutString(),
       },
+    ]);
+    this.addMenuList("Layers", [
+      {
+        onclick: () => {
+          dialogManager.addLayerDialog();
+        },
+        text: "Add Layer",
+        tooltip: "Open menu to add a layer"
+      }
     ]);
 
     this.fileUpToDateLabel = document.createElement("div");

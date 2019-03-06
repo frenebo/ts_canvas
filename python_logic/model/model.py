@@ -226,8 +226,6 @@ class Model:
         
         return top_to_bottom
 
-            
-    
     def _layer_set_fields(self, layer_name, field_value_strings):
         layer = self._layer_dict[layer_name]
         for field_name in field_value_strings:
@@ -539,3 +537,23 @@ class Model:
             #     };
             #   };
             # }
+        elif req_type == "getListOfLayers":
+            # @TODO : Make this generated instead of hard-coded
+            layers = [
+                {
+                    "layerName": "Dense",
+                    "reasonNotAvailable": None,
+                },
+                {
+                    "layerName": "Conv2D",
+                    "reasonNotAvailable": None,
+                },
+                {
+                    "layerName": "Repeat Int",
+                    "reasonNotAvailable": "Test reason",
+                },
+            ]
+            
+            return {
+                "layers": layers
+            }

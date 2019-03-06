@@ -289,4 +289,15 @@ interface IModelInfoReqs extends ReqMapType<keyof IModelInfoReqs> {
       data: IGraphData;
     };
   };
+  "getListOfLayers": {
+    "request": {
+      type: "getListOfLayers";
+    };
+    "response": {
+      layers: Array<{
+        layerName: string;
+        reasonNotAvailable: null | string;
+      }>;
+    };
+  };
 }

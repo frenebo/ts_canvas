@@ -51,7 +51,7 @@ export class View implements IViewInterface {
     graphDiv.style.position = "absolute";
     div.appendChild(graphDiv);
 
-    const dialogs = new DialogManager(
+    const dialogManager = new DialogManager(
       div,
       sendModelChangeRequests,
       sendModelInfoRequests,
@@ -60,14 +60,14 @@ export class View implements IViewInterface {
 
     this.graphManager = new GraphManager(
       graphDiv,
-      dialogs,
+      dialogManager,
       sendModelChangeRequests,
       sendModelInfoRequests,
     );
 
     const keyboardHandler = new KeyboardHandler(
       div,
-      dialogs,
+      dialogManager,
       this.graphManager.getSelectionManager(),
       sendModelChangeRequests,
       sendModelInfoRequests,
@@ -76,7 +76,7 @@ export class View implements IViewInterface {
 
     this.menuBar = new HtmlMenuBar(
       menuBarDiv,
-      dialogs,
+      dialogManager,
       keyboardHandler,
       this.graphManager.getSelectionManager(),
       sendModelChangeRequests,
