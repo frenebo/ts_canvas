@@ -19,11 +19,11 @@ class ShapeWrapper(BaseValueWrapper):
                 return "Element #"+str(pos)+" is not an integer"
             if element <= 0:
                 return "Element #"+str(pos)+" is not a positive integer"
+        if self._max_dimension_count == self._min_dimension_count and len(value) != self._max_dimension_count:
+            return "Value must have " + str(self._max_dimension_count) + " dimensions"
         
-        if len(value) < self._min_dimension_count:
-            return "Value must have "+str(self._min_dimension_count)+" dimensions or more"
-        if len(value) > self._max_dimension_count:
-            return "Value must have "+str(self._max_dimension_count)+" dimensions or more"
+        if len(value) < self._min_dimension_count or len(value) > self._max_dimension_count:
+            return "Value must have between "+str(self._min_dimension_count)+" and " + str(self._max_dimension_count) + " dimensions"
     
     def compare_values(self, val1, val2):
         if len(val1) != len(val2):
