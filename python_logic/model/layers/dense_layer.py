@@ -32,16 +32,19 @@ class DenseLayer(BaseLayer):
         activation_function = self._field_val_wrappers["activation"].get_value()
         
         units = self._field_val_wrappers["units"].get_value()
+        
         if units <= 1:
             raise LayerUpdateException("Units must be a positive integer")
 
         output_shape = None
+        
         try:
             layer = Dense(units=units, activation=activation_function)
             # skip first dimension to remove None dim
             output_shape = list(layer.compute_output_shape(input_shape))[1:]
         except Exception as exp:
             raise LayerUpdateException("Unknown keras error: " + str(exp))
+        
         try:
             self._field_val_wrappers["output_shape"].set_value(output_shape)
         except ValueWrapperException as exp:

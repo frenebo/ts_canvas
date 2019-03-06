@@ -35,7 +35,7 @@ class MyCustomNamespace(Namespace):
         self._model = Model()
     
     def on_model_request(self, data):
-        print(data)
+        # print(data)
         request_id = data["requestId"]
         req = data["request"]
         req_type = req["type"]

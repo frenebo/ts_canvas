@@ -9,6 +9,7 @@ class Model:
         self._layer_dict = {}
 
         self.add_layer("Dense", 0, 0)
+        self.add_layer("Repeat Int Layer", 100, 0)
     
     
     
@@ -22,7 +23,7 @@ class Model:
         else:
             raise NotImplementedError()
         
-        new_layer_id = self._graph.get_unique_vertex_ids(1)[0]
+        new_layer_id = self._graph.new_unique_vertex_ids(1)[0]
 
         self._layer_dict[new_layer_id] = new_layer
 
@@ -61,22 +62,6 @@ class Model:
             new_layer_id,
             Vertex(layer_type, ports, x_pos, y_pos)
         )
-    
-    # def make_request(self, req):
-    #     req_type = req["type"]
-
-    #     if req_type == "request_model_changes":
-    #         change_reqs = req["reqs"]
-            
-    #         for change_req in change_reqs:
-    #             self._make_model_change_request(change_req)
-            
-    #         return {}
-    #     elif req_type == "request_versioning_change":
-    #         return {}
-    #     elif req_type == "request_model_info":
-    #         info_req = req["req"]
-    #         return self.make_info_request(info_req)
 
     def json_serializable_graph(self):
         return self._graph.to_json_serializable()
@@ -144,6 +129,7 @@ class Model:
                 tgt_vtx_id,
                 tgt_port_id,
             )
+            self._propagate_model()
         elif req_type == "deleteVertex":
             vtx_id = req["vertexId"]
             if not self._graph.has_vertex_id(vtx_id):
@@ -165,25 +151,94 @@ class Model:
                 return
             
             self._layer_set_fields(layer_id, field_values)
+            self._propagate_model()
+        
+    def _propagate_model(self):
+        topo_sorted_vertices = self._topo_sort_vertices()
 
-    def _propagate_edge(
-        self,
-        source_vertex_id,
-        source_port_id,
-        target_vertex_id,
-        target_port_id):
-        source_vertex = self._graph.get_vertex(source_vertex_id)
-        target_vertex = self._graph.get_vertex(target_vertex_id)
+        for vertex_id in topo_sorted_vertices:
+            for edge_out_id in self._graph.edge_ids_out_of_vertex(vertex_id):
+                self._propagate_edge(edge_out_id)
+    
+    def _propagate_edge(self, edge_id):
+        edge =  self._graph.get_edge(edge_id)
+        source_vertex = self._graph.get_vertex(edge.source_vertex_id())
+        target_vertex = self._graph.get_vertex(edge.target_vertex_id())
         
-        source_field_name = source_vertex.get_port(source_port_id).value_name()
-        target_field_name = target_vertex.get_port(target_port_id).value_name()
-        source_layer = self._layer_dict[source_vertex_id]
-        target_layer = self._layer_dict[target_vertex_id]
+        source_field_name = source_vertex.get_port(edge.source_port_id()).value_name()
+        target_field_name = target_vertex.get_port(edge.target_port_id()).value_name()
+
+        source_layer = self._layer_dict[edge.source_vertex_id()]
+        target_layer = self._layer_dict[edge.target_vertex_id()]
+
+        source_field_string = source_layer.get_field_value_string(source_field_name)
+
+        target_field_string = target_layer.get_field_value_string(target_field_name)
+
+        if source_field_string == target_field_string:
+            edge.set_consistency(True)
+            print("Values already match")
+            return
+        else:
+            # validate value
+            validated_value = target_layer.validate_field_value_string(target_field_name, source_field_string)
+            if validated_value is None:
+                cloned_layer = target_layer.clone()
+                cloned_layer.set_field_value_string(target_field_name, source_field_string)
+
+                update_works = None
+                try:
+                    cloned_layer.update()
+                    update_works = True
+                except LayerUpdateException:
+                    update_works = False
+                
+                if update_works:
+                    target_layer.set_field_value_string(target_field_name, source_field_string)
+                    target_layer.update()
+                    edge.set_consistency(True)
+                else:
+                    edge.set_consistency(False)
+            else:
+                edge.set_consistency(False)
+        # source_vertex = self._graph.get_vertex(source_vertex_id)
+        # target_vertex = self._graph.get_vertex(target_vertex_id)
         
-        # validate field
-        source_field_value_string = source_layer.get_field_value_string(source_field_name)
-        value_validated = target_layer.set_field_value_string(target_field_name, source_field_value_string)
-        target_layer.update()
+        # source_field_name = source_vertex.get_port(source_port_id).value_name()
+        # target_field_name = target_vertex.get_port(target_port_id).value_name()
+        # source_layer = self._layer_dict[source_vertex_id]
+        # target_layer = self._layer_dict[target_vertex_id]
+        
+        # # validate field
+        # source_field_value_string = source_layer.get_field_value_string(source_field_name)
+        # value_validated = target_layer.set_field_value_string(target_field_name, source_field_value_string)
+        
+
+    def _topo_sort_vertices(self):
+        top_to_bottom = []
+        remaining_vertex_ids = set(self._graph.vertex_ids())
+
+        while len(remaining_vertex_ids) != 0:
+            root_vertex_ids = []
+            for vertex_id in remaining_vertex_ids:
+                is_root = True
+                
+                for edge_id_in in self._graph.edge_ids_into_vertex(vertex_id):
+                    edge_source_id = self._graph.get_edge(edge_id_in).source_vertex_id()
+
+                    if edge_source_id in remaining_vertex_ids:
+                        is_root = False
+                
+                if is_root:
+                    root_vertex_ids.append(vertex_id)
+            
+            for root_vertex_id in root_vertex_ids:
+                top_to_bottom.append(root_vertex_id)
+                remaining_vertex_ids.remove(root_vertex_id)
+        
+        return top_to_bottom
+
+            
     
     def _layer_set_fields(self, layer_name, field_value_strings):
         layer = self._layer_dict[layer_name]
@@ -234,12 +289,13 @@ class Model:
         target_layer = self._layer_dict[target_vertex_id]
         
         # validate field
-        source_field_value_string = source_layer.get_field_value_string(source_field_name)
-        value_validated = target_layer.validate_field_value_string(target_field_name, source_field_value_string)
+        source_field_value = source_layer.get_field_value(source_field_name)
+        value_validated = target_layer.validate_field_value(target_field_name, source_field_value)
 
         if value_validated is not None:
             return "Source value not compatible with target port: " + value_validated
         
+        source_field_value_string = source_layer.get_field_value_string(source_field_name)
         # validate target layer update
         update_validated = self._validate_layer_set_fields(
             target_vertex_id,
@@ -449,12 +505,12 @@ class Model:
         elif req_type == "getUniqueEdgeIds":
             count = req["count"]
             return {
-                "edgeIds": self._graph.get_unique_edge_ids(count)
+                "edgeIds": self._graph.new_unique_edge_ids(count)
             }
         elif req_type == "getUniqueVertexIds":
             count = req["count"]
             return {
-                "vertexIds": self._graph.get_unique_vertex_ids(count)
+                "vertexIds": self._graph.new_unique_vertex_ids(count)
             }
         elif req_type == "valueIsReadonly":
             print("Unimplemented valueIsReadonly")

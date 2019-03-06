@@ -1,6 +1,6 @@
 
 class Edge:
-    def __init__(self, src_vtx_id, src_port_id, tgt_vtx_id, tgt_port_id):
+    def __init__(self, src_vtx_id, src_port_id, tgt_vtx_id, tgt_port_id, consistency=True):
         assert isinstance(src_vtx_id, str), "Assert source vertex id is string"
         assert isinstance(src_port_id, str), "Assert source port id is string"
         assert isinstance(tgt_vtx_id, str), "Assert target vertex id is string"
@@ -10,6 +10,7 @@ class Edge:
         self._src_port_id = src_port_id
         self._tgt_vtx_id = tgt_vtx_id
         self._tgt_port_id = tgt_port_id
+        self.set_consistency(consistency)
     
     def source_port_id(self):
         return self._src_port_id
@@ -23,10 +24,14 @@ class Edge:
     def target_vertex_id(self):
         return self._tgt_vtx_id
     
+    def set_consistency(self, consistency):
+        assert type(consistency) == bool, "Assert consistency value is a boolean"
+        self._consistency = consistency
+    
     def to_json_serializable(self):
-        print("Unimplemented consistency")
+        consistency_str = "consistent" if self._consistency else "inconsistent"
         return {
-            "consistency": "consistent",
+            "consistency": consistency_str,
             "sourceVertexId": self._src_vtx_id,
             "sourcePortId": self._src_port_id,
             "targetVertexId": self._tgt_vtx_id,

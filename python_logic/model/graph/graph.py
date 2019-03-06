@@ -115,6 +115,9 @@ class Graph():
     def get_vertex(self, vtx_id):
         return self._vertices[vtx_id]
     
+    def vertex_ids(self):
+        return list(self._vertices.keys())
+    
     def edge_ids_between_vertices(self, vertex_ids):
         edges_out_of_vertices = set()
         edges_into_vertices = set()
@@ -132,7 +135,7 @@ class Graph():
         return list(edges_into_vertices & edges_out_of_vertices)
     
     @staticmethod
-    def _get_unique_ids_dict(count, dictionary):
+    def _new_unique_ids_dict(count, dictionary):
         ids = []
         
         for _ in range(count):
@@ -151,11 +154,17 @@ class Graph():
         return ids
 
     
-    def get_unique_edge_ids(self, count):
-        return Graph._get_unique_ids_dict(count, self._edges)
+    def new_unique_edge_ids(self, count):
+        return Graph._new_unique_ids_dict(count, self._edges)
     
-    def get_unique_vertex_ids(self, count):
-        return Graph._get_unique_ids_dict(count, self._vertices)
+    def new_unique_vertex_ids(self, count):
+        return Graph._new_unique_ids_dict(count, self._vertices)
+    
+    def edge_ids_into_vertex(self, vertex_id):
+        return self._edges_by_target[vertex_id]
+    
+    def edge_ids_out_of_vertex(self, vertex_id):
+        return self._edges_by_source[vertex_id]
     
     def to_json_serializable(self):
         vertices = {}

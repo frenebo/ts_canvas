@@ -77,6 +77,9 @@ class BaseLayer:
     def validate_field_value_string(self, field_name, value_string):
         return self._field_val_wrappers[field_name].validate_value_string(value_string)
     
+    def validate_field_value(self, field_name, value):
+        return self._field_val_wrappers[field_name].validate_value(value)
+    
     def set_field_value_string(self, field_name, new_value):
         if field_name in self._readonly_field_names:
             # @TODO: use a custom exception
@@ -86,6 +89,9 @@ class BaseLayer:
     
     def get_field_value_string(self, field_name):
         return self._field_val_wrappers[field_name].get_value_string()
+    
+    def get_field_value(self, field_name):
+        return self._field_val_wrappers[field_name].get_value()
     
     def is_field_read_only(self, field_name):
         return field_name in self._readonly_field_names
