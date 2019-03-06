@@ -26,6 +26,12 @@ class BaseValueWrapper:
         except ValueWrapperException as exp:
             return str(exp)
     
+    def compare_to_value(self, value):
+        try:
+            return compare_values(self._value, value)
+        except:
+            return False
+    
     def copy_value(self, value):
         raise NotImplementedError()
     

@@ -1,5 +1,5 @@
 from .graph import Graph, Vertex, Port
-from .layers import BaseLayer, RepeatIntLayer, DenseLayer, LayerUpdateException
+from .layers import BaseLayer, RepeatIntLayer, DenseLayer, LayerUpdateException, Conv2DLayer
 from .value_wrappers import ValueWrapperException
 
 
@@ -9,17 +9,18 @@ class Model:
         self._layer_dict = {}
 
         self.add_layer("Dense", 0, 0)
-        self.add_layer("Repeat Int Layer", 100, 0)
-    
-    
-    
+        self.add_layer("Repeat Int", 200, 0)
+        self.add_layer("Conv2D", 0, 100)
+
     def add_layer(self, layer_type, x_pos, y_pos):
         new_layer = None
         
         if layer_type == "Dense":
             new_layer = DenseLayer()
-        elif layer_type == "Repeat Int Layer":
+        elif layer_type == "Repeat Int":
             new_layer = RepeatIntLayer()
+        elif layer_type == "Conv2D":
+            new_layer = Conv2DLayer()
         else:
             raise NotImplementedError()
         
@@ -104,7 +105,6 @@ class Model:
             new_layer = self._layer_dict[src_vtx_id].clone()
             self._layer_dict[new_vtx_id] = new_layer
         elif req_type == "createEdge":
-            # print(req)
             new_edge_id = req["newEdgeId"]
             src_vtx_id = req["sourceVertexId"]
             src_port_id = req["sourcePortId"]
@@ -171,20 +171,20 @@ class Model:
         source_layer = self._layer_dict[edge.source_vertex_id()]
         target_layer = self._layer_dict[edge.target_vertex_id()]
 
-        source_field_string = source_layer.get_field_value_string(source_field_name)
+        source_field_value_wrapper = source_layer.get_field_val_wrapper(source_field_name)
 
-        target_field_string = target_layer.get_field_value_string(target_field_name)
+        target_field_val_wrapper = target_layer.get_field_val_wrapper(target_field_name)
 
-        if source_field_string == target_field_string:
+        if target_field_val_wrapper.compare_to_value(source_field_value_wrapper.get_value()):
             edge.set_consistency(True)
-            print("Values already match")
             return
         else:
             # validate value
-            validated_value = target_layer.validate_field_value_string(target_field_name, source_field_string)
+            source_field_value = source_field_value_wrapper.get_value()
+            validated_value = target_layer.get_field_val_wrapper(target_field_name).validate_value(source_field_value)
             if validated_value is None:
                 cloned_layer = target_layer.clone()
-                cloned_layer.set_field_value_string(target_field_name, source_field_string)
+                cloned_layer.get_field_val_wrapper(target_field_name).set_value(source_field_value)
 
                 update_works = None
                 try:
@@ -194,25 +194,13 @@ class Model:
                     update_works = False
                 
                 if update_works:
-                    target_layer.set_field_value_string(target_field_name, source_field_string)
+                    target_layer.get_field_val_wrapper(target_field_name).set_value(source_field_value)
                     target_layer.update()
                     edge.set_consistency(True)
                 else:
                     edge.set_consistency(False)
             else:
                 edge.set_consistency(False)
-        # source_vertex = self._graph.get_vertex(source_vertex_id)
-        # target_vertex = self._graph.get_vertex(target_vertex_id)
-        
-        # source_field_name = source_vertex.get_port(source_port_id).value_name()
-        # target_field_name = target_vertex.get_port(target_port_id).value_name()
-        # source_layer = self._layer_dict[source_vertex_id]
-        # target_layer = self._layer_dict[target_vertex_id]
-        
-        # # validate field
-        # source_field_value_string = source_layer.get_field_value_string(source_field_name)
-        # value_validated = target_layer.set_field_value_string(target_field_name, source_field_value_string)
-        
 
     def _topo_sort_vertices(self):
         top_to_bottom = []
@@ -243,7 +231,7 @@ class Model:
     def _layer_set_fields(self, layer_name, field_value_strings):
         layer = self._layer_dict[layer_name]
         for field_name in field_value_strings:
-            layer.set_field_value_string(field_name, field_value_strings[field_name])
+            layer.get_field_val_wrapper(field_name).set_value_string(field_value_strings[field_name])
         layer.update()
     
     def _validate_layer_set_fields(self, layer_name, field_value_strings):
@@ -254,7 +242,7 @@ class Model:
             
         for field_name in field_value_strings:
             try:
-                cloned_layer.set_field_value_string(field_name, field_value_strings[field_name])
+                cloned_layer.get_field_val_wrapper(field_name).set_value_string(field_value_strings[field_name])
             except ValueWrapperException as exp:
                 return "Field named \"" + field_name + "\" has invalid value: " + str(exp)
             
@@ -289,13 +277,13 @@ class Model:
         target_layer = self._layer_dict[target_vertex_id]
         
         # validate field
-        source_field_value = source_layer.get_field_value(source_field_name)
-        value_validated = target_layer.validate_field_value(target_field_name, source_field_value)
+        source_field_value = source_layer.get_field_val_wrapper(source_field_name).get_value()
+        value_validated = target_layer.get_field_val_wrapper(target_field_name).validate_value(source_field_value)
 
         if value_validated is not None:
             return "Source value not compatible with target port: " + value_validated
         
-        source_field_value_string = source_layer.get_field_value_string(source_field_name)
+        source_field_value_string = source_layer.get_field_val_wrapper(source_field_name).get_value_string()
         # validate target layer update
         update_validated = self._validate_layer_set_fields(
             target_vertex_id,
@@ -375,7 +363,7 @@ class Model:
             
             port_value_name = self._graph.get_vertex(vtx_id).get_port(port_id).value_name()
             
-            layer_value_str = self._layer_dict[vtx_id].get_field_value_string(port_value_name)
+            layer_value_str = self._layer_dict[vtx_id].get_field_val_wrapper(port_value_name).get_value_string()
 
             return {
                 "couldFindPort": True,
@@ -401,7 +389,7 @@ class Model:
             field_data = {}
             for field_name in layer.field_names():
                 field_data[field_name] = {
-                    "value": layer.get_field_value_string(field_name),
+                    "value": layer.get_field_val_wrapper(field_name).get_value_string(),
                     "fieldIsReadonly": layer.is_field_read_only(field_name)
                 }
             
@@ -422,39 +410,40 @@ class Model:
                     "requestError": "layer_nonexistent"
                 }
             
-            if not self._layer_dict[layer_id].has_field(field_name):
+            if field_name not in self._layer_dict[layer_id].field_names():
                 return {
                     "requestError": "field_nonexistent",
                     "fieldName": field_name
                 }
             
-            validated = self._layer_dict[layer_id].validate_field_value_string(field_name, new_value_string)
+            validated = self._layer_dict[layer_id].get_field_val_wrapper(field_name).validate_value_string(new_value_string)
 
             return {
                 "requestError": None,
                 "fieldValidationError": validated
             }
         elif req_type == "compareValue":
-            print("Unimplemented compareValue")
+            layer_id = req["layerId"]
+            field_id = req["valueId"]
+            compare_value = req["compare_value"]
+            if layer_id not in self._layer_dict:
+                return {
+                    "requestError": "layer_nonexistent",
+                }
+            
+            layer = self._layer_dict[layer_id]
+
+            if field_id not in layer.field_names():
+                return {
+                    "requestError": "field_nonexistent"
+                }
+            
+            is_equal = layer.get_field_val_wrapper(field_id).compare_to(compare_value)
+            
             return {
-                "requestError": "layer_nonexistent"
+                "requestError": None,
+                "isEqual": is_equal
             }
-            #   "compareValue": {
-            #     "request": {
-            #       type: "compareValue";
-            #       layerId: string;
-            #       valueId: string;
-            #       compareValue: string;
-            #     };
-            #     "response": {
-            #       requestError: null;
-            #       isEqual: boolean;
-            #     } | {
-            #       requestError: "layer_nonexistent";
-            #     } | {
-            #       requestError: "field_nonexistent";
-            #     };
-            #   };
         elif req_type == "validateLayerFields":
             layer_name = req["layerId"]
             field_value_strings = req["fieldValues"]
@@ -469,17 +458,17 @@ class Model:
             errors = []
             
             for field_name in field_value_strings:
-                if not cloned_layer.has_field(field_name):
+                if field_name not in cloned_layer.field_names():
                     return {
                         "requestError": "field_nonexistent",
                         "fieldName": field_name
                     }
                 else:
-                    validated = cloned_layer.validate_field_value_string(field_name, field_value_strings[field_name])
+                    validated = cloned_layer.get_field_val_wrapper(field_name).validate_value_string(field_value_strings[field_name])
                     if validated is not None:
                         errors.append(field_name + ": " + validated)
                     else:
-                        cloned_layer.set_field_value_string(field_name, field_value_strings[field_name])
+                        cloned_layer.get_field_val_wrapper(field_name).set_value_string(field_value_strings[field_name])
             
             if len(errors) != 0:
                 return {

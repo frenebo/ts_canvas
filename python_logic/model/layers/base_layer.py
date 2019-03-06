@@ -1,4 +1,4 @@
-from ..value_wrappers import BaseValueWrapper
+from ..value_wrappers import BaseValueWrapper, ValueWrapperException
 
 class BaseLayer:
     def __init__(
@@ -35,7 +35,7 @@ class BaseLayer:
     
     @staticmethod
     def copy_layer_fields(source_layer, target_layer):
-        for field_name in source_layer.field_names():
+        for field_name in source_layer._field_val_wrappers:
             target_layer._field_val_wrappers[field_name].set_value_string(
                 source_layer._field_val_wrappers[field_name].get_value_string()
             )
@@ -67,32 +67,13 @@ class BaseLayer:
                 return pair[1]
         
         raise KeyError(port_name)
-    
+
     def field_names(self):
         return list(self._field_val_wrappers.keys())
     
-    def has_field(self, field_name):
-        return field_name in self._field_val_wrappers
-    
-    def validate_field_value_string(self, field_name, value_string):
-        return self._field_val_wrappers[field_name].validate_value_string(value_string)
-    
-    def validate_field_value(self, field_name, value):
-        return self._field_val_wrappers[field_name].validate_value(value)
-    
-    def set_field_value_string(self, field_name, new_value):
-        if field_name in self._readonly_field_names:
-            # @TODO: use a custom exception
-            raise Exception("Can't set value of output field")
-        
-        self._field_val_wrappers[field_name].set_value_string(new_value)
-    
-    def get_field_value_string(self, field_name):
-        return self._field_val_wrappers[field_name].get_value_string()
-    
-    def get_field_value(self, field_name):
-        return self._field_val_wrappers[field_name].get_value()
-    
+    def get_field_val_wrapper(self, field_name):
+        return self._field_val_wrappers[field_name]
+
     def is_field_read_only(self, field_name):
         return field_name in self._readonly_field_names
     

@@ -1,7 +1,7 @@
 from .base_value_wrapper import BaseValueWrapper
 
 class EnumStringWrapper(BaseValueWrapper):
-    def __init__(self, valid_vals, value):
+    def __init__(self, value, valid_vals):
         assert isinstance(valid_vals, list), "Assert valid_vals argument to enum string wrapper constructor is a list"
         
         for val in valid_vals:
@@ -17,7 +17,9 @@ class EnumStringWrapper(BaseValueWrapper):
         if not isinstance(value, str):
             return "Value must be string"
         
-        if value not in self.valid_vals:
+        stripped = value.strip()
+        
+        if stripped not in self.valid_vals:
             error_message = "Value must be one of these values: "
             for i, valid_val in enumerate(self.valid_vals):
                 if i != 0:
@@ -34,4 +36,4 @@ class EnumStringWrapper(BaseValueWrapper):
         return value
     
     def parse_string(self, value_string):
-        return value_string
+        return value_string.strip()

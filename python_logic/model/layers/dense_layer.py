@@ -1,6 +1,7 @@
 from .base_layer import BaseLayer
 from .layer_update_exception import LayerUpdateException
 from ..value_wrappers import IntWrapper, EnumStringWrapper, BooleanWrapper, ShapeWrapper, ValueWrapperException
+from .common_value_wrappers import activation_enum_wrapper
 from keras.layers import Dense
 
 class DenseLayer(BaseLayer):
@@ -9,10 +10,7 @@ class DenseLayer(BaseLayer):
             {
                 "input_shape": ShapeWrapper([100]),
                 "units": IntWrapper(3),
-                "activation": EnumStringWrapper(
-                    ["linear", "relu", "elu"],
-                    "linear"
-                ),
+                "activation": activation_enum_wrapper(),
                 # "use_bias": BooleanWrapper(True),
                 "output_shape": ShapeWrapper([100]),
             },
@@ -24,6 +22,7 @@ class DenseLayer(BaseLayer):
                 ("output_shape_port", "output_shape"),
             ]
         )
+        self.update()
     
     def update(self):
         input_shape = self._field_val_wrappers["input_shape"].get_value()

@@ -2,6 +2,11 @@ from .base_value_wrapper import BaseValueWrapper
 from .value_wrapper_exception import ValueWrapperException
 
 class ShapeWrapper(BaseValueWrapper):
+    def __init__(self, value, min_dimension_count=1, max_dimension_count=100):
+        self._min_dimension_count = min_dimension_count
+        self._max_dimension_count = max_dimension_count
+        super().__init__(value)
+    
     def copy_value(self, value):
         return list(value)
     
@@ -14,6 +19,11 @@ class ShapeWrapper(BaseValueWrapper):
                 return "Element #"+str(pos)+" is not an integer"
             if element <= 0:
                 return "Element #"+str(pos)+" is not a positive integer"
+        
+        if len(value) < self._min_dimension_count:
+            return "Value must have "+str(self._min_dimension_count)+" dimensions or more"
+        if len(value) > self._max_dimension_count:
+            return "Value must have "+str(self._max_dimension_count)+" dimensions or more"
     
     def compare_values(self, val1, val2):
         if len(val1) != len(val2):
