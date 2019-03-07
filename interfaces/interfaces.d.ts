@@ -1,4 +1,3 @@
-/// <reference path="../diff/diffInterfaces.d.ts"/>
 
 interface IPortData {
   side: "top" | "bottom" | "left" | "right";

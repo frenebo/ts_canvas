@@ -45,7 +45,6 @@ export class Model implements IModelInterface {
 
   constructor(
     private readonly serverUtils: IServerUtils,
-    private readonly createDiff: DiffCreator,
   ) {
     this.requestQueue = new Queue();
     const exampleLayers: Array<"Repeat" | "Conv2D" | "AddLayer"> = ["Repeat", "Conv2D", "AddLayer"];
@@ -78,7 +77,6 @@ export class Model implements IModelInterface {
 
   public async requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void> {
     return this.requestQueue.addToQueue(async () => {
-      // const beforeChange = SessionUtils.toJson(this.session.data) as unknown as Diffable;
 
       for (const req of reqs) {
         await this.requestSingleModelChange(req);

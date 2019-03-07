@@ -4,7 +4,7 @@
 
 import { Model } from "./model/model";
 import { IServerUtils, ILayerReqTypes, ServerResponse } from "./model/server_utils/server_utils";
-const createDiff: DiffCreator = require("./deps/diff/diff.js").createDiff;
+
 
 const pendingLayerInfoReqs: {[key: string]: (val: ServerResponse<keyof ILayerReqTypes>) => void} = {};
 function uniqueLayerReqId(): string {
@@ -35,7 +35,7 @@ const serverUtils: IServerUtils = {
   }
 }
 
-const model = new Model(serverUtils, createDiff);
+const model = new Model(serverUtils);
 
 type IStdoutMssg = {
   type: "request_response";

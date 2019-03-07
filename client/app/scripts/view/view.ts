@@ -114,8 +114,8 @@ export class View implements IViewInterface {
         const newEdge = newData.edges[edgeKey];
         const oldEdge = this.data.edges[edgeKey];
 
-        // may be wrong sometimes, but only in marking edges that are the same as different.
-        // If two edges are different, this will always mark the edges as changed
+        // may be wrong sometimes, but only in marking edges that are the same as changed.
+        // If an edge has changed, this will always mark it as changed
         if (JSON.stringify(newEdge) !== JSON.stringify(oldEdge)) {
           changedEdgeKeys.add(edgeKey);
         }
