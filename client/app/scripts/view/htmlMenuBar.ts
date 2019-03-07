@@ -43,12 +43,12 @@ export class HtmlMenuBar {
           }
         }
       }
-      that.collapseMenus(listToLeaveOpen);
+      that.collapsedMenusExcept(listToLeaveOpen);
     });
 
     document.addEventListener("keydown", (ev) => {
       if (ev.key === "Escape") {
-        that.collapseMenus();
+        that.collapsedMenusExcept();
       }
     });
 
@@ -139,7 +139,7 @@ export class HtmlMenuBar {
     this.fileUpToDateLabel.style.webkitUserSelect = "none";
 
     this.setUnsavedChanges(false);
-    this.collapseMenus();
+    this.collapsedMenusExcept();
   }
 
   public setWidth(w: number): void {
@@ -150,7 +150,7 @@ export class HtmlMenuBar {
     this.fileUpToDateLabel.textContent = unsavedChanges ? "Unsaved changes" : "";
   }
 
-  private collapseMenus(listToLeaveOpen?: HTMLUListElement): void {
+  private collapsedMenusExcept(listToLeaveOpen?: HTMLUListElement): void {
     for (const list of this.lists) {
       if (list !== listToLeaveOpen) {
         list.style.overflow = "hidden";
@@ -219,7 +219,7 @@ export class HtmlMenuBar {
       }
 
       if (aListIsOpen) {
-        that.collapseMenus(); // close other litss
+        that.collapsedMenusExcept(); // close other litss
         list.style.overflow = null; // open this list
       }
     });
