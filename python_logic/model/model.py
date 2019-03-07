@@ -384,11 +384,20 @@ class Model:
                     "valueName": vertex.get_port(port_id).value_name()
                 }
             
+            # get list of fields that are set by incoming edges - these fields should be read-only
+            occupied_fields = []
+            for edge_id_in in  self._graph.edge_ids_into_vertex(layer_id):
+                target_port_id = self._graph.get_edge(edge_id_in).target_port_id()
+                target_field_id = layer.field_name_of_port(target_port_id)
+                occupied_fields.append(target_field_id)
+            
             field_data = {}
             for field_name in layer.field_names():
+                is_readonly = layer.is_field_read_only(field_name) or field_name in occupied_fields
+                
                 field_data[field_name] = {
                     "value": layer.get_field_val_wrapper(field_name).get_value_string(),
-                    "fieldIsReadonly": layer.is_field_read_only(field_name)
+                    "fieldIsReadonly": is_readonly
                 }
             
             return {

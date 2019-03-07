@@ -7,8 +7,8 @@ export async function getModelStandIn(): Promise<ModelStandIn> {
 }
 
 declare const io: any;
-declare const applyDiff: DiffApplier;
 
+// Interface with server model using SocketIO
 class ModelStandIn implements IModelInterface {
   public async requestModelInfo<T extends keyof IModelInfoReqs>(
     req: IModelInfoReqs[T]["request"],

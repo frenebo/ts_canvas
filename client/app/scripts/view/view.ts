@@ -103,6 +103,9 @@ export class View implements IViewInterface {
     const addedEdgeKeys = new Set(Object.keys(newData.edges));
     const changedEdgeKeys = new Set<string>();
 
+    // this takes the edges in common between removed and added,
+    // then either removes them if the edge is unchanged, or ads to changedEdgeKeys
+    // if the edge has changed
     for (const edgeKey of removedEdgeKeys) {
       if (addedEdgeKeys.has(edgeKey)) {
         removedEdgeKeys.delete(edgeKey);
@@ -111,6 +114,8 @@ export class View implements IViewInterface {
         const newEdge = newData.edges[edgeKey];
         const oldEdge = this.data.edges[edgeKey];
 
+        // may be wrong sometimes, but only in marking edges that are the same as different.
+        // If two edges are different, this will always mark the edges as changed
         if (JSON.stringify(newEdge) !== JSON.stringify(oldEdge)) {
           changedEdgeKeys.add(edgeKey);
         }
@@ -163,12 +168,15 @@ export class View implements IViewInterface {
       });
     }
 
+    // Copies newData
     this.data = JSON.parse(JSON.stringify(newData));
 
-    // all changes are done at once inside here so graphManager can wait until all changes are made to do expensive
-    // updates
+    // all changes are done at once in applyCommands.
+    // The reason for this is so that graphManager only does things like refreshing edges once
+    // after a set of changes, instead of refreshing the graph once for each change made
     this.graphManager.applyCommands(graphManagerCommands);
 
+    // This non-urgent request serves to update the unsaved changes notification.
     this.sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"}).then((fileData) => {
       const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
       this.menuBar.setUnsavedChanges(unsavedChanges);

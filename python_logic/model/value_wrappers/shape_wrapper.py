@@ -8,6 +8,7 @@ class ShapeWrapper(BaseValueWrapper):
         super().__init__(value)
     
     def copy_value(self, value):
+        # creates a copy of the list value
         return list(value)
     
     def validate_value(self, value):
