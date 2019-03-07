@@ -229,4 +229,20 @@ namespace ModelInfoReqResponses {
       this.data = data;
     }
   }
+
+  public class GetListOfLayersResponse : ModelInfoReqResponse {
+    public class LayerListElement {
+      public string layerName;
+      public string reasonNotAvailable;
+      public LayerListElement(string layerName, string possibleReasonNotAvailable) {
+        this.layerName = layerName;
+        this.reasonNotAvailable = possibleReasonNotAvailable;
+      }
+    }
+    public readonly List<LayerListElement> layers;
+
+    public GetListOfLayersResponse(List<LayerListElement> layers) {
+      this.layers = layers;
+    }
+  }
 }

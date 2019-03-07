@@ -42,9 +42,26 @@ namespace ModelInfoRequests {
         return ValueIsReadonlyReq.dispatch(versionedModel, jobj);
       } else if (type == "getGraphData") {
         return GetGraphDataReq.dispatch(versionedModel, jobj);
+      } else if (type == "getListOfLayers") {
+        return GetListOfLayersReq.dispatch(versionedModel);
       } else {
         throw new InvalidInfoReqType(type);
       }
+    }
+  }
+
+  internal class GetListOfLayersReq {
+    public static ModelInfoReqResponses.GetListOfLayersResponse dispatch(
+      VersionedModelClassNS.VersionedModelClass versionedModel
+    ) {
+      return new ModelInfoReqResponses.GetListOfLayersResponse(
+        new List<ModelInfoReqResponses.GetListOfLayersResponse.LayerListElement> {
+          new ModelInfoReqResponses.GetListOfLayersResponse.LayerListElement(
+            "Unimplemented server feature",
+            "Not implemented"
+          )
+        }
+      );
     }
   }
 

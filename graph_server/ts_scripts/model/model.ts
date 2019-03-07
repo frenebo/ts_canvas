@@ -238,6 +238,16 @@ export class Model implements IModelInterface {
         return {
           data: this.session.data.graph,
         };
+      } else if (req.type == "getListOfLayers") {
+        const response: IModelInfoReqs["getListOfLayers"]["response"] = {
+          layers: [
+            {
+              layerName: "List of layers feature unimplemented on server side",
+              reasonNotAvailable: "Unimplemented",
+            },
+          ],
+        };
+        return response;
       } else {
         throw new Error("unimplemented");
       }
