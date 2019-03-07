@@ -65,10 +65,10 @@ class ShapeWrapper(BaseValueWrapper):
         for pos, split_val in enumerate(split_vals, 1):
             stripped_val = split_val.strip()
             if len(stripped_val) == 0:
-                raise ValueWrapperException("Value #"+str(pos)+" is empty")
+                raise ValueWrapperException("Dimension #"+str(pos)+" is empty")
             try:
                 parsed_value.append(int(stripped_val))
             except ValueError:
-                raise ValueWrapperException("Could not parse value #"+str(pos)+" as an integer")
+                raise ValueWrapperException("Could not parse dimension #"+str(pos)+" as an integer")
         
         return parsed_value
