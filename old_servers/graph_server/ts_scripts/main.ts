@@ -1,6 +1,6 @@
 
-/// <reference path="../../interfaces/interfaces.d.ts"/>
-/// <reference path="../../interfaces/serverRequestInterfaces.d.ts"/>
+/// <reference path="../../../interfaces/interfaces.d.ts"/>
+/// <reference path="../../../interfaces/serverRequestInterfaces.d.ts"/>
 
 import { Model } from "./model/model";
 import { IServerUtils, ILayerReqTypes, ServerResponse } from "./model/server_utils/server_utils";

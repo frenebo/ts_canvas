@@ -6,8 +6,8 @@
     "lib": ["es2015", "dom"],
     "charset": "utf8",
     "strict": true,
-    "typeRoots" : ["../node_modules/@types"],
+    "typeRoots" : ["../../node_modules/@types"],
     "moduleResolution": "node"
   },
-  "exclude": ["../node_modules/@types/pixi.js/**/*"]
+  "exclude": ["../../node_modules/@types/pixi.js/**/*"]
 }

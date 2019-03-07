@@ -7,7 +7,7 @@ import eventlet
 eventlet.monkey_patch()
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
-APP_DIRECTORY = os.path.abspath(os.path.join(script_dir, '../client/build'))
+APP_DIRECTORY = os.path.abspath(os.path.join(script_dir, '../../client/build'))
 
 app = Flask(__name__)
 socketio = SocketIO(app)

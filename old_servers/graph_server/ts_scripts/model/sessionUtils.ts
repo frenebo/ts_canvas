@@ -1,5 +1,4 @@
 
-/// <reference path="../../../interfaces/interfaces.d.ts"/>
 import {
   GraphUtils,
   IEdgesByVertex,
