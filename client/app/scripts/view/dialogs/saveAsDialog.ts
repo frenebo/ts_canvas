@@ -3,6 +3,13 @@ import { RequestVersioningChangeFunc } from "../../messenger.js";
 import { Dialog } from "./dialog.js";
 
 export class SaveAsDialog extends Dialog {
+  /**
+   * 
+   * @param closeDialogFunc - A function the dialog can call to close itself
+   * @param width - The width of the dialog
+   * @param height - The height of the dialog
+   * @param sendModelVersioningRequest - An asynchronous function to request versioning change to the model
+   */
   constructor(
     closeDialogFunc: () => void,
     width: number,

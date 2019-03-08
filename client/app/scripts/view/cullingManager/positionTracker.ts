@@ -1,61 +1,11 @@
 
+/** Class used by the culling manager to track the positions of graph items */
 export class PositionTracker {
-  public static getInsertionIndex<T>(arr: T[], comparator: (val: T) => number, prefer?: "start" | "end"): number {
-    if (arr.length === 0) {
-      return 0;
-    }
-
-    if (comparator(arr[0]) < 0) {
-      return 0;
-    }
-    if (comparator(arr[arr.length - 1]) > 0) {
-      return arr.length;
-    }
-
-    let l = 0;
-    let r = arr.length - 1;
-
-    let insertPos: number;
-    while (true) {
-      const middle = Math.floor(l + r);
-      const comp = comparator(arr[middle]);
-      if (comp > 0) {
-        if (comparator(arr[middle + 1]) < 0) {
-          insertPos = middle + 1;
-          break;
-        } else {
-          l = middle + 1;
-        }
-      } else if (comp < 0) {
-        if (comparator(arr[middle - 1]) > 0) {
-          insertPos = middle;
-          break;
-        } else {
-          r = middle - 1;
-        }
-      } else {
-        if (prefer === undefined) {
-          insertPos = middle;
-        } else if (prefer === "start") {
-          let leftOfInsertion = middle - 1;
-          while (leftOfInsertion > -1 && comparator(arr[leftOfInsertion]) === 0) {
-            leftOfInsertion--;
-          }
-          insertPos = leftOfInsertion + 1;
-        } else {
-          let rightOfInsertion = middle + 1;
-          while (rightOfInsertion < arr.length && comparator(arr[rightOfInsertion]) === 0) {
-            rightOfInsertion++;
-          }
-          insertPos = rightOfInsertion + 1;
-        }
-        break;
-      }
-    }
-
-    return insertPos;
-  }
-
+  /**
+   * Searches for the position of an item in a sorted array.
+   * @param arr - The sorted array
+   * @param comparator - A function that returns whether an list item is higher or lower than the search item
+   */
   private static binarySearch<T>(arr: T[], comparator: (val: T) => number): number | null {
     let left = 0;
     let right = arr.length - 1;
@@ -75,12 +25,30 @@ export class PositionTracker {
     return null;
   }
 
-  private readonly objCorners: {[key: string]: {[key in "tl" | "bl" | "tr" |"br"]: {x: number; y: number}}} = {};
+  private readonly objCorners: {
+    [key: string]: {
+      [key in "tl" | "bl" | "tr" |"br"]: {
+        x: number;
+        y: number;
+      };
+    };
+  } = {};
 
+  /**
+   * Constructs a PositionTracker.
+   */
   constructor() {
     // empty
   }
 
+  /**
+   * Adds an object to the PositionTracker to be tracked.
+   * @param key - The key that will be used to refer to the object
+   * @param left - The X position of the left side of the object
+   * @param right - The X position of the right side of the object
+   * @param top - The Y position of the top side of the object
+   * @param bottom - The Y position of the bottom side of the object
+   */
   public addObject(
     key: string,
     left: number,
@@ -99,6 +67,14 @@ export class PositionTracker {
     this.objCorners[key] = corners;
   }
 
+  /**
+   * Updates the values of an object that already exists in the PositionTracker.
+   * @param key - The key used to refer to the object
+   * @param newLeft - The new X position of the left side of the object
+   * @param newRight - The new X position of the right side of the object
+   * @param newTop - The new Y position of the top side of the object
+   * @param newBottom - The new Y position of the bottom side of the object
+   */
   public updateObject(
     key: string,
     newLeft: number,
@@ -122,16 +98,37 @@ export class PositionTracker {
     }
   }
 
+  /**
+   * Removes an object from the PositionTracker
+   * @param key - The key used to refer to the object
+   */
   public removeObject(key: string): void {
     delete this.objCorners[key];
   }
 
-  public filterVerticesInBox(boxLeft: number, boxRight: number, boxTop: number, boxBottom: number): Set<string> {
+  /**
+   * Gets a Set with the keys of the objects that overlap a box
+   * @param boxLeft - The X position of the box's left side
+   * @param boxRight - The X position of the box's right side
+   * @param boxTop - The Y position of the box's top side
+   * @param boxBottom - The Y position of the box's bottom side
+   * @returns A set with the keys of objects that overlay with the box
+   */
+  public whichVerticesOverlapBox(boxLeft: number, boxRight: number, boxTop: number, boxBottom: number): Set<string> {
     return new Set(Object.keys(this.objCorners).filter((k) => {
       return this.doesObjectOverlayBox(k, boxLeft, boxRight, boxTop, boxBottom);
     }));
   }
 
+  /**
+   * Determines whether the object with the given key overlaps the box with the given geometry
+   * @param objKey - The key used to refer to the object
+   * @param boxLeft - The X position of the box's left side
+   * @param boxRight - The X position of the box's right side
+   * @param boxTop - The Y position of the box's top side
+   * @param boxBottom - The Y position of the box's bottom side
+   * @returns Whether or not the object does overlap the box
+   */
   public doesObjectOverlayBox(
     objKey: string,
     boxLeft: number,

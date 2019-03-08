@@ -75,10 +75,6 @@ export class PortPreviewManager {
     }
   }
 
-  public editPort(port: PortWrapper, portId: string, vertexId: string): void {
-    console.log("unimplemented");
-  }
-
   public removePort(portId: string, vertexId: string): void {
     if (this.previewData !== null && this.previewData.portId === portId && this.previewData.vertexId === vertexId) {
       this.portHoverEnd(this.previewData.port);

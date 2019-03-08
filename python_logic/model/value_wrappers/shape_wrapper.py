@@ -15,11 +15,11 @@ class ShapeWrapper(BaseValueWrapper):
         if not isinstance(value, list):
             return "Value must be a list of numbers"
         
-        for pos, element in enumerate(value, 1):
-            if not isinstance(element, int):
-                return "Element #"+str(pos)+" is not an integer"
-            if element <= 0:
-                return "Element #"+str(pos)+" is not a positive integer"
+        for pos, dim in enumerate(value, 1):
+            if not isinstance(dim, int):
+                return "Dimension #"+str(pos)+" is not an integer"
+            if dim <= 0:
+                return "Dimension #"+str(pos)+" is not a positive integer"
         if self._max_dimension_count == self._min_dimension_count and len(value) != self._max_dimension_count:
             return "Value must have " + str(self._max_dimension_count) + " dimensions"
         

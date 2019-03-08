@@ -25,6 +25,7 @@ export interface IDragListeners {
   onDragAbort(listener: () => void): void;
 }
 
+/** Class for keeping track of object clicking and dragging */
 export class DragRegistry {
   private static readonly portSnapDistance = 20;
 
@@ -34,12 +35,22 @@ export class DragRegistry {
   private readonly edgeDragAbortListeners: {[key: string]: Array<() => void>} = {};
   private readonly vertexDragAbortListeners: {[key: string]: Array<() => void>} = {};
 
+  private readonly registeredVertices: {[key: string]: VertexWrapper} = {};
+  private readonly registeredPorts: {[vertexKey: string]: {[portKey: string]: PortWrapper}} = {};
+
+  /**
+   * Constructs a drag registry.
+   * @param sendModelChangeRequests - An async function for sending model change requests
+   * @param sendModelInfoRequests - An async function for sending model info requests
+   * @param getVertexWrappers - A function for getting the graph's vertex wrappers
+   * @param getPortWrappers - A function for getting the graph's port wrappers
+   * @param selectionManager - The selection manager the drag registry interacts with
+   * @param portPreviewManager - The port preview manager the drag registry interacts with
+   * @param stageInterface - The interface used to interact with the PIXI stage
+   */
   constructor(
     private readonly sendModelChangeRequests: RequestModelChangesFunc,
     private readonly sendModelInfoRequests: RequestInfoFunc,
-    private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
-    private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
-    private readonly getPortWrappers: () => Readonly<{[vertexKey: string]: Readonly<{[portKey: string]: PortWrapper}>}>,
     private readonly selectionManager: SelectionManager,
     private readonly portPreviewManager: PortPreviewManager,
     private readonly stageInterface: StageInterface,
@@ -49,7 +60,13 @@ export class DragRegistry {
     this.registerBackground(this.stageInterface.getBackgroundDisplayObject());
   }
 
+  /**
+   * Registers a vertex with the drag registry.
+   * @param id - The id of the vertex
+   * @param vertex - The vertex wrapper
+   */
   public registerVertex(id: string, vertex: VertexWrapper): void {
+    this.registeredVertices[id] = vertex;
     this.vertexDragAbortListeners[id] = [];
     const listeners = this.registerDisplayObject(
       vertex.getDisplayObject(),
@@ -58,8 +75,13 @@ export class DragRegistry {
     const vtxDragHandler = new VertexDragHandler(id, vertex, listeners, this.selectionManager, this.stageInterface);
   }
 
-  public removeVertex(id: string, vertex: VertexWrapper): void {
-    this.selectionManager.removeDeletedVertex(id, vertex);
+  /**
+   * Removes a vertex from the drag registry
+   * @param id - The id of the vertex
+   */
+  public removeVertex(id: string): void {
+    const vertex = this.registeredVertices[id];
+    this.selectionManager.removeDeletedVertex(id);
 
     if (this.currentObject === vertex.getDisplayObject()) {
       this.currentObject = null;
@@ -70,6 +92,7 @@ export class DragRegistry {
     }
 
     delete this.vertexDragAbortListeners[id];
+    delete this.registeredVertices[id];
   }
 
   public registerEdge(id: string, edge: EdgeWrapper): void {
@@ -102,13 +125,24 @@ export class DragRegistry {
     listeners.onDragEnd(clickEnd);
   }
 
+  public removePort(vertexId: string, portId: string): void
+  {
+    delete this.registeredPorts[vertexId][portId];
+    if (Object.keys(this.registeredPorts[vertexId]).length == 0)
+    {
+      delete this.registeredPorts[vertexId];
+    }
+  }
+
   public registerPort(vertexId: string, vertex: VertexWrapper, portId: string, port: PortWrapper): void {
+    if (!this.registeredPorts.hasOwnProperty(vertexId))
+    {
+      this.registeredPorts[vertexId] = {};
+    }
+    this.registeredPorts[vertexId][portId] = port;
+    
     const listeners = this.registerDisplayObject(port.getDisplayObject());
     const portDragHandler = new PortDragHandler(port, listeners);
-
-    portDragHandler.addListener("click", () => {
-      this.portPreviewManager.editPort(port, vertexId, portId);
-    });
 
     let isHovering = false;
     portDragHandler.addListener("hover", async () => {
@@ -341,10 +375,10 @@ export class DragRegistry {
       distanceSquared: number;
     }> = [];
 
-    for (const vertexKey of Object.keys(this.getVertexWrappers())) {
-      const vertexWrapper = this.getVertexWrappers()[vertexKey];
-      for (const portKey of Object.keys(this.getPortWrappers()[vertexKey])) {
-        const portWrapper = this.getPortWrappers()[vertexKey][portKey];
+    for (const vertexKey in this.registeredVertices) {
+      const vertexWrapper = this.registeredVertices[vertexKey];
+      for (const portKey in this.registeredPorts[vertexKey]) {
+        const portWrapper = this.registeredPorts[vertexKey][portKey];
         const xDistance = targetX - (portWrapper.localX() + vertexWrapper.localX() + PortWrapper.width / 2);
         const yDistance = targetY - (portWrapper.localY() + vertexWrapper.localY() + PortWrapper.height / 2);
         portDescriptions.push({

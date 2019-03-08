@@ -19,6 +19,15 @@ export class EditLayerDialog extends Dialog {
     [key: string]: {isReadonly: boolean};
   } = {};
 
+  /**
+   * Constructs an edit layer dialog.
+   * @param closeDialogFunc - A function the dialog can call to close itself
+   * @param width - The width of the dialog
+   * @param height - The height of the dialog
+   * @param sendModelChangeRequests - An asynchronous function to request changes to the model
+   * @param sendModelInfoRequests - An asynchronous function to request info from the model
+   * @param layerId - The id of the layer the dialog is for
+   */
   constructor(
     closeDialogFunc: () => void,
     width: number,
@@ -33,6 +42,9 @@ export class EditLayerDialog extends Dialog {
     });
   }
 
+  /**
+   * Tells the user that the layer which this dialog is for does not exist.
+   */
   private alertLayerNonexistent() {
     if (this.layerNonexistentDiv === null) {
       this.layerNonexistentDiv = document.createElement("div");
@@ -43,6 +55,14 @@ export class EditLayerDialog extends Dialog {
     }
   }
 
+  /**
+   * Tells the user that the dialog couldn't get the values of one of the fields.
+   * 
+   * @remarks
+   * This should never get called, should probably be removed
+   * 
+   * @param fieldName 
+   */
   private alertFieldNonexistent(fieldName: string) {
     if (this.fieldNonexistentDiv === null) {
       this.fieldNonexistentDiv = document.createElement("div");
@@ -53,7 +73,10 @@ export class EditLayerDialog extends Dialog {
     }
   }
 
-  private async init() {
+  /**
+   * Asynchronously initializes the dialog.
+   */
+  private async init(): Promise<void> {
     this.root.style.overflowY = "scroll";
 
     const editLayerTitle = Dialog.createTitle("Edit Layer");
@@ -110,7 +133,13 @@ export class EditLayerDialog extends Dialog {
     });
   }
 
-  private createFieldRow(fieldId: string, value: string): HTMLDivElement {
+  /**
+   * Creates a row for editing a layer field.
+   * @param fieldName - The name to show for the field.
+   * @param value - The string value of the field.
+   * @returns The HTMLDivElement containing the row.
+   */
+  private createFieldRow(fieldName: string, value: string): HTMLDivElement {
     const row = document.createElement("div");
     row.style.marginLeft = "10px";
     row.style.marginTop = "10px";
@@ -118,13 +147,13 @@ export class EditLayerDialog extends Dialog {
     const label = document.createElement("div");
     row.appendChild(label);
     label.style.display = "inline-block";
-    label.textContent = fieldId;
+    label.textContent = fieldName;
     label.style.width = "25%";
     label.style.marginLeft = "10%";
 
     const input = document.createElement("input");
     row.appendChild(input);
-    this.inputFields[fieldId] = input;
+    this.inputFields[fieldName] = input;
     input.style.display = "inline-block";
     input.style.width = "10em";
     input.style.padding = "3px";
@@ -139,7 +168,7 @@ export class EditLayerDialog extends Dialog {
     errorText.style.fontSize = "10px";
     errorText.style.marginLeft = "10px";
 
-    if (this.fieldsReadonlyDict[fieldId].isReadonly) {
+    if (this.fieldsReadonlyDict[fieldName].isReadonly) {
       input.disabled = true;
       input.style.backgroundColor = "#999999";
     }
@@ -156,7 +185,7 @@ export class EditLayerDialog extends Dialog {
         icon.style.marginBottom = `${row.clientHeight / 2}px`;
         icon.style.display = "inline-block";
         errorText.textContent = "";
-        this.pendingFields.add(fieldId);
+        this.pendingFields.add(fieldName);
         currentValidation = {
           loadIcon: icon,
           promise: promise,
@@ -179,7 +208,7 @@ export class EditLayerDialog extends Dialog {
       row.removeChild(currentValidation.loadIcon);
 
       currentValidation = null; // setting to null
-      this.pendingFields.delete(fieldId);
+      this.pendingFields.delete(fieldName);
 
       if (validateVal.requestError === "layer_nonexistent") {
         this.alertLayerNonexistent();
@@ -195,8 +224,8 @@ export class EditLayerDialog extends Dialog {
 
         errorText.textContent = "";
 
-        if (this.invalidFields.has(fieldId)) {
-          this.invalidFields.delete(fieldId);
+        if (this.invalidFields.has(fieldName)) {
+          this.invalidFields.delete(fieldName);
         }
       } else {
         input.style.border = "3px solid red";
@@ -204,8 +233,8 @@ export class EditLayerDialog extends Dialog {
 
         errorText.textContent = validateVal.fieldValidationError;
 
-        if (!this.invalidFields.has(fieldId)) {
-          this.invalidFields.add(fieldId);
+        if (!this.invalidFields.has(fieldName)) {
+          this.invalidFields.add(fieldName);
         }
       }
 
@@ -217,7 +246,7 @@ export class EditLayerDialog extends Dialog {
         layerId: this.layerId,
         newValue: input.value,
         type: "validateValue",
-        valueId: fieldId,
+        valueId: fieldName,
       });
 
       beginOrReplaceValidation(thisPromise);
@@ -234,11 +263,17 @@ export class EditLayerDialog extends Dialog {
     return row;
   }
 
-  private updateApplyButton() {
+  /**
+   * Updates whether or not the "apply" button is clickable.
+   */
+  private updateApplyButton(): void {
     this.applyButton.disabled = (this.invalidFields.size !== 0) || (this.pendingFields.size !== 0);
   }
 
-  private async applyValues() {
+  /**
+   * Uses the values in the fields to request the server to update the layer.
+   */
+  private async applyValues(): Promise<void> {
     this.addLoadIcon();
     this.applyButton.disabled = true;
     const setFieldValues: {[key: string]: string} = {};

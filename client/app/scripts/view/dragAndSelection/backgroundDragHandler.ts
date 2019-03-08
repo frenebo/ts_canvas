@@ -1,7 +1,7 @@
 import { BackgroundWrapper } from "../graphicWrappers/backgroundWrapper.js";
 import { SelectionManager } from "../selectionManager.js";
 import { StageInterface } from "../stageInterface.js";
-import { IDragListeners } from "./dragRegistry.js";
+import { IDragListeners as IDragListenerAdder } from "./dragRegistry.js";
 
 export class BackgroundDragHandler {
   private static readonly dragThreshold = 2;
@@ -39,19 +39,29 @@ export class BackgroundDragHandler {
     graphics: PIXI.Graphics;
   }| null = null;
 
+  /**
+   * Constructs a background drag handler
+   * @param selectionManager - The selection manager the background drag handler uses
+   * @param stageInterface - The StageInterface the background drag handler uses
+   * @param dragListenerAdder - An object with listeners for the background drag handler to call upon different events
+   */
   constructor(
     private readonly selectionManager: SelectionManager,
     private readonly stageInterface: StageInterface,
-    dragListeners: IDragListeners,
+    dragListenerAdder: IDragListenerAdder,
   ) {
     const that = this;
 
-    dragListeners.onDragStart((ev) => { that.onClickStart(ev); });
-    dragListeners.onDragMove((ev) => { that.onClickMove(ev); });
-    dragListeners.onDragEnd((ev) => { that.onClickEnd(ev); });
-    dragListeners.onDragAbort(() => { that.onClickAbort(); });
+    dragListenerAdder.onDragStart((ev) => { that.onClickStart(ev); });
+    dragListenerAdder.onDragMove((ev) => { that.onClickMove(ev); });
+    dragListenerAdder.onDragEnd((ev) => { that.onClickEnd(ev); });
+    dragListenerAdder.onDragAbort(() => { that.onClickAbort(); });
   }
 
+  /**
+   * Takes a given click start event and makes necessary changes to current mouse data, selection manager, etc.
+   * @param event - The PIXI interaction event
+   */
   private onClickStart(event: PIXI.interaction.InteractionEvent): void {
     if (this.mouseData !== null) {
       throw new Error("Previous drag has not ended");
@@ -100,6 +110,10 @@ export class BackgroundDragHandler {
     }
   }
 
+  /**
+   * Takes a given click move event and makes necessary changes to current mouse data, selection manager, etc.
+   * @param event - The PIXI interaction event
+   */
   private onClickMove(event: PIXI.interaction.InteractionEvent): void {
     if (this.mouseData === null) {
       return;
@@ -147,6 +161,10 @@ export class BackgroundDragHandler {
     }
   }
 
+  /**
+   * Takes a given click end event and makes necessary changes to current mouse data, selection manager, etc.
+   * @param event - The PIXI interaction event
+   */
   private onClickEnd(event: PIXI.interaction.InteractionEvent): void {
     if (this.mouseData === null) {
       return;
@@ -168,6 +186,9 @@ export class BackgroundDragHandler {
     this.mouseData = null;
   }
 
+  /**
+   * Takes a given click abort and makes necessary changes to current mouse data, selection manager, etc.
+   */
   private onClickAbort(): void {
     if (this.mouseData === null) {
       return;

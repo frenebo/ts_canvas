@@ -81,9 +81,6 @@ export class GraphManager {
     this.dragRegistry = new DragRegistry(
       sendModelChangeRequests,
       sendModelInfoRequests,
-      () => this.vertexWrappers,
-      () => this.edgeWrappers,
-      () => this.ports,
       this.selectionManager,
       this.portPreviewManager,
       this.stageManager.getStageInterface(),
@@ -187,13 +184,18 @@ export class GraphManager {
     }
 
     const vertexWrapper = this.vertexWrappers[vertexKey];
-    delete this.vertexWrappers[vertexKey];
-    delete this.ports[vertexKey];
 
     this.stageManager.removeVertex(vertexWrapper);
-    this.dragRegistry.removeVertex(vertexKey, vertexWrapper);
+    this.dragRegistry.removeVertex(vertexKey);
+    for (const portKey in this.ports[vertexKey])
+    {
+      this.dragRegistry.removePort(vertexKey, portKey);
+    }
     this.cullingManager.removeVertex(vertexKey);
     this.portPreviewManager.removeVertex(vertexKey);
+    
+    delete this.vertexWrappers[vertexKey];
+    delete this.ports[vertexKey];
   }
 
   private removeEdge(edgeKey: string, edgeData: IEdgeData) {
@@ -206,7 +208,7 @@ export class GraphManager {
     delete this.edgeWrappers[edgeKey];
     this.stageManager.removeEdge(edgeWrapper);
     this.dragRegistry.removeEdge(edgeKey, edgeWrapper);
-    this.cullingManager.removeEdge(edgeKey, edgeWrapper);
+    this.cullingManager.removeEdge(edgeKey);
 
     const srcIdx = this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].indexOf(edgeKey);
     this.portEdges[edgeData.sourceVertexId][edgeData.sourcePortId].splice(srcIdx, 1);
@@ -238,6 +240,7 @@ export class GraphManager {
       delete this.ports[vertexId][removedPortId];
       delete this.portEdges[vertexId][removedPortId];
       this.portPreviewManager.removePort(removedPortId, vertexId);
+      this.dragRegistry.removePort(vertexId, removedPortId);
     }
     for (const addedPortId of addedPortIds) {
       const portData = vertexData.ports[addedPortId];

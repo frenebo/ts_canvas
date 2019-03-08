@@ -3,7 +3,15 @@ import {
 } from "../../messenger.js";
 import { Dialog } from "./dialog.js";
 
+/** Class that contains a dialog the user uses to add layers to the graph */
 export class AddLayerDialog extends Dialog {
+  /**
+   * Constructs a layer dialog.
+   * @param closeDialogFunc - A function the dialog can call to close itself
+   * @param width - The width of the dialog
+   * @param height - The height of the dialog
+   * @param sendModelInfoRequests - An asynchronous function to request info from the model
+   */
   constructor(
     private readonly closeDialogFunc: () => void,
     width: number,
@@ -17,6 +25,9 @@ export class AddLayerDialog extends Dialog {
     });
   }
 
+  /**
+   * Asynchronously initializes the dialog.
+   */
   private async init() {
     const saveAsTitle = Dialog.createTitle("Add Layer");
     this.root.appendChild(saveAsTitle);

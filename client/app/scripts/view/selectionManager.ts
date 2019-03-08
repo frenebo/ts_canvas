@@ -42,7 +42,7 @@ export class SelectionManager {
 
   // call when a vertex has been removed, but still may be in selectedVertices
 
-  public removeDeletedVertex(id: string, vertex: VertexWrapper): void {
+  public removeDeletedVertex(id: string): void {
     if (this.selectedVertices[id] !== undefined) {
       delete this.selectedVertices[id];
     }

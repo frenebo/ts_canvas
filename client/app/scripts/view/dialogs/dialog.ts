@@ -1,7 +1,11 @@
 
+/** Class that contains an HTML dialog that the user interacts with  */
 export class Dialog {
-
-  public static createSmallLoadIcon() {
+  /**
+   * Creates a small load icon HTMLDivElement
+   * @returns The small load icon HTMLDivElement
+   */
+  public static createSmallLoadIcon(): HTMLDivElement {
     const div = document.createElement("div");
     div.style.height = "0";
     div.style.overflow = "visible";
@@ -19,7 +23,12 @@ export class Dialog {
     return div;
   }
 
-  protected static createTitle(titleText: string) {
+  /**
+   * Creates a title HTMLDivElement with the given text
+   * @param titleText - The text of the title element
+   * @returns The created title HTMLDivElement
+   */
+  protected static createTitle(titleText: string): HTMLDivElement {
     const titleDiv = document.createElement("div");
     titleDiv.textContent = titleText;
     titleDiv.style.fontSize = "30px";
@@ -30,7 +39,11 @@ export class Dialog {
     return titleDiv;
   }
 
-  private static createLoadIcon() {
+  /**
+   * Creates a normal-sized HTMLDivElement load icon
+   * @returns The HTMLDivElement load icon
+   */
+  private static createLoadIcon(): HTMLDivElement {
     const div = document.createElement("div");
     div.style.marginTop = "10px";
     div.style.marginBottom = "10px";
@@ -51,6 +64,12 @@ export class Dialog {
   public readonly root: HTMLDivElement;
   private loadIcon: HTMLDivElement | null = null;
 
+  /**
+   * Constructs a Dialog
+   * @param closeDialogFunc - The function the dialog can call to get itself closed
+   * @param width - The width of the dialog
+   * @param height - The height of the dialog
+   */
   constructor(
     closeDialogFunc: () => void,
     width: number,
@@ -86,6 +105,9 @@ export class Dialog {
     });
   }
 
+  /**
+   * Adds a normal-sized load icon to the end of the dialog's root element, unless a load icon is already there
+   */
   protected addLoadIcon() {
     if (this.loadIcon === null) {
       this.loadIcon = Dialog.createLoadIcon();
@@ -93,6 +115,9 @@ export class Dialog {
     }
   }
 
+  /**
+   * Removes the load icon if the load icon is present in the dialog's root element
+   */
   protected removeLoadIcon() {
     if (this.loadIcon !== null) {
       this.root.removeChild(this.loadIcon);
