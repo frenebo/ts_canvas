@@ -1,15 +1,24 @@
 import { EdgeWrapper } from "../graphicWrappers/edgeWrapper.js";
 import { SelectionManager } from "../selectionManager.js";
 import { StageInterface } from "../stageInterface.js";
-import { IDragListeners } from "./dragRegistry.js";
+import { IDragListenerAdder } from "./dragRegistry.js";
 
+/** Class for keeping track of and responding to the click events for an edge */
 export class EdgeDragHandler {
   private static readonly dragThreshold = 5;
 
+  /**
+   * Constructs an edge drag handler.
+   * @param id - The id of the edge
+   * @param edgeWrapper - The edge wrapper
+   * @param listenerAdder - The listener adder for adding event listeners to
+   * @param selectionManager - The selection manager to call when edge is clicked
+   * @param stageInterface - The stage interface to get information from
+   */
   constructor(
     id: string,
     edgeWrapper: EdgeWrapper,
-    listeners: IDragListeners,
+    listenerAdder: IDragListenerAdder,
     selectionManager: SelectionManager,
     private readonly stageInterface: StageInterface,
   ) {
@@ -23,7 +32,7 @@ export class EdgeDragHandler {
       selectionUpdated: boolean;
     } | null = null;
 
-    listeners.onDragStart((event) => {
+    listenerAdder.onDragStart((event) => {
       if (clickData !== null) {
         throw new Error("click already in progress");
       }
@@ -50,7 +59,8 @@ export class EdgeDragHandler {
         clickData.selectionUpdated = true;
       }
     });
-    listeners.onDragMove((event) => {
+    
+    listenerAdder.onDragMove((event) => {
       if (clickData === null) {
         throw new Error("no click in progress");
       }
@@ -75,7 +85,8 @@ export class EdgeDragHandler {
         selectionManager.continueSelectionDrag(dx, dy);
       }
     });
-    listeners.onDragEnd((event) => {
+    
+    listenerAdder.onDragEnd((event) => {
       if (clickData === null) {
         throw new Error("no click in progress");
       }
@@ -105,7 +116,8 @@ export class EdgeDragHandler {
 
       clickData = null;
     });
-    listeners.onDragAbort(() => {
+    
+    listenerAdder.onDragAbort(() => {
       if (clickData === null) {
         return;
       }

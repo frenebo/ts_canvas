@@ -1,7 +1,7 @@
 import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
 import { SelectionManager } from "../selectionManager.js";
 import { StageInterface } from "../stageInterface.js";
-import { IDragListeners } from "./dragRegistry.js";
+import { IDragListenerAdder } from "./dragRegistry.js";
 
 export class VertexDragHandler {
   private static readonly dragThreshold = 5;
@@ -22,7 +22,7 @@ export class VertexDragHandler {
   constructor(
     private readonly vertexId: string,
     private readonly vtxWrapper: VertexWrapper,
-    listeners: IDragListeners,
+    listeners: IDragListenerAdder,
     private readonly selectionManager: SelectionManager,
     private readonly stageInterface: StageInterface,
   ) {

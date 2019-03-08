@@ -18,7 +18,7 @@ import { VertexDragHandler } from "./vertexDragHandler.js";
 
 export type DragListener = (ev: PIXI.interaction.InteractionEvent) => unknown;
 
-export interface IDragListeners {
+export interface IDragListenerAdder {
   onDragStart(listener: DragListener): void;
   onDragMove(listener: DragListener): void;
   onDragEnd(listener: DragListener): void;
@@ -68,7 +68,7 @@ export class DragRegistry {
   public registerVertex(id: string, vertex: VertexWrapper): void {
     this.registeredVertices[id] = vertex;
     this.vertexDragAbortListeners[id] = [];
-    const listeners = this.registerDisplayObject(
+    const listeners = this.setUpDisplayObjectListeners(
       vertex.getDisplayObject(),
       (l) => this.vertexDragAbortListeners[id].push(l),
     );
@@ -76,7 +76,7 @@ export class DragRegistry {
   }
 
   /**
-   * Removes a vertex from the drag registry
+   * Removes a vertex from the drag registry.
    * @param id - The id of the vertex
    */
   public removeVertex(id: string): void {
@@ -95,9 +95,14 @@ export class DragRegistry {
     delete this.registeredVertices[id];
   }
 
+  /**
+   * Adds an edge to the drag registry.
+   * @param id - The id of the edge
+   * @param edge - The edge wrapper
+   */
   public registerEdge(id: string, edge: EdgeWrapper): void {
     this.edgeDragAbortListeners[id] = [];
-    const listeners = this.registerDisplayObject(
+    const listeners = this.setUpDisplayObjectListeners(
       edge.getDisplayObject(),
       (l) => this.edgeDragAbortListeners[id].push(l),
     );
@@ -105,6 +110,11 @@ export class DragRegistry {
     const edgeDragHandler = new EdgeDragHandler(id, edge, listeners, this.selectionManager, this.stageInterface);
   }
 
+  /**
+   * Removes an edge from the drag registry.
+   * @param id - The id of the edge
+   * @param edge - The edge wrapper
+   */
   public removeEdge(id: string, edge: EdgeWrapper): void {
     this.selectionManager.removeDeletedEdge(id, edge);
 
@@ -119,12 +129,23 @@ export class DragRegistry {
     delete this.edgeDragAbortListeners[id];
   }
 
+  /**
+   * Registers an edit icon with the drag registry.
+   * @param editIcon - The edit icon
+   * @param clickBegin - A method to call back when an edit icon click begins
+   * @param clickEnd - A method to call back when an edit icon click ends
+   */
   public registerEditIcon(editIcon: EditIconWrapper, clickBegin: () => void, clickEnd: () => void): void {
-    const listeners = this.registerDisplayObject(editIcon.getDisplayObject());
+    const listeners = this.setUpDisplayObjectListeners(editIcon.getDisplayObject());
     listeners.onDragStart(clickBegin);
     listeners.onDragEnd(clickEnd);
   }
 
+  /**
+   * Removes a port from the drag registry.
+   * @param vertexId - The port's vertex's id
+   * @param portId - The port id
+   */
   public removePort(vertexId: string, portId: string): void
   {
     delete this.registeredPorts[vertexId][portId];
@@ -134,6 +155,13 @@ export class DragRegistry {
     }
   }
 
+  /**
+   * Registers a port with the drag registry.
+   * @param vertexId - The id of the port's vertex
+   * @param vertex - The port's vertex wrapper
+   * @param portId - The id of the port
+   * @param port - The port wrapper
+   */
   public registerPort(vertexId: string, vertex: VertexWrapper, portId: string, port: PortWrapper): void {
     if (!this.registeredPorts.hasOwnProperty(vertexId))
     {
@@ -141,7 +169,7 @@ export class DragRegistry {
     }
     this.registeredPorts[vertexId][portId] = port;
     
-    const listeners = this.registerDisplayObject(port.getDisplayObject());
+    const listeners = this.setUpDisplayObjectListeners(port.getDisplayObject());
     const portDragHandler = new PortDragHandler(port, listeners);
 
     let isHovering = false;
@@ -360,6 +388,12 @@ export class DragRegistry {
     }
   }
 
+  /**
+   * Sorts registered ports by closeness to a pair of coordinates.
+   * @param targetX - The Y coordinate
+   * @param targetY - The X coordinate
+   * @returns An array of port descriptions, sorted by distance from the coordinates
+   */
   private portsByCloseness(targetX: number, targetY: number): Array<{
     portKey: string;
     port: PortWrapper;
@@ -396,13 +430,21 @@ export class DragRegistry {
     return sortedDescriptions;
   }
 
+  /**
+   * Registers a PIXI DisplayObject as a graph background.
+   * @param backgroundObj - The background display object
+   */
   private registerBackground(backgroundObj: PIXI.DisplayObject): void {
-    const listeners = this.registerDisplayObject(backgroundObj);
+    const listeners = this.setUpDisplayObjectListeners(backgroundObj);
     const bgDragHandler = new BackgroundDragHandler(this.selectionManager, this.stageInterface, listeners);
   }
 
-  private registerDisplayObject(obj: PIXI.DisplayObject, setAbortListener?: (l: () => void) => void) {
-
+  /**
+   * Sets up listeners with the given display object.
+   * @param obj 
+   * @param setAbortListener - An optional method, that, if provided, will be called with a function to abort a click event as an argument to the callback
+   */
+  private setUpDisplayObjectListeners(obj: PIXI.DisplayObject, setAbortListener?: (l: () => void) => void): IDragListenerAdder {
     const dragStartListeners: DragListener[] = [];
     const dragMoveListeners: DragListener[] = [];
     const dragEndListeners: DragListener[] = [];

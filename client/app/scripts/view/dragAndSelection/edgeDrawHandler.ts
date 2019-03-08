@@ -2,6 +2,7 @@ import { PortWrapper } from "../graphicWrappers/portWrapper.js";
 import { VertexWrapper } from "../graphicWrappers/vertexWrapper.js";
 import { StageInterface } from "../stageInterface.js";
 
+/** Class for keeping track of an edge creation preview */
 export class EdgeDrawHandler {
   private dragData: {
     sourceVtx: VertexWrapper;
@@ -9,11 +10,20 @@ export class EdgeDrawHandler {
     graphics: PIXI.Graphics;
   } | null = null;
 
+  /**
+   * Constructs an edge draw handler.
+   * @param stageInterface - The stage interface to use for the drawing
+   */
   constructor(
     private readonly stageInterface: StageInterface,
   ) {
   }
 
+  /**
+   * Begins to draw the edge.
+   * @param sourceVertex - The vertex the edge starts at
+   * @param sourcePort - The port the edge starts at
+   */
   public beginDraw(sourceVertex: VertexWrapper, sourcePort: PortWrapper): void {
     if (this.dragData !== null) {
       throw new Error("Already drawing edge");
@@ -32,6 +42,12 @@ export class EdgeDrawHandler {
     };
   }
 
+  /**
+   * Redraws the edge preview with the new end coordinates and validity value
+   * @param endX - The new end X coordinate of the edge
+   * @param endY - The new end Y coordinate of the edge
+   * @param validity - The optional validity value of the edge. No value provided means valid
+   */
   public redrawLine(endX: number, endY: number, validity?: "valid" | "invalid" | undefined | null): void {
     if (this.dragData === null) {
       throw new Error("Not currently drawing edge");
@@ -61,6 +77,9 @@ export class EdgeDrawHandler {
     this.dragData.graphics.lineTo(endX, endY);
   }
 
+  /**
+   * Ends and destroys the drag preview.
+   */
   public endDrag(): void {
     if (this.dragData === null) {
       throw new Error("Not currently drawing edge");

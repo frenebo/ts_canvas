@@ -1,5 +1,5 @@
 import { PortWrapper } from "../graphicWrappers/portWrapper.js";
-import { IDragListeners } from "./dragRegistry.js";
+import { IDragListenerAdder } from "./dragRegistry.js";
 
 interface IListenerTypes {
   dragStart(x: number, y: number): void;
@@ -26,7 +26,7 @@ export class PortDragHandler {
     hoverend: [],
   };
 
-  constructor(port: PortWrapper, listeners: IDragListeners) {
+  constructor(port: PortWrapper, listeners: IDragListenerAdder) {
     const that = this;
 
     let clickData: {

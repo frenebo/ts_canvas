@@ -1,8 +1,9 @@
 import { BackgroundWrapper } from "../graphicWrappers/backgroundWrapper.js";
 import { SelectionManager } from "../selectionManager.js";
 import { StageInterface } from "../stageInterface.js";
-import { IDragListeners as IDragListenerAdder } from "./dragRegistry.js";
+import { IDragListenerAdder as IDragListenerAdder } from "./dragRegistry.js";
 
+/** Class for monitoring and responding to the clicking and dragging of the graph background */
 export class BackgroundDragHandler {
   private static readonly dragThreshold = 2;
 
