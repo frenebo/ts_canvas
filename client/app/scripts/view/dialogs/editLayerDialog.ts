@@ -153,7 +153,7 @@ export class EditLayerDialog extends Dialog {
       if (currentValidation === null) {
         const icon = Dialog.createSmallLoadIcon();
         row.appendChild(icon);
-        icon.style.marginBottom = `${row.clientHeight/2}px`;
+        icon.style.marginBottom = `${row.clientHeight / 2}px`;
         icon.style.display = "inline-block";
         errorText.textContent = "";
         this.pendingFields.add(fieldId);

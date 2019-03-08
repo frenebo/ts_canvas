@@ -17,7 +17,6 @@ export class AddLayerDialog extends Dialog {
     });
   }
 
-
   private async init() {
     const saveAsTitle = Dialog.createTitle("Add Layer");
     this.root.appendChild(saveAsTitle);
@@ -27,7 +26,7 @@ export class AddLayerDialog extends Dialog {
         type: "getListOfLayers",
     });
     this.removeLoadIcon();
-    
+
     const layersDiv = document.createElement("div");
     this.root.appendChild(layersDiv);
     // openFilesDiv.style.height = "80%";
@@ -54,22 +53,19 @@ export class AddLayerDialog extends Dialog {
       layerLabel.style.overflow = "hidden";
       layerLabel.style.display = "inline-block";
 
-      if (layerInfo.reasonNotAvailable != null)
-      {
+      if (layerInfo.reasonNotAvailable != null) {
         layerLabel.textContent += " Not available: " + layerInfo.reasonNotAvailable;
         layerLabel.style.color = "#606060";
-      }
-      else
-      {
+      } else {
         layerLabel.style.cursor = "pointer";
-      
+
         layerLabel.addEventListener("mouseover", () => {
           layerLabel.style.color = "blue";
         });
         layerLabel.addEventListener("mouseout", () => {
           layerLabel.style.color = "black";
         });
-  
+
         layerLabel.addEventListener("click", async () => {
           alert("Unimplemented");
           this.closeDialogFunc();

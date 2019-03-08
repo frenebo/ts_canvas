@@ -3,11 +3,11 @@ import {
   RequestModelChangesFunc,
   RequestVersioningChangeFunc,
 } from "../../messenger.js";
+import { AddLayerDialog } from "./addLayerDialog.js";
 import { Dialog } from "./dialog.js";
 import { EditLayerDialog } from "./editLayerDialog.js";
 import { OpenDialog } from "./openDialog.js";
 import { SaveAsDialog } from "./saveAsDialog.js";
-import { AddLayerDialog } from "./addLayerDialog.js";
 
 export class DialogManager {
   private static readonly dialogWidth = 700;

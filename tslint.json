@@ -30,8 +30,10 @@
       }
     ],
     "object-literal-shorthand": false,
+    "object-literal-sort-keys": false,
     "no-console": false,
     "no-floating-promises": true,
-    "strict-boolean-expressions": true
+    "strict-boolean-expressions": true,
+    "no-reference": false
   }
 }

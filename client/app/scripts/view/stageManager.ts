@@ -25,8 +25,8 @@ export class StageManager {
     this.app.stage.addChild(this.overlayContainer);
 
     this.app.view.addEventListener("wheel", (ev) => {
-      let mouseXInStageFrame = this.getMousePos().x;
-      let mouseYInStageFrame = this.getMousePos().y;
+      const mouseXInStageFrame = this.getMousePos().x;
+      const mouseYInStageFrame = this.getMousePos().y;
 
       const scrollFactor = Math.pow(1.003, -ev.deltaY);
       this.setScale(this.getScale() * scrollFactor);

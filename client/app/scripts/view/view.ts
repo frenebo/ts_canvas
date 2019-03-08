@@ -180,6 +180,8 @@ export class View implements IViewInterface {
     this.sendModelInfoRequests<"fileIsOpen">({type: "fileIsOpen"}).then((fileData) => {
       const unsavedChanges = !fileData.fileIsOpen || !fileData.fileIsUpToDate;
       this.menuBar.setUnsavedChanges(unsavedChanges);
+    }).catch(() => {
+      // do nothing
     });
   }
 }

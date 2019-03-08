@@ -10,36 +10,10 @@ declare const io: any;
 
 // Interface with server model using SocketIO
 class ModelStandIn implements IModelInterface {
-  public async requestModelInfo<T extends keyof IModelInfoReqs>(
-    req: IModelInfoReqs[T]["request"],
-  ): Promise<IModelInfoReqs[T]["response"]> {
-    const serverResponse = await this.makeRequest<"request_model_info">({
-      type: "request_model_info",
-      req: req,
-    });
-    return serverResponse;
-  }
-
-  public async requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void> {
-    await this.makeRequest<"request_model_changes">({
-      type: "request_model_changes",
-      reqs: reqs,
-    });
-  }
-
-  public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
-    await this.makeRequest<"request_versioning_change">({
-      type: "request_versioning_change",
-      req: req,
-    })
-  }
-
-  public async onDataChanged(listener: (newGraph: IGraphData) => void): Promise<void> {
-    this.graphDataChangedListeners.push(listener);
-  }
-
   private socketio: any;
   private graphDataChangedListeners: Array<(newGraph: IGraphData) => void> = [];
+
+  private pendingRequests: {[key: string]: (val: any) => void} = {};
   constructor() {
     this.socketio = io(SERVER_SOCKET_PATH);
 
@@ -70,7 +44,33 @@ class ModelStandIn implements IModelInterface {
     );
   }
 
-  private pendingRequests: {[key: string]: (val: any) => void} = {};
+  public async requestModelInfo<T extends keyof IModelInfoReqs>(
+    req: IModelInfoReqs[T]["request"],
+  ): Promise<IModelInfoReqs[T]["response"]> {
+    const serverResponse = await this.makeRequest<"request_model_info">({
+      type: "request_model_info",
+      req: req,
+    });
+    return serverResponse;
+  }
+
+  public async requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void> {
+    await this.makeRequest<"request_model_changes">({
+      type: "request_model_changes",
+      reqs: reqs,
+    });
+  }
+
+  public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
+    await this.makeRequest<"request_versioning_change">({
+      type: "request_versioning_change",
+      req: req,
+    });
+  }
+
+  public async onDataChanged(listener: (newGraph: IGraphData) => void): Promise<void> {
+    this.graphDataChangedListeners.push(listener);
+  }
 
   private async makeRequest<T extends keyof IServerReqTypes>(
     req: IServerReqTypes[T]["request"],
@@ -99,10 +99,11 @@ class ModelStandIn implements IModelInterface {
     let multiplier = 1000;
     // This keeps multiplying the random float by 10 until the resulting integer is different
     // from all of the currently existing request ids.
-    while (this.pendingRequests[Math.floor(num*multiplier).toString()] !== undefined) {
+    while (this.pendingRequests[Math.floor(num * multiplier).toString()] !== undefined) {
       multiplier *= 10;
     }
 
-    return Math.floor(num*multiplier).toString();
+    return Math.floor(num * multiplier).toString();
   }
+
 }

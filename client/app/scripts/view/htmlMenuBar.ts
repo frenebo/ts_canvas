@@ -122,8 +122,8 @@ export class HtmlMenuBar {
           dialogManager.addLayerDialog();
         },
         text: "Add Layer",
-        tooltip: "Open menu to add a layer"
-      }
+        tooltip: "Open menu to add a layer",
+      },
     ]);
 
     this.fileUpToDateLabel = document.createElement("div");
