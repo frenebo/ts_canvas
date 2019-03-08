@@ -34,3 +34,17 @@ gulp.task("build", gulp.series(
   "client_copy_pixi",
   "client_copy_socketio",
 ));
+
+gulp.task("tslint", function() {
+  var program = tslint.Linter.createProgram("./client/tsconfig.json");
+
+  return gulp.src(["client/app/**/*.ts"])
+    .pipe(gulpTslint({ program: program }))
+    .pipe(gulpTslint.report({
+      configuration: {},
+      rulesDirectory: null,
+      emitError: true,
+      reportLimit: 0,
+      summarizeFailureOutput: true,
+    }));
+});

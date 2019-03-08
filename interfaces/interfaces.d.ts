@@ -47,6 +47,11 @@ interface ILayerData {
   };
 }
 
+/**
+ * View interface and model interface are not really necessary any more, they're from when
+ * the model and the view were both running on the client side, rather than being separated
+ * between the client and server like they are now
+ */
 interface IViewInterface {
   setGraphData(data: IGraphData): void;
 }

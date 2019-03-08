@@ -97,6 +97,8 @@ class ModelStandIn implements IModelInterface {
   private getUniqueRequestId(): string {
     const num = Math.random();
     let multiplier = 1000;
+    // This keeps multiplying the random float by 10 until the resulting integer is different
+    // from all of the currently existing request ids.
     while (this.pendingRequests[Math.floor(num*multiplier).toString()] !== undefined) {
       multiplier *= 10;
     }
