@@ -4,7 +4,7 @@ import { Dialog } from "./dialog.js";
 
 export class SaveAsDialog extends Dialog {
   /**
-   * 
+   * Constructs a "save as" dialog.
    * @param closeDialogFunc - A function the dialog can call to close itself
    * @param width - The width of the dialog
    * @param height - The height of the dialog

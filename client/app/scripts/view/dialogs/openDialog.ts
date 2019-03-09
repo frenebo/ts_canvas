@@ -6,7 +6,7 @@ import { Dialog } from "./dialog.js";
 
 export class OpenDialog extends Dialog {
   /**
-   * 
+   * Constructs an "open" dialog
    * @param closeDialogFunc - A function the dialog can call to close itself
    * @param width - The width of the dialog
    * @param height - The height of the dialog
