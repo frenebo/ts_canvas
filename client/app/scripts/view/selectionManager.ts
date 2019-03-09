@@ -8,6 +8,7 @@ import { VtxBackgroundWrapper } from "./graphicWrappers/vertexBackgroundWrapper.
 import { VertexWrapper } from "./graphicWrappers/vertexWrapper.js";
 import { StageInterface } from "./stageInterface.js";
 
+/** Class for managing graph selection */
 export class SelectionManager {
   private static readonly ghostAlpha = 0.5;
 
@@ -22,6 +23,14 @@ export class SelectionManager {
     ghosts: Map<string, VtxBackgroundWrapper>;
   } = null;
 
+  /**
+   * Constructs a selection manager.
+   * @param getVertexWrappers - A function for getting the graph's vertex wrappers
+   * @param getEdgeWrappers - A function for getting the graph's edge wrappers
+   * @param sendModelChangeRequests - A function for sending the server model change requests
+   * @param sendModelInfoRequests - A function for sending the server model info requests
+   * @param stageInterface - The graph's stage interface
+   */
   constructor(
     private readonly getVertexWrappers: () => Readonly<{[key: string]: VertexWrapper}>,
     private readonly getEdgeWrappers: () => Readonly<{[key: string]: EdgeWrapper}>,
@@ -32,16 +41,20 @@ export class SelectionManager {
     // empty
   }
 
-  // call when an edge has been removed, but still may be in selectedEdges
-
-  public removeDeletedEdge(id: string, edge: EdgeWrapper): void {
+  /**
+   * Checks if the deleted edge is selected, removes it from the selection if it is.
+   * @param id - The id of the edge
+   */
+  public removeDeletedEdge(id: string): void {
     if (this.selectedEdges[id] !== undefined) {
       delete this.selectedEdges[id];
     }
   }
 
-  // call when a vertex has been removed, but still may be in selectedVertices
-
+  /**
+   * Checks if the deleted vertex is selected, removes if from the selection if it is.
+   * @param id - The id of the verte
+   */
   public removeDeletedVertex(id: string): void {
     if (this.selectedVertices[id] !== undefined) {
       delete this.selectedVertices[id];
@@ -54,6 +67,9 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Deselects everything that is selected.
+   */
   public clearSelection(): void {
     // copy array so no vertices are skipped
     for (const selectedVertexId of Object.keys(this.selectedVertices)) {
@@ -65,14 +81,28 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Gives whether the vertex with the given id is currently selected.
+   * @param vertexId - The vertex id
+   * @returns Whether the vertex is currently selected
+   */
   public vertexIsSelected(vertexId: string): boolean {
     return this.selectedVertices[vertexId] !== undefined;
   }
 
+  /**
+   * Gives whether the edge with the given id is currently selected.
+   * @param edgeId - The edge id
+   * @returns Whether the edge is curently selected
+   */
   public edgeIsSelected(edgeId: string): boolean {
     return this.selectedEdges[edgeId] !== undefined;
   }
 
+  /**
+   * Sets the edge with the given id as selected if it isn't already selected.
+   * @param edgeId - The id of the edge
+   */
   public selectEdge(edgeId: string): void {
     if (this.selectedEdges[edgeId] === undefined) {
       const edge = this.getEdgeWrappers()[edgeId];
@@ -85,6 +115,10 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Removes the edge with the given from selection if it is selected.
+   * @param edgeId - The id of the edge
+   */
   public deselectEdge(edgeId: string): void {
     const edge = this.selectedEdges[edgeId];
     if (edge !== undefined) {
@@ -93,6 +127,10 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Sets the vertex with the given id as selected if it isn't already selected.
+   * @param vertexId - The id of the vertex
+   */
   public selectVertex(vertexId: string): void {
     // only select if it isn't already selected
     if (this.selectedVertices[vertexId] === undefined) {
@@ -106,6 +144,10 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Removes the vertex with the given id from selection if it is selected.
+   * @param vertexId - The id of the vertex
+   */
   public deselectVertex(vertexId: string): void {
     // do nothing if the vertex isn't selected to begin with
     const vertex = this.selectedVertices[vertexId];
@@ -115,6 +157,13 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Selects all the graph items within the given box
+   * @param leftX - The X coordinate of the box's top left corner
+   * @param topY - The Y coordinate of the box's top left corner
+   * @param w - The width of the box
+   * @param h - The height of the box
+   */
   public addSelectionBox(leftX: number, topY: number, w: number, h: number): void {
     const vertexWrappers = this.getVertexWrappers();
 
@@ -132,6 +181,12 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Begins a drag event of all selected items, either a copy drag, or a move drag
+   * @param dx - The X displacement of the drag
+   * @param dy - The Y displacement of the drag
+   * @param isClone - Whether the drag is to clone the selection
+   */
   public startSelectionDrag(dx: number, dy: number, isClone: boolean): void {
     if (this.selectionDrag !== null) {
       throw new Error("In middle of drag");
@@ -159,7 +214,7 @@ export class SelectionManager {
         SelectionManager.ghostAlpha,
       );
       ghostRoot.addChild(ghost.getDisplayObject());
-      ghost.setPosition(
+      ghost.setLocalPosition(
         selectedVertex.localX(),
         selectedVertex.localY(),
       );
@@ -168,6 +223,11 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Continues the current selection drag.
+   * @param dx - The new X displacement of the drag
+   * @param dy - The new Y displacement of the drag
+   */
   public continueSelectionDrag(dx: number, dy: number): void {
     if (this.selectionDrag === null) {
       throw new Error("No drag currently happening");
@@ -176,6 +236,9 @@ export class SelectionManager {
     this.selectionDrag.ghostRoot.position.set(dx, dy);
   }
 
+  /**
+   * Aborts the current selection drag.
+   */
   public abortSelectionDrag(): void {
     if (this.selectionDrag === null) {
       return;
@@ -186,6 +249,11 @@ export class SelectionManager {
     this.selectionDrag = null;
   }
 
+  /**
+   * Ends the current selection drag and either moves or clones the selection.
+   * @param dx - The final X displacement of the drag
+   * @param dy - The final Y displacement of the drag
+   */
   public async endSelectionDrag(dx: number, dy: number): Promise<void> {
     if (this.selectionDrag === null) {
       throw new Error("No drag currently happening");
@@ -285,6 +353,9 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Adds all items in graph to selection.
+   */
   public selectAll(): void {
     for (const vertexId of Object.keys(this.getVertexWrappers())) {
       this.selectVertex(vertexId);
@@ -294,6 +365,9 @@ export class SelectionManager {
     }
   }
 
+  /**
+   * Deletes the currently selected items.
+   */
   public deleteSelection(): void {
     const requests: ModelChangeRequest[] = [];
 

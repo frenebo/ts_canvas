@@ -7,6 +7,7 @@ import { DialogManager } from "./dialogs/dialogManager.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 import { SelectionManager } from "./selectionManager.js";
 
+/** Class for a menu bar that goes on top of the graph */
 export class HtmlMenuBar {
   public static readonly menuHeight = 50;
   private static readonly barBackground = "#44596e";
@@ -18,12 +19,20 @@ export class HtmlMenuBar {
   private readonly lists: HTMLUListElement[] = [];
   private readonly fileUpToDateLabel: HTMLDivElement;
 
+  /**
+   * Constructs an HTML menu bar.
+   * @param div - The div for the menu bar to go in
+   * @param dialogManager - The dialog manager for the menu bar to use
+   * @param keyboardHandler - The keyboard handler for the menu bar to use
+   * @param selectionManager - The selection manager for the menu bar to use
+   * @param sendModelInfoRequests - A function for sending the server model info requests
+   * @param sendModelVersioningRequest - A function for sending the server model versioning requests
+   */
   constructor(
     private readonly div: HTMLDivElement,
     dialogManager: DialogManager,
     keyboardHandler: KeyboardHandler,
     selectionManager: SelectionManager,
-    sendModelChangeRequests: RequestModelChangesFunc,
     sendModelInfoRequests: RequestInfoFunc,
     sendModelVersioningRequest: RequestVersioningChangeFunc,
   ) {
@@ -43,12 +52,12 @@ export class HtmlMenuBar {
           }
         }
       }
-      that.collapsedMenusExcept(listToLeaveOpen);
+      that.collapseMenusExcept(listToLeaveOpen);
     });
 
     document.addEventListener("keydown", (ev) => {
       if (ev.key === "Escape") {
-        that.collapsedMenusExcept();
+        that.collapseMenusExcept();
       }
     });
 
@@ -139,18 +148,30 @@ export class HtmlMenuBar {
     this.fileUpToDateLabel.style.webkitUserSelect = "none";
 
     this.setUnsavedChanges(false);
-    this.collapsedMenusExcept();
+    this.collapseMenusExcept();
   }
 
+  /**
+   * Sets the width of the menu bar.
+   * @param w - The new menu bar width
+   */
   public setWidth(w: number): void {
     this.div.style.width = `${w}px`;
   }
 
+  /**
+   * Sets whether the menu bar states that there are unsaved changes to the open model.
+   * @param unsavedChanges - Whether or not there are unsaved changes
+   */
   public setUnsavedChanges(unsavedChanges: boolean): void {
     this.fileUpToDateLabel.textContent = unsavedChanges ? "Unsaved changes" : "";
   }
 
-  private collapsedMenusExcept(listToLeaveOpen?: HTMLUListElement): void {
+  /**
+   * Collapse all menu lists menus except, optionally, the provided one
+   * @param listToLeaveOpen - Optional list to leave open
+   */
+  private collapseMenusExcept(listToLeaveOpen?: HTMLUListElement): void {
     for (const list of this.lists) {
       if (list !== listToLeaveOpen) {
         list.style.overflow = "hidden";
@@ -158,6 +179,11 @@ export class HtmlMenuBar {
     }
   }
 
+  /**
+   * Adds a menu list to the menu bar.
+   * @param title - The title of the menu list
+   * @param subItems - Descriptions of the subitems to go in the menu list
+   */
   private addMenuList(
     title: string,
     subItems: Array<{
@@ -219,12 +245,20 @@ export class HtmlMenuBar {
       }
 
       if (aListIsOpen) {
-        that.collapsedMenusExcept(); // close other litss
+        that.collapseMenusExcept(); // close other litss
         list.style.overflow = null; // open this list
       }
     });
   }
 
+  /**
+   * Performs some setup on an item to go in a menu list.
+   * @param el - The element of the menu list item
+   * @param text - The text of the menu list item
+   * @param align - The alignment of the text: "left" or "center"
+   * @param tooltip - An optional tooltip to show when the user hovers mouse over the item
+   * @param extraPadding - Whether the menu item should have extra padding
+   */
   private menuItemSetup(
     el: HTMLElement,
     text: string,

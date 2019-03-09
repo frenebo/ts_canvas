@@ -1,6 +1,7 @@
 import { StageInterface } from "../stageInterface.js";
 import { GraphicWrapper } from "./graphicWrapper.js";
 
+/** Class for wrapping the background graphic of a vertex */
 export class VtxBackgroundWrapper extends GraphicWrapper {
   public static readonly backgroundSpritePadding = 5;
   private static readonly cachedTextures = new Map<string, PIXI.RenderTexture>();
@@ -10,6 +11,15 @@ export class VtxBackgroundWrapper extends GraphicWrapper {
   private static readonly borderColor = 0x333333;
   private static readonly borderWidth = 5;
 
+  /**
+   * Draws a PIXI sprite for a vertex background
+   * @param stageInterface - The stage interface
+   * @param selected - Whether or not the vertex background is for a selected vertex
+   * @param width - The width of the vertex background
+   * @param height - The height of the vertex background
+   * @param alpha - The opacity value for the vertex background
+   * @returns The generated PIXI sprite
+   */
   private static drawSprite(
     stageInterface: StageInterface,
     selected: boolean,
@@ -55,12 +65,23 @@ export class VtxBackgroundWrapper extends GraphicWrapper {
   private height: number | null = null;
   private alpha: number | null = null;
 
+  /**
+   * Constructs a vertex background wrapper.
+   * @param stageInterface - The stage interface
+   */
   constructor(
     private readonly stageInterface: StageInterface,
   ) {
-    super({});
+    super();
   }
 
+  /**
+   * Redraws the vertex background wrapper.
+   * @param selected - Whether the vertex is selected
+   * @param width - The width of the vertex background
+   * @param height - The height of the vertex background
+   * @param alpha - The opacity of the vertex background
+   */
   public redraw(
     selected: boolean,
     width: number,

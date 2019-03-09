@@ -3,6 +3,7 @@ import { SelectionManager } from "../selectionManager.js";
 import { StageInterface } from "../stageInterface.js";
 import { IDragListenerAdder } from "./dragRegistry.js";
 
+/** Class for monitoring and keeping track of the clicking and dragging of a vertex */
 export class VertexDragHandler {
   private static readonly dragThreshold = 5;
 
@@ -14,34 +15,43 @@ export class VertexDragHandler {
     isCtrlOrMetaClick: boolean;
     isDrag: boolean;
     selectionUpdated: boolean;
-    // dragData: {
-    //   ghost: PIXI.Graphics;
-    // } | null;
   } = null;
 
+  /**
+   * Constructs a vertex drag handler.
+   * @param vertexId - The id of the vertex
+   * @param vtxWrapper -  The vertex wrapper
+   * @param listenerAdder - The listener adder for the vertex's events
+   * @param selectionManager - The selection manager for the graph
+   * @param stageInterface - The stage interface for the graph
+   */
   constructor(
     private readonly vertexId: string,
     private readonly vtxWrapper: VertexWrapper,
-    listeners: IDragListenerAdder,
+    listenerAdder: IDragListenerAdder,
     private readonly selectionManager: SelectionManager,
     private readonly stageInterface: StageInterface,
   ) {
     const that = this;
 
-    listeners.onDragStart((ev) => {
+    listenerAdder.onDragStart((ev) => {
       that.beginClick(ev);
     });
-    listeners.onDragMove((ev) => {
+    listenerAdder.onDragMove((ev) => {
       that.continueClick(ev);
     });
-    listeners.onDragEnd((ev) => {
+    listenerAdder.onDragEnd((ev) => {
       that.endClick(ev);
     });
-    listeners.onDragAbort(() => {
+    listenerAdder.onDragAbort(() => {
       that.abortClick();
     });
   }
 
+  /**
+   * Initiates the start of a click.
+   * @param event - The PIXI interaction event for the click start
+   */
   private beginClick(event: PIXI.interaction.InteractionEvent): void {
     if (this.clickData !== null) {
       throw new Error("Click already in progress");
@@ -72,6 +82,10 @@ export class VertexDragHandler {
     }
   }
 
+  /**
+   * Continues a click on the vertex.
+   * @param event - The PIXI interaction event for the click continuation
+   */
   private continueClick(event: PIXI.interaction.InteractionEvent): void {
     if (this.clickData === null) {
       throw new Error("No click in progress");
@@ -99,6 +113,10 @@ export class VertexDragHandler {
     }
   }
 
+  /**
+   * Ends a click on the vertex.
+   * @param event - The PIXI interaction event for the click end
+   */
   private endClick(event: PIXI.interaction.InteractionEvent): void {
     if (this.clickData === null) {
       throw new Error("No click in progress");
@@ -130,6 +148,9 @@ export class VertexDragHandler {
     this.clickData = null;
   }
 
+  /**
+   * Aborts a click on the vertex.
+   */
   private abortClick() {
     if (this.clickData === null) {
       return;

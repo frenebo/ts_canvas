@@ -35,6 +35,7 @@ export type GraphManagerCommand = {
   vertexData: IVertexData;
 };
 
+/** Class for managing a PIXI graph */
 export class GraphManager {
   private readonly vertexWrappers: {
     [vertexKey: string]: VertexWrapper;
@@ -59,6 +60,13 @@ export class GraphManager {
   private readonly cullingManager: CullingManager;
   private readonly portPreviewManager: PortPreviewManager;
 
+  /**
+   * Constructs a graph manager.
+   * @param div - The HTML div for the graph to go in
+   * @param dialogs - The dialog manager for the graph to use
+   * @param sendModelChangeRequests - A function for sending the server model change requests
+   * @param sendModelInfoRequests - A function for sending the server model info requests
+   */
   constructor(
     private readonly div: HTMLDivElement,
     private readonly dialogs: DialogManager,
@@ -91,16 +99,29 @@ export class GraphManager {
     );
   }
 
+  /**
+   * Sets the dimensions of the stage.
+   * @param w - The stage width
+   * @param h - The stage height
+   */
   public setDimensions(w: number, h: number): void {
     this.stageManager.setDimensions(w, h);
     this.div.style.width = `${w}px`;
     this.div.style.height = `${h}px`;
   }
 
+  /**
+   * Gives the selection manager of this graph.
+   * @returns The selection manager
+   */
   public getSelectionManager() {
     return this.selectionManager;
   }
 
+  /**
+   * Applies the given commands to the graph.
+   * @param commands - An array of graph change commands
+   */
   public applyCommands(commands: GraphManagerCommand[]): void {
     for (const command of commands) {
       if (command.type === "addVertex") {
@@ -122,6 +143,11 @@ export class GraphManager {
     }
   }
 
+  /**
+   * Adds a vertex to the graph.
+   * @param vertexKey - The key of the vertex
+   * @param vertexData - The vertex data
+   */
   private addVertex(vertexKey: string, vertexData: IVertexData) {
     if (this.vertexWrappers[vertexKey] !== undefined) {
       throw new Error(`A vertex with the key ${vertexKey} is already present`);
@@ -134,10 +160,10 @@ export class GraphManager {
     this.dragRegistry.registerEditIcon(
       editIcon,
       () => {
-        editIcon.toggleSelected(true);
+        editIcon.toggleClicking(true);
       },
       () => {
-        editIcon.toggleSelected(false);
+        editIcon.toggleClicking(false);
         setTimeout(() => {
           this.dialogs.editLayerDialog(vertexKey);
         });
@@ -155,6 +181,11 @@ export class GraphManager {
     this.updateVertex(vertexKey, vertexData);
   }
 
+  /**
+   * Adds an edge to the graph
+   * @param edgeKey - The key of the edge
+   * @param edgeData - The edge data
+   */
   private addEdge(edgeKey: string, edgeData: IEdgeData) {
     if (this.edgeWrappers[edgeKey] !== undefined) {
       throw new Error(`An edge with the key ${edgeKey} is already present`);
@@ -178,6 +209,10 @@ export class GraphManager {
     this.cullingManager.registerEdge(edgeKey, edgeWrapper);
   }
 
+  /**
+   * Removes the vertex with the given key from the graph.
+   * @param vertexKey - The vertex key
+   */
   private removeVertex(vertexKey: string) {
     if (this.vertexWrappers[vertexKey] === undefined) {
       throw new Error(`No vertex with key ${vertexKey} is present`);
@@ -198,6 +233,11 @@ export class GraphManager {
     delete this.ports[vertexKey];
   }
 
+  /**
+   * Removes the edge with the given key and data from the graph.
+   * @param edgeKey - The edge key
+   * @param edgeData - The data of the edge
+   */
   private removeEdge(edgeKey: string, edgeData: IEdgeData) {
     if (this.edgeWrappers[edgeKey] === undefined) {
       throw new Error(`No edge with key ${edgeKey} is present`);
@@ -216,10 +256,15 @@ export class GraphManager {
     this.portEdges[edgeData.targetVertexId][edgeData.targetPortId].splice(tgtIdx, 1);
   }
 
+  /**
+   * Updates a vertex that already exists in the graph.
+   * @param vertexId - The vertex id
+   * @param vertexData - The new vertex data
+   */
   private updateVertex(vertexId: string, vertexData: IVertexData) {
     const vertexWrapper = this.vertexWrappers[vertexId];
 
-    vertexWrapper.setPosition(vertexData.geo.x, vertexData.geo.y);
+    vertexWrapper.setLocalPosition(vertexData.geo.x, vertexData.geo.y);
     vertexWrapper.setLabelText(vertexData.label);
 
     const removedPortIds = new Set(Object.keys(this.ports[vertexId]));

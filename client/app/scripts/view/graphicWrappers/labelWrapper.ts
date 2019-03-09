@@ -3,7 +3,14 @@ import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class LabelWrapper extends GraphicWrapper {
   private static readonly cachedLabels = new Map<string, PIXI.RenderTexture>();
-  private static drawLabel(
+  
+  /**
+   * Creates a PIXI sprite label for the given text.
+   * @param stageInterface - The stage interface
+   * @param labelText - The text for the label to contain
+   * @returns The generated pixi sprite
+   */
+  private static createLabel(
     stageInterface: StageInterface,
     labelText: string,
   ): PIXI.Sprite {
@@ -35,32 +42,49 @@ export class LabelWrapper extends GraphicWrapper {
 
     LabelWrapper.cachedLabels.set(labelText, texture);
 
-    return LabelWrapper.drawLabel(stageInterface, labelText);
+    return LabelWrapper.createLabel(stageInterface, labelText);
   }
 
   private text: string | null = null;
   private sprite: PIXI.Sprite | null = null;
+
+  /**
+   * Constructs a label wrapper
+   * @param stageInterface - The stage interface
+   */
   constructor(
     private readonly stageInterface: StageInterface,
   ) {
-    super({});
+    super();
   }
 
+  /**
+   * Gives the width of the label.
+   * @returns The label width
+   */
   public getWidth(): number {
     return this.sprite === null ? 0 : this.sprite.width;
   }
 
+  /**
+   * Gives the height of the label.
+   * @returns the label width
+   */
   public getHeight(): number {
     return this.sprite === null ? 0 : this.sprite.height;
   }
 
+  /**
+   * Sets the text of the label and updates label.
+   * @param text - The new text for the label
+   */
   public setText(text: string): void {
     if (this.text !== text) {
       if (this.sprite !== null) {
         this.removeChild(this.sprite);
       }
 
-      this.sprite = LabelWrapper.drawLabel(this.stageInterface, text);
+      this.sprite = LabelWrapper.createLabel(this.stageInterface, text);
       this.addChild(this.sprite);
       this.text = text;
     }

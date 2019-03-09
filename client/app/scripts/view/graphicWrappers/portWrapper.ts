@@ -1,6 +1,7 @@
 import { StageInterface } from "../stageInterface.js";
 import { GraphicWrapper } from "./graphicWrapper.js";
 
+/** Class for wrapping the PIXI graphic for a vertex's port */
 export class PortWrapper extends GraphicWrapper {
   public static width = 20;
   public static height = 12;
@@ -8,6 +9,12 @@ export class PortWrapper extends GraphicWrapper {
   private static readonly borderWidth = 2;
 
   private static cachedPortTexture: PIXI.RenderTexture | null = null;
+  
+  /**
+   * Creates a port sprite.
+   * @param stageInterface - The stage interface
+   * @returns The created port sprite
+   */
   private static createSprite(stageInterface: StageInterface): PIXI.Sprite {
     if (PortWrapper.cachedPortTexture !== null) {
       const spriteFromCachedTexture = new PIXI.Sprite(PortWrapper.cachedPortTexture);
@@ -38,13 +45,16 @@ export class PortWrapper extends GraphicWrapper {
   private readonly isOutput: boolean;
   private readonly sprite: PIXI.Sprite;
 
+  /**
+   * Constructs a port wrapper.
+   * @param stageInterface - The stage interface
+   * @param isOutput - Whether the port is an output port
+   */
   constructor(
     stageInterface: StageInterface,
     isOutput: boolean,
   ) {
-    super({
-      buttonMode: true,
-    });
+    super(true);
 
     this.isOutput = isOutput;
 
@@ -53,6 +63,10 @@ export class PortWrapper extends GraphicWrapper {
     this.sprite.position.set(-PortWrapper.texturePadding);
   }
 
+  /**
+   * Gives whether the port is an output port
+   * @returns Whether the port is an output port: true means output, false means input
+   */
   public getIsOutput(): boolean {
     return this.isOutput;
   }

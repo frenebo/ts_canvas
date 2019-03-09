@@ -8,12 +8,16 @@ export async function getModelStandIn(): Promise<ModelStandIn> {
 
 declare const io: any;
 
-// Interface with server model using SocketIO
+/** Class that implements the IModelInterface and acts as a wrapper for the server's model */
 class ModelStandIn implements IModelInterface {
   private socketio: any;
   private graphDataChangedListeners: Array<(newGraph: IGraphData) => void> = [];
 
-  private pendingRequests: {[key: string]: (val: any) => void} = {};
+  private pendingRequestListeners: {[requestId: string]: (val: any) => void} = {};
+
+  /**
+   * Constructs a model stand-in.
+   */
   constructor() {
     this.socketio = io(SERVER_SOCKET_PATH);
 
@@ -32,18 +36,23 @@ class ModelStandIn implements IModelInterface {
       }) => {
         // console.log(message);
         // console.log(this.pendingRequests);
-        const pendingReq = this.pendingRequests[message.request_id];
+        const pendingReq = this.pendingRequestListeners[message.request_id];
         if (pendingReq === undefined) {
           console.log("Request does not match");
           return;
         }
 
         pendingReq(message.response);
-        delete this.pendingRequests[message.request_id];
+        delete this.pendingRequestListeners[message.request_id];
       },
     );
   }
 
+  /**
+   * Requests info about the model.
+   * @param req - The model info request
+   * @returns The promise for a response to the info request
+   */
   public async requestModelInfo<T extends keyof IModelInfoReqs>(
     req: IModelInfoReqs[T]["request"],
   ): Promise<IModelInfoReqs[T]["response"]> {
@@ -54,6 +63,11 @@ class ModelStandIn implements IModelInterface {
     return serverResponse;
   }
 
+  /**
+   * Requests changes to the model.
+   * @param reqs - The model change requests.
+   * @returns An empty promise for when the request finishes
+   */
   public async requestModelChanges(...reqs: ModelChangeRequest[]): Promise<void> {
     await this.makeRequest<"request_model_changes">({
       type: "request_model_changes",
@@ -61,6 +75,11 @@ class ModelStandIn implements IModelInterface {
     });
   }
 
+  /**
+   * Requests a versioning change to the model.
+   * @param req - The model versioning change request
+   * @returns An empty promise for when the request finishes
+   */
   public async requestModelVersioningChange(req: ModelVersioningRequest): Promise<void> {
     await this.makeRequest<"request_versioning_change">({
       type: "request_versioning_change",
@@ -68,10 +87,19 @@ class ModelStandIn implements IModelInterface {
     });
   }
 
-  public async onDataChanged(listener: (newGraph: IGraphData) => void): Promise<void> {
+  /**
+   * Adds a listener to be called whenever the model data changes.
+   * @param listener - The listener
+   */
+  public onDataChanged(listener: (newGraph: IGraphData) => void): void {
     this.graphDataChangedListeners.push(listener);
   }
 
+  /**
+   * Internal method to make a request to the server.
+   * @param req - The request to send to the server
+   * @returns - A promise for a server request response
+   */
   private async makeRequest<T extends keyof IServerReqTypes>(
     req: IServerReqTypes[T]["request"],
   ): Promise<IServerReqTypes[T]["response"]> {
@@ -83,7 +111,7 @@ class ModelStandIn implements IModelInterface {
 
     const promise = new Promise<IServerReqTypes[T]["response"]>((resolve) => {
       const startTime: number = performance.now();
-      this.pendingRequests[id] = (val: IServerReqTypes[T]["response"]) => {
+      this.pendingRequestListeners[id] = (val: IServerReqTypes[T]["response"]) => {
         resolve(val);
         console.log(req.type + " time: " + (performance.now() - startTime));
       };
@@ -94,16 +122,18 @@ class ModelStandIn implements IModelInterface {
     return promise;
   }
 
+  /**
+   * Creates a unique id for a request to send to the server.
+   */
   private getUniqueRequestId(): string {
     const num = Math.random();
     let multiplier = 1000;
     // This keeps multiplying the random float by 10 until the resulting integer is different
     // from all of the currently existing request ids.
-    while (this.pendingRequests[Math.floor(num * multiplier).toString()] !== undefined) {
+    while (this.pendingRequestListeners[Math.floor(num * multiplier).toString()] !== undefined) {
       multiplier *= 10;
     }
 
     return Math.floor(num * multiplier).toString();
   }
-
 }

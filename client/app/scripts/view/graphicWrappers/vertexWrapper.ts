@@ -5,6 +5,7 @@ import { LabelWrapper } from "./labelWrapper.js";
 import { PortWrapper } from "./portWrapper.js";
 import { VtxBackgroundWrapper } from "./vertexBackgroundWrapper.js";
 
+/** Class for wrapping a vertex's PIXI graphics */
 export class VertexWrapper extends GraphicWrapper {
   public static readonly width = 280;
   public static readonly height = 80;
@@ -14,8 +15,12 @@ export class VertexWrapper extends GraphicWrapper {
   private readonly label: LabelWrapper;
   private readonly background: VtxBackgroundWrapper;
 
+  /**
+   * Constructs a graphic wrapper.
+   * @param stageInterface - The stage interface
+   */
   constructor(stageInterface: StageInterface) {
-    super({});
+    super();
     this.background = new VtxBackgroundWrapper(stageInterface);
     this.addChild(this.background);
     this.redrawBackground();
@@ -29,6 +34,10 @@ export class VertexWrapper extends GraphicWrapper {
     this.addChild(this.label);
   }
 
+  /**
+   * Adds an edit icon to this vertex wrapper.
+   * @param editIcon - The edit icon wrapper to add
+   */
   public addEditIcon(editIcon: EditIconWrapper): void {
     this.editIcon = editIcon;
     this.addChild(this.editIcon);
@@ -38,11 +47,23 @@ export class VertexWrapper extends GraphicWrapper {
     this.positionChildren();
   }
 
+  /**
+   * Toggles whether this vertex is selected or not.
+   * @param selected - Whether the vertex should be selected
+   */
   public toggleSelected(selected: boolean): void {
-    this.isSelected = selected;
-    this.redrawBackground();
+    if (this.isSelected != selected) {
+      this.isSelected = selected;
+      this.redrawBackground();
+    }
   }
 
+  /**
+   * Positions a port that has already been added to this vertex wrapper.
+   * @param portWrapper - The port wrapper
+   * @param position - The new position along the vertex's side
+   * @param side - Which side the port goes on: "top", "bottom", "left" or "right"
+   */
   public positionPort(portWrapper: PortWrapper, position: number, side: "top" | "bottom" | "left" | "right"): void {
     let portX: number;
     let portY: number;
@@ -66,14 +87,21 @@ export class VertexWrapper extends GraphicWrapper {
       throw new Error(`Invalid side type ${side}`);
     }
 
-    portWrapper.setPosition(portX, portY);
+    portWrapper.setLocalPosition(portX, portY);
   }
 
+  /**
+   * Sets the label text of this vertex wrapper.
+   * @param text - The new label text
+   */
   public setLabelText(text: string): void {
     this.label.setText(text);
     this.positionChildren();
   }
 
+  /**
+   * Redraws this vertex's wrapper's background.
+   */
   private redrawBackground(): void {
     this.background.redraw(
       this.isSelected,
@@ -83,12 +111,15 @@ export class VertexWrapper extends GraphicWrapper {
     );
   }
 
+  /**
+   * Positions the children of this vertex wrapper.s
+   */
   private positionChildren(): void {
     let widthForLabel: number;
     if (this.editIcon !== null) {
       const editIconPadding = (VertexWrapper.height - EditIconWrapper.height) / 2;
       widthForLabel = VertexWrapper.width - EditIconWrapper.width - editIconPadding;
-      this.editIcon.setPosition(
+      this.editIcon.setLocalPosition(
         widthForLabel,
         editIconPadding,
       );
@@ -96,7 +127,7 @@ export class VertexWrapper extends GraphicWrapper {
       widthForLabel = VertexWrapper.width;
     }
 
-    this.label.setPosition(
+    this.label.setLocalPosition(
       (widthForLabel - this.label.getWidth()) / 2,
       (VertexWrapper.height - this.label.getHeight()) / 2,
     );

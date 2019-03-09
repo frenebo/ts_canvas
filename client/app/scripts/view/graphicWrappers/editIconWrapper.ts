@@ -1,6 +1,7 @@
 import { StageInterface } from "../stageInterface.js";
 import { GraphicWrapper } from "./graphicWrapper.js";
 
+/** A class for containing a vertex edit icon's graphic */
 export class EditIconWrapper extends GraphicWrapper {
   public static height = 50;
   public static width = 50;
@@ -21,6 +22,12 @@ export class EditIconWrapper extends GraphicWrapper {
   private static cachedClicking: PIXI.RenderTexture | null = null;
   private static cachedNotClicking: PIXI.RenderTexture | null = null;
 
+  /**
+   * Creates a sprite for an edit icon with the given properties.
+   * @param clicking - Whether or not the edit icon is currently being clicked
+   * @param stageInterface - The stage interface
+   * @returns The generated PIXI sprite
+   */
   private static draw(clicking: boolean, stageInterface: StageInterface): PIXI.Sprite {
     if (clicking && EditIconWrapper.cachedClicking !== null) {
       const spriteFromCachedTexture = new PIXI.Sprite(EditIconWrapper.cachedClicking);
@@ -76,45 +83,64 @@ export class EditIconWrapper extends GraphicWrapper {
     return sprite;
   }
 
+  /**
+   * Creates a hit area for a the edit icon.
+   * @returns The hit area polygon
+   */
   private static createHitArea(): PIXI.Polygon {
     const outlineFirstPoint = EditIconWrapper.outlinePoints[EditIconWrapper.outlinePoints.length - 1];
     const outlinePoints = EditIconWrapper.outlinePoints.concat([outlineFirstPoint]);
-    const points = outlinePoints.map(([x, y]) => new PIXI.Point(x, y));
+    const pixiPoints = outlinePoints.map(([x, y]) => new PIXI.Point(x, y));
 
-    return new PIXI.Polygon(...points);
+    return new PIXI.Polygon(...pixiPoints);
   }
 
   private readonly clickListeners: Array<() => void> = [];
   private sprite: PIXI.Sprite;
-  private isSelected = false;
+  private beingClicked = false;
 
+  /**
+   * Constructs an edit icon wrapper.
+   * @param stageInterface - The stage interface
+   */
   constructor(
     private readonly stageInterface: StageInterface,
   ) {
-    super({
-      buttonMode: true,
-      hitArea: EditIconWrapper.createHitArea(),
-    });
+    super(
+      true,
+      EditIconWrapper.createHitArea(),
+    );
 
     this.sprite = new PIXI.Sprite(); // placeholder
     this.addChild(this.sprite);
     this.redraw();
   }
 
-  public toggleSelected(selected: boolean) {
-    if (selected !== this.isSelected) {
-      this.isSelected = selected;
+  /**
+   * Sets whether or not the edit icon is being clicked/
+   * @param clicked - Whether or not the edit icon is being clicked
+   */
+  public toggleClicking(clicked: boolean) {
+    if (clicked !== this.beingClicked) {
+      this.beingClicked = clicked;
       this.redraw();
     }
   }
 
+  /**
+   * Adds a listener to be called when the edit icon is clicked.
+   * @param listener - The listener
+   */
   public addClickListener(listener: () => void): void {
     this.clickListeners.push(listener);
   }
 
+  /**
+   * Redraws the sprite.
+   */
   private redraw(): void {
     this.removeChild(this.sprite);
-    this.sprite = EditIconWrapper.draw(this.isSelected, this.stageInterface);
+    this.sprite = EditIconWrapper.draw(this.beingClicked, this.stageInterface);
     this.sprite.position.set(-EditIconWrapper.texturePadding);
     this.addChild(this.sprite);
   }

@@ -12,11 +12,19 @@ import {
 import { HtmlMenuBar } from "./htmlMenuBar.js";
 import { KeyboardHandler } from "./keyboardHandler.js";
 
+/** Class for taking care of the graph view and applying new graph data from the server */
 export class View implements IViewInterface {
   private data: IGraphData = {vertices: {}, edges: {}};
   private readonly graphManager: GraphManager;
   private readonly menuBar: HtmlMenuBar;
 
+  /**
+   * Constructs a view.
+   * @param div - The div for the view to go into
+   * @param sendModelChangeRequests - An async function for sending the server model change requests
+   * @param sendModelInfoRequests - An async function for sending the server model info requests
+   * @param sendModelVersioningRequest - An async function for sending the server model versioning requests
+   */
   constructor(
     div: HTMLDivElement,
     sendModelChangeRequests: RequestModelChangesFunc,
@@ -79,14 +87,17 @@ export class View implements IViewInterface {
       dialogManager,
       keyboardHandler,
       this.graphManager.getSelectionManager(),
-      sendModelChangeRequests,
       sendModelInfoRequests,
       sendModelVersioningRequest,
     );
     onResize();
   }
 
-  public async setGraphData(newData: IGraphData): Promise<void> {
+  /**
+   * Updates the graph data
+   * @param newData - The new graph data
+   */
+  public setGraphData(newData: IGraphData): void {
     const removedVertexKeys = new Set(Object.keys(this.data.vertices));
     const addedVertexKeys = new Set(Object.keys(newData.vertices));
     const sharedVertexKeys = new Set<string>();
