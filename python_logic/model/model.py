@@ -1,30 +1,35 @@
 from .graph import Graph, Vertex, Port
-from .layers import BaseLayer, RepeatIntLayer, DenseLayer, LayerUpdateException, Conv2DLayer
+from .layers import (
+    BaseLayer, RepeatIntLayer, DenseLayer, LayerUpdateException, Conv2DLayer, InputLayer,
+    OutputLayer)
 from .value_wrappers import ValueWrapperException
 
 
 class Model:
     def __init__(self):
+        self._available_layers = {
+            "Dense": DenseLayer,
+            "Repeat Int": RepeatIntLayer,
+            "Conv2D": Conv2DLayer,
+            "Input": InputLayer,
+            "Output": OutputLayer,
+        }
+        
         self._graph = Graph()
         self._layer_dict = {}
 
-        self.add_layer("Dense", 0, 0)
-        self.add_layer("Repeat Int", 200, 0)
-        self.add_layer("Conv2D", 0, 100)
+        self._add_layer("Dense", "a", 0, 0)
+        self._add_layer("Repeat Int", "b", 400, 0)
+        self._add_layer("Conv2D", "c", 0, 100)
+        self._add_layer("Input", "d", 400, 100)
 
-    def add_layer(self, layer_type, x_pos, y_pos):
+    def _add_layer(self, layer_type, new_layer_id, x_pos, y_pos):
         new_layer = None
-        
-        if layer_type == "Dense":
-            new_layer = DenseLayer()
-        elif layer_type == "Repeat Int":
-            new_layer = RepeatIntLayer()
-        elif layer_type == "Conv2D":
-            new_layer = Conv2DLayer()
-        else:
+
+        if layer_type not in self._available_layers:
             raise NotImplementedError()
         
-        new_layer_id = self._graph.new_unique_vertex_ids(1)[0]
+        new_layer = self._available_layers[layer_type]()
 
         self._layer_dict[new_layer_id] = new_layer
 
@@ -96,6 +101,12 @@ class Model:
                 return
             if not self._graph.has_vertex_id(src_vtx_id):
                 return
+            
+            src_layer = self._layer_dict[src_vtx_id]
+            
+            # Can only be one input or output layer
+            if isinstance(src_layer, InputLayer) or isinstance(src_layer, OutputLayer):
+                return
             # @TODO : prevent cloning of some layers, like Input or Output layers
 
             new_vtx = self._graph.get_vertex(src_vtx_id).clone()
@@ -152,6 +163,31 @@ class Model:
             
             self._layer_set_fields(layer_id, field_values)
             self._propagate_model()
+        elif req_type == "createLayer":
+            layer_type = req["layerType"]
+            new_layer_id = req["newLayerId"]
+            layer_x = req["x"]
+            layer_y = req["y"]
+            
+            if new_layer_id in self._layer_dict:
+                return
+
+            if layer_type not in self._available_layers:
+                return
+
+            # Only one input and one output allowed in graph
+            if layer_type == "Input":
+                for layer in self._layer_dict:
+                    if isinstance(layer, InputLayer):
+                        return
+            if layer_type == "Output":
+                for layer in self._layer_dict:
+                    if isinstance(layer, OutputLayer):
+                        return
+            
+            self._add_layer(layer_type, new_layer_id, layer_x, layer_y)
+            
+
         
     def _propagate_model(self):
         topo_sorted_vertices = self._topo_sort_vertices()
@@ -548,20 +584,23 @@ class Model:
             # }
         elif req_type == "getListOfLayers":
             # @TODO : Make this generated instead of hard-coded
-            layers = [
-                {
-                    "layerName": "Dense",
-                    "reasonNotAvailable": None,
-                },
-                {
-                    "layerName": "Conv2D",
-                    "reasonNotAvailable": None,
-                },
-                {
-                    "layerName": "Repeat Int",
-                    "reasonNotAvailable": "Test reason",
-                },
-            ]
+            layers = []
+
+            for layer_type in self._available_layers:
+                possible_reason_not_available = None
+                if layer_type == "Input":
+                    for layer_id in self._layer_dict:
+                        if isinstance(self._layer_dict[layer_id], InputLayer):
+                            possible_reason_not_available = "Only one input allowed per graph"
+                
+                if layer_type == "Output":
+                    for layer_id in self._layer_dict:
+                        if isinstance(self._layer_dict[layer_id], OutputLayer):
+                            possible_reason_not_available = "Only one output allowed per graph"
+                layers.append({
+                    "layerType": layer_type,
+                    "reasonNotAvailable": possible_reason_not_available
+                })
             
             return {
                 "layers": layers

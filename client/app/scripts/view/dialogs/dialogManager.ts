@@ -58,6 +58,7 @@ export class DialogManager {
       DialogManager.dialogWidth,
       DialogManager.dialogHeight,
       this.sendModelInfoRequests,
+      this.sendModelChangeRequests,
     );
     this.div.appendChild(dialog.root);
     this.currentDialog = dialog;

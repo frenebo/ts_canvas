@@ -95,6 +95,12 @@ type ModelChangeRequest = {
   fieldValues: {
     [key: string]: string;
   };
+} | {
+  type: "createLayer";
+  layerType: string;
+  newLayerId: string;
+  x: number;
+  y: number;
 };
 
 type ModelVersioningRequest = {
@@ -299,7 +305,7 @@ interface IModelInfoReqs extends ReqMapType<keyof IModelInfoReqs> {
     };
     "response": {
       layers: Array<{
-        layerName: string;
+        layerType: string;
         reasonNotAvailable: null | string;
       }>;
     };

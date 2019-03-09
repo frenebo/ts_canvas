@@ -1,5 +1,6 @@
 import {
     RequestInfoFunc,
+    RequestModelChangesFunc,
 } from "../../messenger.js";
 import { Dialog } from "./dialog.js";
 
@@ -17,6 +18,7 @@ export class AddLayerDialog extends Dialog {
     width: number,
     height: number,
     private readonly sendModelInfoRequests: RequestInfoFunc,
+    private readonly sendModelChangeRequests: RequestModelChangesFunc,
   ) {
     super(closeDialogFunc, width, height);
     this.root.style.overflowY = "scroll";
@@ -57,7 +59,7 @@ export class AddLayerDialog extends Dialog {
 
       const layerLabel = document.createElement("div");
       layerRow.appendChild(layerLabel);
-      layerLabel.textContent = `"${layerInfo.layerName}"`;
+      layerLabel.textContent = `"${layerInfo.layerType}"`;
       layerLabel.style.height = layerLabel.style.lineHeight = `20px`;
       layerLabel.style.textAlign = "left";
       layerLabel.style.textOverflow = "ellipsis";
@@ -78,7 +80,18 @@ export class AddLayerDialog extends Dialog {
         });
 
         layerLabel.addEventListener("click", async () => {
-          alert("Unimplemented");
+          const infoResponse = await this.sendModelInfoRequests<"getUniqueVertexIds">({
+            type: "getUniqueVertexIds",
+            count: 1,
+          });
+          const uniqueVtxId = infoResponse.vertexIds[0];
+          this.sendModelChangeRequests({
+            type: "createLayer",
+            layerType: layerInfo.layerType,
+            newLayerId: uniqueVtxId,
+            x: 0,
+            y: 0, // @TODO don't just use 0, 0
+          })
           this.closeDialogFunc();
         });
       }
