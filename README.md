@@ -11,3 +11,5 @@ which sends back to the client (or all clients if multiple are connected to the 
 with the id of the request it's responding to. There's nothing stopping two clients from
 happening to send requests with the same id, then treating a response to the other client as if
 it's a response to its own request.
+
+With typedoc, you can run "typedoc --out path/to/documentation ./client --target ES6 --tsconfig ./client/tsconfig.json --exclude node_modules --theme minimal" in the root directory to generate documentation

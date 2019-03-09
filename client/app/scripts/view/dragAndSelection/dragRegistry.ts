@@ -116,7 +116,7 @@ export class DragRegistry {
    * @param edge - The edge wrapper
    */
   public removeEdge(id: string, edge: EdgeWrapper): void {
-    this.selectionManager.removeDeletedEdge(id, edge);
+    this.selectionManager.removeDeletedEdge(id);
 
     if (this.currentObject === edge.getDisplayObject()) {
       this.currentObject = null;
