@@ -124,6 +124,12 @@ export class HtmlMenuBar {
         text: "Delete Selection",
         tooltip: keyboardHandler.deleteSelectionShortcutString(),
       },
+      {
+        onclick: () => {
+          selectionManager.lineUpSelection();
+        },
+        text: "Line Up Selection",
+      },
     ]);
     this.addMenuList("Layers", [
       {

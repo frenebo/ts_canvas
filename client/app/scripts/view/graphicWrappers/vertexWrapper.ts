@@ -7,7 +7,7 @@ import { VtxBackgroundWrapper } from "./vertexBackgroundWrapper.js";
 
 /** Class for wrapping a vertex's PIXI graphics */
 export class VertexWrapper extends GraphicWrapper {
-  public static readonly width = 280;
+  public static readonly width = 400;
   public static readonly height = 80;
 
   private editIcon: EditIconWrapper | null = null;

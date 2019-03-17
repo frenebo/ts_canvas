@@ -389,4 +389,38 @@ export class SelectionManager {
       throw new Error(`Failed to send model change requests: ${reason}`);
     });
   }
+
+  /**
+   * Sends request to server to line up the selected vertices
+   */
+  public lineUpSelection(): void {
+    let leftmostPos: number | undefined;
+    for (const vertexId in this.selectedVertices)
+    {
+      const vtxXPos = this.selectedVertices[vertexId].localX();
+
+      if (leftmostPos == undefined || vtxXPos < leftmostPos)
+      {
+        leftmostPos = vtxXPos;
+      }
+    }
+
+    // If no vertices are selected
+    if (leftmostPos == undefined) return;
+
+    const moveReqs: ModelChangeRequest[] = [];
+    
+    for (const vertexId in this.selectedVertices)
+    {
+      moveReqs.push({
+        type: "moveVertex",
+        vertexId: vertexId,
+        x: leftmostPos,
+        // Keep y position the same
+        y: this.selectedVertices[vertexId].localY(),
+      });
+    }
+
+    this.sendModelChangeRequests(...moveReqs);
+  }
 }
