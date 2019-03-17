@@ -4,9 +4,9 @@ from ..value_wrappers import ShapeWrapper
 class InputLayer(BaseLayer):
     def __init__(self):
         super().__init__(
-            {
-                "output_shape": ShapeWrapper([244, 244, 3]),
-            },
+            [
+                ("output_shape", ShapeWrapper([244, 244, 3])),
+            ],
             [],
             [],
             [

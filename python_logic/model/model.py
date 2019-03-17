@@ -1,9 +1,16 @@
 from .graph import Graph, Vertex, Port
 from .layers import (
-    BaseLayer, RepeatIntLayer, DenseLayer, LayerUpdateException, Conv2DLayer, InputLayer,
-    OutputLayer)
+    BaseLayer,
+    RepeatIntLayer,
+    DenseLayer,
+    LayerUpdateException,
+    Conv2DLayer,
+    InputLayer,
+    OutputLayer,
+    ReshapeLayer,
+    ActivationLayer,
+    )
 from .value_wrappers import ValueWrapperException
-
 
 class Model:
     def __init__(self):
@@ -13,15 +20,17 @@ class Model:
             "Conv2D": Conv2DLayer,
             "Input": InputLayer,
             "Output": OutputLayer,
+            "Reshape": ReshapeLayer,
+            "Activation": ActivationLayer,
         }
         
         self._graph = Graph()
         self._layer_dict = {}
 
-        self._add_layer("Dense", "a", 0, 0)
-        self._add_layer("Repeat Int", "b", 400, 0)
-        self._add_layer("Conv2D", "c", 0, 100)
-        self._add_layer("Input", "d", 400, 100)
+        # self._add_layer("Dense", "a", 0, 0)
+        # self._add_layer("Repeat Int", "b", 400, 0)
+        # self._add_layer("Conv2D", "c", 0, 100)
+        # self._add_layer("Input", "d", 400, 100)
 
     def _add_layer(self, layer_type, new_layer_id, x_pos, y_pos):
         new_layer = None
@@ -75,6 +84,7 @@ class Model:
     def request_model_changes(self, reqs):
         for req in reqs:
             self.request_model_change(req)
+        self._propagate_model()
     
     def request_model_change(self, req):
         req_type = req["type"]
@@ -140,7 +150,6 @@ class Model:
                 tgt_vtx_id,
                 tgt_port_id,
             )
-            self._propagate_model()
         elif req_type == "deleteVertex":
             vtx_id = req["vertexId"]
             if not self._graph.has_vertex_id(vtx_id):
@@ -162,7 +171,6 @@ class Model:
                 return
             
             self._layer_set_fields(layer_id, field_values)
-            self._propagate_model()
         elif req_type == "createLayer":
             layer_type = req["layerType"]
             new_layer_id = req["newLayerId"]
@@ -186,9 +194,7 @@ class Model:
                         return
             
             self._add_layer(layer_type, new_layer_id, layer_x, layer_y)
-            
 
-        
     def _propagate_model(self):
         topo_sorted_vertices = self._topo_sort_vertices()
 
@@ -544,44 +550,10 @@ class Model:
             return {
                 "vertexIds": self._graph.new_unique_vertex_ids(count)
             }
-        elif req_type == "valueIsReadonly":
-            print("Unimplemented valueIsReadonly")
-            return {
-                "requestError": None,
-                "isReadonly": False,
-            }
-            #   "valueIsReadonly": {
-            #     "request": {
-            #       type: "valueIsReadonly";
-            #       layerId: string;
-            #       valueId: string;
-            #     };
-            #     "response": {
-            #       requestError: null;
-            #       isReadonly: false;
-            #     } | {
-            #       requestError: null;
-            #       isReadonly: true;
-            #       reason: "port_is_occupied" | "value_is_not_modifiable";
-            #     } | {
-            #       requestError: "layer_nonexistent";
-            #     } | {
-            #       requestError: "field_nonexistent";
-            #     };
-            #   };
         elif req_type == "getGraphData":
             return {
                 "data": self._graph.to_json_serializable()
             }
-            #   "getGraphData": {
-            #     "request": {
-            #       type: "getGraphData";
-            #     };
-            #     "response": {
-            #       data: IGraphData;
-            #     };
-            #   };
-            # }
         elif req_type == "getListOfLayers":
             # @TODO : Make this generated instead of hard-coded
             layers = []

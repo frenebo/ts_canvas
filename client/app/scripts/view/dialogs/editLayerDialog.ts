@@ -98,12 +98,6 @@ export class EditLayerDialog extends Dialog {
     this.root.appendChild(fieldDiv);
 
     for (const fieldId of Object.keys(layerData.fields)) {
-      // const fieldReadonlyInfo = await this.sendModelInfoRequests<"valueIsReadonly">({
-      //   layerId: this.layerId,
-      //   type: "valueIsReadonly",
-      //   valueId: fieldId,
-      // });
-
       this.fieldsReadonlyDict[fieldId] = {isReadonly: layerInfoResponse.data.fields[fieldId].fieldIsReadonly};
 
       const row = this.createFieldRow(fieldId, layerData.fields[fieldId].value);

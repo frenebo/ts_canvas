@@ -272,25 +272,6 @@ interface IModelInfoReqs extends ReqMapType<keyof IModelInfoReqs> {
       vertexIds: string[];
     };
   };
-  "valueIsReadonly": {
-    "request": {
-      type: "valueIsReadonly";
-      layerId: string;
-      valueId: string;
-    };
-    "response": {
-      requestError: null;
-      isReadonly: false;
-    } | {
-      requestError: null;
-      isReadonly: true;
-      reason: "port_is_occupied" | "value_is_not_modifiable";
-    } | {
-      requestError: "layer_nonexistent";
-    } | {
-      requestError: "field_nonexistent";
-    };
-  };
   "getGraphData": {
     "request": {
       type: "getGraphData";

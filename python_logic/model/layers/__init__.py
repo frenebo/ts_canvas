@@ -5,3 +5,5 @@ from .dense_layer import DenseLayer
 from .conv2d_layer import Conv2DLayer
 from .input_layer import InputLayer
 from .output_layer import OutputLayer
+from .reshape_layer import ReshapeLayer
+from .activation_layer import ActivationLayer

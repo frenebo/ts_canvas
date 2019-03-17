@@ -8,16 +8,20 @@ class BaseLayer:
         input_ports_with_field_names,
         output_ports_with_field_names,
         ):
-        assert isinstance(field_val_wrappers, dict), "Assert field val wrappers is a dict"
-        for field_name in field_val_wrappers:
-            assert isinstance(field_name, str), "Assert field names are strings"
-            assert isinstance(field_val_wrappers[field_name], BaseValueWrapper), "Assert field value wrappers instances of BaseValueWrapper"
+        assert isinstance(field_val_wrappers, list), "Assert field val wrappers is a list of field name - value wrapper pairs"
+        for entry in field_val_wrappers:
+            assert isinstance(entry, tuple), "Assert field val wrappers entries are tuples"
+            assert len(entry) == 2, "Assert field val wrapper entries are tuples of length 2"
+            assert isinstance(entry[0], str), "Assert field val wrapper entries have string names as first values"
+            assert isinstance(entry[1], BaseValueWrapper), "Assert field wrappers have value wrappers as second values"
+        
+        self._field_val_wrappers = field_val_wrappers
         
         
         assert isinstance(readonly_field_names, list), "Assert BaseLayer constructor argument is a list"
         for field_name in readonly_field_names:
             assert isinstance(field_name, str), "Assert BaseLayer constructor argument is a list of strings"
-            assert field_name in field_val_wrappers, "Assert field names are all in field_val_wrappers"
+            assert self.has_field(field_name), "Assert field names are all in field_val_wrappers"
         
         for ports_with_field_names in [input_ports_with_field_names, output_ports_with_field_names]:
             assert isinstance(ports_with_field_names, list), "Assert ports with field names argument is a list of port name-field name pairs"
@@ -28,16 +32,33 @@ class BaseLayer:
                 assert isinstance(port_and_name[1], str), "Assert field name is string in port name-field name pair"
         # @TODO : check that there are no conflicting input and output port names
         
-        self._field_val_wrappers = field_val_wrappers
         self._readonly_field_names = readonly_field_names
         self._input_ports_with_field_names = input_ports_with_field_names
         self._output_ports_with_field_names = output_ports_with_field_names
     
+    def has_field(self, field_name):
+        for entry in self._field_val_wrappers:
+            if entry[0] == field_name:
+                return True
+        return False
+    
+    def field_names(self):
+        names = []
+        for entry in self._field_val_wrappers:
+            names.append(entry[0])
+        return names
+    
+    def get_field_val_wrapper(self, field_name):
+        for entry in self._field_val_wrappers:
+            if entry[0] == field_name:
+                return entry[1]
+        return None
+    
     @staticmethod
     def copy_layer_fields(source_layer, target_layer):
-        for field_name in source_layer._field_val_wrappers:
-            target_layer._field_val_wrappers[field_name].set_value_string(
-                source_layer._field_val_wrappers[field_name].get_value_string()
+        for field_name in source_layer.field_names():
+            target_layer.get_field_val_wrapper(field_name).set_value(
+                source_layer.get_field_val_wrapper(field_name).get_value()
             )
 
     def port_names(self):
@@ -68,11 +89,6 @@ class BaseLayer:
         
         raise KeyError(port_name)
 
-    def field_names(self):
-        return list(self._field_val_wrappers.keys())
-    
-    def get_field_val_wrapper(self, field_name):
-        return self._field_val_wrappers[field_name]
 
     def is_field_read_only(self, field_name):
         return field_name in self._readonly_field_names
