@@ -7,3 +7,4 @@ from .input_layer import InputLayer
 from .output_layer import OutputLayer
 from .reshape_layer import ReshapeLayer
 from .activation_layer import ActivationLayer
+from .batch_normalization import BatchNormalizationLayer

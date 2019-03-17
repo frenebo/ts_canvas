@@ -11,10 +11,10 @@ class BooleanWrapper(BaseValueWrapper):
         return None
     
     def compare_values(self, val1, val2):
-        raise NotImplementedError()
+        return val1 == val2
     
     def stringify_value(self, value):
-        raise NotImplementedError()
+        return "true" if value else "false"
     
     def parse_string(self, value_string):
         processed = value_string.lower().strip()
@@ -23,4 +23,4 @@ class BooleanWrapper(BaseValueWrapper):
         elif processed == "false":
             return False
         else:
-            raise ValueWrapperException("Value is not a boolean")
+            raise ValueWrapperException("Value is not \"true\" or \"false\"")
