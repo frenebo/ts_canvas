@@ -10,6 +10,7 @@ from .layers import (
     ReshapeLayer,
     ActivationLayer,
     BatchNormalizationLayer,
+    AddLayer,
     )
 from .value_wrappers import ValueWrapperException
 
@@ -24,6 +25,7 @@ class Model:
             "Reshape": ReshapeLayer,
             "Activation": ActivationLayer,
             "Batch Normalization": BatchNormalizationLayer,
+            "Add": AddLayer,
         }
         
         self._graph = Graph()

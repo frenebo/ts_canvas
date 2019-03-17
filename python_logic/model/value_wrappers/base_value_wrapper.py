@@ -28,7 +28,7 @@ class BaseValueWrapper:
     
     def compare_to_value(self, value):
         try:
-            return compare_values(self._value, value)
+            return self.compare_values(self._value, value)
         except:
             return False
     
