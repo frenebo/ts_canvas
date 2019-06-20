@@ -61,7 +61,7 @@ export class StageManager {
       () => this.app.renderer.height,
     );
   }
-  
+
   /**
    * Sets the dimensions of the graph.
    * @param width - The new width of the graph
@@ -70,7 +70,7 @@ export class StageManager {
   public setDimensions(width: number, height: number): void {
     this.backgroundWrapper.setDimensions(width, height);
     this.app.renderer.resize(width, height);
-    
+
     for (const listener of this.positionZoomChangedListeners) {
       listener();
     }
@@ -115,7 +115,7 @@ export class StageManager {
   public onPositionOrZoomChanged(l: () => void): void {
     this.positionZoomChangedListeners.push(l);
   }
-  
+
   /**
    * Gives the stage interface for this stage manager.
    * @returns The stage interface
@@ -126,7 +126,7 @@ export class StageManager {
 
   /**
    * Gives the position of the mouse relative to the graph, adjusted for zoom.
-   * @returns An object the mouse's X and Y positions
+   * @returns An object with the mouse's X and Y positions
    */
   public getMousePos(): {x: number; y: number} {
     const globalMouseX = this.app.renderer.plugins.interaction.mouse.global.x;
@@ -140,7 +140,7 @@ export class StageManager {
         y: 0,
       };
     }
-    
+
     const mouseX: number =
       globalMouseX / this.getScale() - this.stageXOffset() / this.getScale();
 

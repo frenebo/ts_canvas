@@ -12,6 +12,7 @@ export class AddLayerDialog extends Dialog {
    * @param width - The width of the dialog
    * @param height - The height of the dialog
    * @param sendModelInfoRequests - An asynchronous function to request info from the model
+   * @param getCursorLoc - A function to get the current location of the cursor
    */
   constructor(
     private readonly closeDialogFunc: () => void,
@@ -19,6 +20,7 @@ export class AddLayerDialog extends Dialog {
     height: number,
     private readonly sendModelInfoRequests: RequestInfoFunc,
     private readonly sendModelChangeRequests: RequestModelChangesFunc,
+    private readonly getCursorLoc: () => {x: number, y: number},
   ) {
     super(closeDialogFunc, width, height);
     this.root.style.overflowY = "scroll";
@@ -85,13 +87,15 @@ export class AddLayerDialog extends Dialog {
             count: 1,
           });
           const uniqueVtxId = infoResponse.vertexIds[0];
+
+          const cursorLoc: {x: number, y: number} = this.getCursorLoc();
           this.sendModelChangeRequests({
             type: "createLayer",
             layerType: layerInfo.layerType,
             newLayerId: uniqueVtxId,
-            x: 0,
-            y: 0, // @TODO don't just use 0, 0
-          })
+            x: cursorLoc.x,
+            y: cursorLoc.y,
+          });
           this.closeDialogFunc();
         });
       }

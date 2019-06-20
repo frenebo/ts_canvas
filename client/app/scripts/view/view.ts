@@ -64,6 +64,7 @@ export class View implements IViewInterface {
       sendModelChangeRequests,
       sendModelInfoRequests,
       sendModelVersioningRequest,
+      () => this.graphManager.getMousePos(),
     );
 
     this.graphManager = new GraphManager(

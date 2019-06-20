@@ -22,12 +22,14 @@ export class DialogManager {
    * @param sendModelChangeRequests - An asynchronous function to request changes to the model
    * @param sendModelInfoRequests - An asynchronous function to request info from the model
    * @param sendModelVersioningRequest - An asynchronous function to request versioning changes to the model
+   * @param getCursorLoc - A function to get the current location of the cursor
    */
   constructor(
     private readonly div: HTMLDivElement,
     private readonly sendModelChangeRequests: RequestModelChangesFunc,
     private readonly sendModelInfoRequests: RequestInfoFunc,
     private readonly sendModelVersioningRequest: RequestVersioningChangeFunc,
+    private readonly getCursorLoc: () => {x: number, y: number},
   ) {
     const that = this;
     document.addEventListener("keydown", (ev) => {
@@ -59,6 +61,7 @@ export class DialogManager {
       DialogManager.dialogHeight,
       this.sendModelInfoRequests,
       this.sendModelChangeRequests,
+      this.getCursorLoc,
     );
     this.div.appendChild(dialog.root);
     this.currentDialog = dialog;

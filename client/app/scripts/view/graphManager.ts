@@ -111,6 +111,14 @@ export class GraphManager {
   }
 
   /**
+   * Gives the position of the mouse relative to the graph, adjusted for zoom.
+   * @returns An object with the mouse's X and Y positions
+   */
+  public getMousePos(): {x: number; y: number} {
+    return this.stageManager.getMousePos();
+  }
+
+  /**
    * Gives the selection manager of this graph.
    * @returns The selection manager
    */
@@ -228,7 +236,7 @@ export class GraphManager {
     }
     this.cullingManager.removeVertex(vertexKey);
     this.portPreviewManager.removeVertex(vertexKey);
-    
+
     delete this.vertexWrappers[vertexKey];
     delete this.ports[vertexKey];
   }
