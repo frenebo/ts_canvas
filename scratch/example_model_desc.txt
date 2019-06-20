@@ -1,0 +1,44 @@
+using types [
+    "builtin/types/Tensor" as Tensor
+]
+
+using modules [
+    "builtin/modules/Conv2D" as Conv2D
+    "builtin/modules/Activation" as Activation
+    "builin/modules/Concatenate" as Concatenate
+    "example/modules/Submodel" as Submodel
+]
+
+main = module {
+    inputs = Tensor[?,?,3]
+    outputs = Tensor[?,?,3]
+
+    submodules = {
+        conv1 = Conv2D {
+            activation = "relu"
+            kernelsize = [3,3]
+            stride = [2,2]
+        }
+
+        conv2 = Conv2D {
+            activation = "relu"
+            kernelsize = [3,3]
+            stride = [4,4]
+        }
+
+        subnet = Submodel {}
+
+        concat = Concatenate {
+            axis = -1
+        }
+    }
+
+    connections = {
+        x = conv1(inputs)
+        y = conv2(inputs)
+        x = subnet(x)
+        y = subnet(y)
+
+        concatenated = Concatenate(x, y)
+    }
+}
