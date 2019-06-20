@@ -2,8 +2,9 @@ import { StageInterface } from "../stageInterface.js";
 import { GraphicWrapper } from "./graphicWrapper.js";
 
 export class LabelWrapper extends GraphicWrapper {
+  // @WARNING @TODO problems if there are too many different label strings
   private static readonly cachedLabels = new Map<string, PIXI.RenderTexture>();
-  
+
   /**
    * Creates a PIXI sprite label for the given text.
    * @param stageInterface - The stage interface
