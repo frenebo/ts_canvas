@@ -2,13 +2,13 @@ import sys
 import os
 from flask import Flask, send_from_directory, request
 from flask_socketio import SocketIO, send, Namespace
-from model import Model
+from python_logic.model import Model
 # from graph_server_interface import GraphServerInterface
 import eventlet
 eventlet.monkey_patch()
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
-APP_DIRECTORY = os.path.abspath(os.path.join(script_dir, '../client/build'))
+APP_DIRECTORY = os.path.abspath(os.path.join(script_dir, './client/build'))
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -33,7 +33,7 @@ class MyCustomNamespace(Namespace):
         super().__init__(*args)
 
         self._model = Model()
-    
+
     def on_model_request(self, data):
         # print(data)
         request_id = data["requestId"]
@@ -52,7 +52,7 @@ class MyCustomNamespace(Namespace):
         elif req_type == "request_versioning_change":
             print("Unimplimented versioning")
             response = {}
-        
+
         socketio.emit("model_req_response", {
             "request_id": request_id,
             "response": response
@@ -70,10 +70,11 @@ class MyCustomNamespace(Namespace):
 socketio.on_namespace(MyCustomNamespace(SOCKET_NAMESPACE_STR))
 
 if __name__ == "__main__":
-    host = None
-    if len(sys.argv) == 2:
-        host = sys.argv[1]
-    else:
-        host = "0.0.0.0"
+    host = '127.0.0.1'
+    # host = None
+    # if len(sys.argv) == 2:
+    #     host = sys.argv[1]
+    # else:
+    #     host = "0.0.0.0"
 
-    socketio.run(app, host=host, port=5000)
+    socketio.run(app, host=host, port=8080)
