@@ -1,6 +1,8 @@
 # ts_canvas
 
-Run gulp build (using gulp-cli installed globally with npm), then run the app.py script in python_logic directory
+Demo video: https://www.youtube.com/watch?v=CwIG4Is1iIk&feature=youtu.be
+
+Run gulp build (using gulp-cli installed globally with npm), then run the main.py script.
 
 The app should be accessible at:
 http://localhost:5000
