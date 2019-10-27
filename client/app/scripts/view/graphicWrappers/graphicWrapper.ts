@@ -2,7 +2,6 @@
 /** Class for wrapping a PIXI object */
 export abstract class GraphicWrapper {
   private readonly container: PIXI.Container;
-  private readonly positionChangedListeners: Array<() => void> = [];
 
   /**
    * Constructs a graphic wrapper.
@@ -69,18 +68,6 @@ export abstract class GraphicWrapper {
    */
   public setLocalPosition(x: number, y: number): void {
     this.container.position.set(x, y);
-
-    for (const listener of this.positionChangedListeners) {
-      listener();
-    }
-  }
-
-  /**
-   * Adds a listener to be called when the position of this graphic wrapper gets changed.
-   * @param listener - The listener
-   */
-  public addPositionChangedListener(listener: () => void): void {
-    this.positionChangedListeners.push(listener);
   }
 
   /**
