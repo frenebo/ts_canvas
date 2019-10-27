@@ -13,6 +13,8 @@ from .layers import (
     AddLayer,
     )
 from .value_wrappers import ValueWrapperException
+from .file_utils import list_of_saved, save_model, load_model, try_delete_file
+
 
 class Model:
     def __init__(self):
@@ -27,7 +29,7 @@ class Model:
             "Batch Normalization": BatchNormalizationLayer,
             "Add": AddLayer,
         }
-        
+
         self._graph = Graph()
         self._layer_dict = {}
 
@@ -41,7 +43,7 @@ class Model:
 
         if layer_type not in self._available_layers:
             raise NotImplementedError()
-        
+
         new_layer = self._available_layers[layer_type]()
 
         self._layer_dict[new_layer_id] = new_layer
@@ -49,34 +51,34 @@ class Model:
         ports = {}
         input_port_idx = 0
         output_port_idx = 0
-        
+
         for port_name in new_layer.port_names():
             port_side = None
             port_type = None
             port_position = None
-            
+
             if new_layer.port_is_input(port_name):
                 port_side = "top"
                 port_type = "input"
                 port_position = (input_port_idx + 1)/(new_layer.input_port_count() + 1)
-                
+
                 input_port_idx += 1
             else:
                 port_side = "bottom"
                 port_type = "output"
                 port_position = (output_port_idx + 1)/(new_layer.output_port_count() + 1)
-                
+
                 output_port_idx += 1
-            
+
             port_field_name = new_layer.field_name_of_port(port_name)
-            
+
             ports[port_name] = Port(
                 port_side,
                 port_position,
                 port_type,
                 port_field_name
             )
-        
+
         self._graph.add_vertex(
             new_layer_id,
             Vertex(layer_type, ports, x_pos, y_pos)
@@ -84,12 +86,12 @@ class Model:
 
     def json_serializable_graph(self):
         return self._graph.to_json_serializable()
-    
+
     def request_model_changes(self, reqs):
         for req in reqs:
             self.request_model_change(req)
         self._propagate_model()
-    
+
     def request_model_change(self, req):
         req_type = req["type"]
 
@@ -100,9 +102,9 @@ class Model:
 
             if not self._graph.has_vertex_id(vtx_id):
                 return
-            
+
             vtx = self._graph.get_vertex(vtx_id)
-            
+
             vtx.set_x(new_x)
             vtx.set_y(new_y)
         elif req_type == "cloneVertex":
@@ -115,9 +117,9 @@ class Model:
                 return
             if not self._graph.has_vertex_id(src_vtx_id):
                 return
-            
+
             src_layer = self._layer_dict[src_vtx_id]
-            
+
             # Can only be one input or output layer
             if isinstance(src_layer, InputLayer) or isinstance(src_layer, OutputLayer):
                 return
@@ -146,7 +148,7 @@ class Model:
 
             if validated is not None:
                 return
-            
+
             self._graph.create_edge(
                 new_edge_id,
                 src_vtx_id,
@@ -158,14 +160,14 @@ class Model:
             vtx_id = req["vertexId"]
             if not self._graph.has_vertex_id(vtx_id):
                 return
-            
+
             self._graph.delete_vertex(vtx_id)
             del self._layer_dict[vtx_id]
         elif req_type == "deleteEdge":
             edge_id = req["edgeId"]
             if not self._graph.has_edge_id(edge_id):
                 return
-            
+
             self._graph.delete_edge(edge_id)
         elif req_type == "setLayerFields":
             layer_id = req["layerId"]
@@ -173,14 +175,14 @@ class Model:
             update_validated = self._validate_layer_set_fields(layer_id, field_values)
             if update_validated is not None:
                 return
-            
+
             self._layer_set_fields(layer_id, field_values)
         elif req_type == "createLayer":
             layer_type = req["layerType"]
             new_layer_id = req["newLayerId"]
             layer_x = req["x"]
             layer_y = req["y"]
-            
+
             if new_layer_id in self._layer_dict:
                 return
 
@@ -196,7 +198,7 @@ class Model:
                 for layer in self._layer_dict:
                     if isinstance(layer, OutputLayer):
                         return
-            
+
             self._add_layer(layer_type, new_layer_id, layer_x, layer_y)
 
     def _propagate_model(self):
@@ -205,12 +207,12 @@ class Model:
         for vertex_id in topo_sorted_vertices:
             for edge_out_id in self._graph.edge_ids_out_of_vertex(vertex_id):
                 self._propagate_edge(edge_out_id)
-    
+
     def _propagate_edge(self, edge_id):
         edge =  self._graph.get_edge(edge_id)
         source_vertex = self._graph.get_vertex(edge.source_vertex_id())
         target_vertex = self._graph.get_vertex(edge.target_vertex_id())
-        
+
         source_field_name = source_vertex.get_port(edge.source_port_id()).value_name()
         target_field_name = target_vertex.get_port(edge.target_port_id()).value_name()
 
@@ -238,7 +240,7 @@ class Model:
                     update_works = True
                 except LayerUpdateException:
                     update_works = False
-                
+
                 if update_works:
                     target_layer.get_field_val_wrapper(target_field_name).set_value(source_field_value)
                     target_layer.update()
@@ -256,20 +258,20 @@ class Model:
             root_vertex_ids = []
             for vertex_id in remaining_vertex_ids:
                 is_root = True
-                
+
                 for edge_id_in in self._graph.edge_ids_into_vertex(vertex_id):
                     edge_source_id = self._graph.get_edge(edge_id_in).source_vertex_id()
 
                     if edge_source_id in remaining_vertex_ids:
                         is_root = False
-                
+
                 if is_root:
                     root_vertex_ids.append(vertex_id)
-            
+
             for root_vertex_id in root_vertex_ids:
                 top_to_bottom.append(root_vertex_id)
                 remaining_vertex_ids.remove(root_vertex_id)
-        
+
         return top_to_bottom
 
     def _layer_set_fields(self, layer_name, field_value_strings):
@@ -277,24 +279,24 @@ class Model:
         for field_name in field_value_strings:
             layer.get_field_val_wrapper(field_name).set_value_string(field_value_strings[field_name])
         layer.update()
-    
+
     def _validate_layer_set_fields(self, layer_name, field_value_strings):
         if layer_name not in self._layer_dict:
             return "Layer does not exist"
-        
+
         cloned_layer = self._layer_dict[layer_name].clone()
-            
+
         for field_name in field_value_strings:
             try:
                 cloned_layer.get_field_val_wrapper(field_name).set_value_string(field_value_strings[field_name])
             except ValueWrapperException as exp:
                 return "Field named \"" + field_name + "\" has invalid value: " + str(exp)
-            
+
         try:
             cloned_layer.update()
         except LayerUpdateException as exp:
             return str(exp)
-        
+
         return None
 
     def _validate_edge_propagation(
@@ -313,28 +315,50 @@ class Model:
             return "Target port does not exist"
         if target_port_id not in target_vertex.port_ids():
             return "Target port does not exist"
-        
+
         source_field_name = source_vertex.get_port(source_port_id).value_name()
         target_field_name = target_vertex.get_port(target_port_id).value_name()
-        
+
         source_layer = self._layer_dict[source_vertex_id]
         target_layer = self._layer_dict[target_vertex_id]
-        
+
         # validate field
         source_field_value = source_layer.get_field_val_wrapper(source_field_name).get_value()
         value_validated = target_layer.get_field_val_wrapper(target_field_name).validate_value(source_field_value)
 
         if value_validated is not None:
             return "Source value not compatible with target port: " + value_validated
-        
+
         source_field_value_string = source_layer.get_field_val_wrapper(source_field_name).get_value_string()
         # validate target layer update
         update_validated = self._validate_layer_set_fields(
             target_vertex_id,
             {target_field_name: source_field_value_string}
         )
-        
+
         return update_validated
+
+    def make_versioning_request(self, req):
+        req_type = req["type"]
+
+        if req_type == "undo":
+            print("undo unimplemented")
+        if req_type == "redo":
+            print("redo unimplemented")
+        if req_type == "saveFile":
+            save_obj = {
+                "graph": self._graph,
+                "layer_dict": self._layer_dict,
+            }
+            save_model(req["fileName"], save_obj)
+        if req_type == "openFile":
+            load_obj = load_model(req["fileName"])
+            if load_obj is not None:
+                self._graph = load_obj["graph"]
+                self._layer_dict = load_obj["layer_dict"]
+
+        if req_type == "deleteFile":
+            try_delete_file(req["fileName"])
 
     def make_info_request(self, req):
         req_type = req["type"]
@@ -347,7 +371,7 @@ class Model:
                 req["targetVertexId"],
                 req["targetPortId"],
             )
-            
+
             if possible_graph_err is not None:
                 return {"valid": False, "problem": possible_graph_err}
 
@@ -360,12 +384,12 @@ class Model:
 
             if port_compatibility_err is not None:
                 return {"valid": False, "problem": port_compatibility_err}
-            
+
             return {"valid": True}
         elif req_type == "edgesBetweenVertices":
             vertex_ids = req["vertexIds"]
             missing_vertices = []
-            
+
             for vtx_id in vertex_ids:
                 if not self._graph.has_vertex_id(vtx_id):
                     missing_vertices.append(vtx_id)
@@ -374,13 +398,13 @@ class Model:
                     "verticesExist": False,
                     "requestNonexistentVertices": missing_vertices
                 }
-            
+
             edge_ids = self._graph.edge_ids_between_vertices(vertex_ids)
             edges = {}
-            
+
             for edge_id in edge_ids:
                 edges[edge_id] = self._graph.get_edge(edge_id).to_json_serializable()
-            
+
             return {
                 "verticesExist": True,
                 "edges": edges
@@ -391,22 +415,23 @@ class Model:
                 "fileIsOpen": False
             }
         elif req_type == "savedFileNames":
-            print("Unimplemented savedFileNames")
+            file_names = list_of_saved()
+            # print("Unimplemented savedFileNames")
             return {
-                "fileNames": []
+                "fileNames": file_names
             }
         elif req_type == "getPortInfo":
             port_id = req["portId"]
             vtx_id = req["vertexId"]
-            
+
             if not self._graph.has_vertex_id(vtx_id):
                 return {"couldFindPort": False}
-            
+
             if not self._graph.get_vertex(vtx_id).has_port(port_id):
                 return {"couldFindPort": False}
-            
+
             port_value_name = self._graph.get_vertex(vtx_id).get_port(port_id).value_name()
-            
+
             layer_value_str = self._layer_dict[vtx_id].get_field_val_wrapper(port_value_name).get_value_string()
 
             return {
@@ -420,32 +445,32 @@ class Model:
                 return {
                     "layerExists": False
                 }
-            
+
             vertex = self._graph.get_vertex(layer_id)
             layer = self._layer_dict[layer_id]
-            
+
             port_data = {}
             for port_id in vertex.port_ids():
                 port_data[port_id] = {
                     "valueName": vertex.get_port(port_id).value_name()
                 }
-            
+
             # get list of fields that are set by incoming edges - these fields should be read-only
             occupied_fields = []
             for edge_id_in in  self._graph.edge_ids_into_vertex(layer_id):
                 target_port_id = self._graph.get_edge(edge_id_in).target_port_id()
                 target_field_id = layer.field_name_of_port(target_port_id)
                 occupied_fields.append(target_field_id)
-            
+
             field_data = {}
             for field_name in layer.field_names():
                 is_readonly = layer.is_field_read_only(field_name) or field_name in occupied_fields
-                
+
                 field_data[field_name] = {
                     "value": layer.get_field_val_wrapper(field_name).get_value_string(),
                     "fieldIsReadonly": is_readonly
                 }
-            
+
             return {
                 "layerExists": True,
                 "data": {
@@ -462,13 +487,13 @@ class Model:
                 return {
                     "requestError": "layer_nonexistent"
                 }
-            
+
             if field_name not in self._layer_dict[layer_id].field_names():
                 return {
                     "requestError": "field_nonexistent",
                     "fieldName": field_name
                 }
-            
+
             validated = self._layer_dict[layer_id].get_field_val_wrapper(field_name).validate_value_string(new_value_string)
 
             return {
@@ -483,16 +508,16 @@ class Model:
                 return {
                     "requestError": "layer_nonexistent",
                 }
-            
+
             layer = self._layer_dict[layer_id]
 
             if field_id not in layer.field_names():
                 return {
                     "requestError": "field_nonexistent"
                 }
-            
+
             is_equal = layer.get_field_val_wrapper(field_id).compare_to(compare_value)
-            
+
             return {
                 "requestError": None,
                 "isEqual": is_equal
@@ -505,11 +530,11 @@ class Model:
                 return {
                     "requestError": "layer_nonexistent"
                 }
-            
+
             cloned_layer = self._layer_dict[layer_name].clone()
-            
+
             errors = []
-            
+
             for field_name in field_value_strings:
                 if field_name not in cloned_layer.field_names():
                     return {
@@ -522,14 +547,14 @@ class Model:
                         errors.append(field_name + ": " + validated)
                     else:
                         cloned_layer.get_field_val_wrapper(field_name).set_value_string(field_value_strings[field_name])
-            
+
             if len(errors) != 0:
                 return {
                     "requestError": None,
                     "errors": errors,
                     "warnings": []
                 }
-            
+
             try:
                 cloned_layer.update()
             except LayerUpdateException as exp:
@@ -538,7 +563,7 @@ class Model:
                     "errors": [str(exp)],
                     "warnings": [],
                 }
-            
+
             return {
                 "requestError": None,
                 "errors": [],
@@ -568,7 +593,7 @@ class Model:
                     for layer_id in self._layer_dict:
                         if isinstance(self._layer_dict[layer_id], InputLayer):
                             possible_reason_not_available = "Only one input allowed per graph"
-                
+
                 if layer_type == "Output":
                     for layer_id in self._layer_dict:
                         if isinstance(self._layer_dict[layer_id], OutputLayer):
@@ -577,7 +602,7 @@ class Model:
                     "layerType": layer_type,
                     "reasonNotAvailable": possible_reason_not_available
                 })
-            
+
             return {
                 "layers": layers
             }

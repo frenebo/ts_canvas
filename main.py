@@ -50,7 +50,8 @@ class MyCustomNamespace(Namespace):
         elif req_type == "request_model_info":
             response = self._model.make_info_request(req["req"])
         elif req_type == "request_versioning_change":
-            print("Unimplimented versioning")
+            response = self._model.make_versioning_request(req["req"])
+            changed = True
             response = {}
 
         socketio.emit("model_req_response", {
