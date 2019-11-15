@@ -38,7 +38,7 @@ def assert_num_value(name, val, require_integer=None):
 
 def get_output_shape(layer, input_shape):
     # first dimension None is for batch
-    input_with_none = [None] + input_shape
+    # input_with_none = [None] + input_shape
     output_with_none = list(layer.compute_output_shape([None] + input_shape))
     return output_with_none[1:]
 
