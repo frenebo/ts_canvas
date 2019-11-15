@@ -26,7 +26,7 @@ def assert_shape_list_value(name, arr, dim_count=None):
             raise InvalidFieldValueException(name, "Dimension {0} must be a positive integer".format(i + 1))
 
         if dim <= 0:
-            raise InvalidFieldValueException(name, "Dimension {0} must be a positive integer")
+            raise InvalidFieldValueException(name, "Dimension {0} must be a positive integer".format(i + 1))
 
 def assert_num_value(name, val, require_integer=None):
     if (not isinstance(val, int)) and (not isinstance(val, float)):
